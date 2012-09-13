@@ -99,7 +99,7 @@ class ForpTreePrinter
             ?>
             <div id="forp">
             <table>
-                    <tr><th>CPU(ms)</th><th>memory(o)</th><th>function</th><th>file</th></tr>
+                    <tr><th>duration(ms)</th><th>memory(o)</th><th>function</th><th>file</th></tr>
             <?php
             foreach($this->getGUIManager()->getStack() as $entry) {
                 printf( $line,
