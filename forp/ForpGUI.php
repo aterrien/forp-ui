@@ -99,11 +99,11 @@ class ForpTreePrinter
             ?>
             <div id="forp">
             <table>
-                    <tr><th>duration(ms)</th><th>memory(o)</th><th>function</th><th>file</th></tr>
+                    <tr><th>duration(μs)</th><th>memory(o)</th><th>function</th><th>file</th></tr>
             <?php
             foreach($this->getGUIManager()->getStack() as $entry) {
                 printf( $line,
-                        $entry['usec']/1000,
+                        $entry['usec'],
                         $entry['bytes'],
                         $entry['level'],
                         empty($entry['class']) ? '' : $entry['class'] . '::',
