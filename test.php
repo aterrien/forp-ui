@@ -17,12 +17,12 @@ function test1(){test();};
 class Foo {
     function bar() { test1(); }
 }
-$lambda = function() {};
+$lambda = function() { sleep(1); };
 test();
 for($i=0;$i<5;$i++){ test1(); }
+$lambda();
 $foo = new Foo();
 $foo->bar();
-$lambda();
 ?>
     </body>
 </html>
