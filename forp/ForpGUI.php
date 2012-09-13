@@ -95,7 +95,7 @@ class ForpTreePrinter
             #forp div.i{float:left;}
             </style>
             <?php
-            $line = "<tr><td class='r'>%.03f</td><td class='r'>%d</td><td><div class='i' style='width:%d0px;'>&nbsp;</div>%s%s</td><td>%s</td></tr>";
+            $line = "<tr><td class='r'>%d</td><td class='r'>%d</td><td><div class='i' style='width:%d0px;'>&nbsp;</div>%s%s</td><td>%s</td></tr>";
             ?>
             <div id="forp">
             <table>
