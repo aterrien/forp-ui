@@ -1,28 +1,71 @@
 <?php
+/*
+ * This file is part of forp.
+ */
+
+/**
+ * Describes a stack printer
+ *
+ * @author aterrien
+ */
 interface IForpPrinter {
+    /**
+     * Renders the forp stack on the screen
+     */
 	public function render();
 }
 
+/**
+ * Abstraction of a stack printer
+ *
+ * @author aterrien
+ */
 abstract class ForpPrinterAbstract {
 
+    /**
+     * @var ForpGUI $GUIManager
+     */
 	protected $GUIManager;
 
+    /**
+     * @param ForpGUI $GUIManager
+     */
 	public function setGUIManager(ForpGUI $GUIManager)
     {
 		$this->GUIManager = $GUIManager;
 	}
 
+    /**
+     * @return ForpGUI GUI Manager
+     */
 	public function getGUIManager()
     {
 		return $this->GUIManager;
 	}
 }
 
+/**
+ * ForpGUI main class, manages stack and printer
+ *
+ * @author aterrien
+ */
 class ForpGUI {
 
+    /**
+     * @var IForpPrinter $printer
+     */
 	protected $printer;
+
+    /**
+     * @var array $stack
+     */
 	protected $stack = array();
 
+    /**
+     * Constructor
+     *
+     * @param IForpPrinter $printer
+     */
 	public function __construct(IForpPrinter $printer = null)
 	{
 		$this->printer = (null === $printer) ?
@@ -30,22 +73,36 @@ class ForpGUI {
 		$this->printer->setGUIManager($this);
 	}
 
+    /**
+     * @param array $stack
+     */
 	public function setStack($stack)
 	{
 		$this->stack = $stack;
 	}
 
+    /**
+     * @return array
+     */
 	public function getStack()
 	{
 		return $this->stack;
 	}
 
+    /**
+     * Calls rendering of its IForpPrinter
+     */
 	public function render()
 	{
 		$this->printer->render();
 	}
 }
 
+/**
+ * Default printer
+ *
+ * @author aterrien
+ */
 class ForpDefaultPrinter
 	extends ForpPrinterAbstract
 	implements IForpPrinter {
@@ -64,6 +121,11 @@ class ForpDefaultPrinter
         }
 }
 
+/**
+ * Console printer = forp_print() wrapper
+ *
+ * @author aterrien
+ */
 class ForpConsolePrinter
     extends ForpPrinterAbstract
     implements IForpPrinter {
@@ -73,7 +135,12 @@ class ForpConsolePrinter
         }
 }
 
-class ForpTreePrinter
+/**
+ * HTML printer
+ *
+ * @author aterrien
+ */
+class ForpHTMLPrinter
 	extends ForpPrinterAbstract
 	implements IForpPrinter {
         public function render()
