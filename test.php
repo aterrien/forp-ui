@@ -33,6 +33,6 @@ $dump = forp_dump();
 
 // giving stack to GUI Manager and render
 include_once "forp/ForpGUI.php";
-$gui = new ForpGUI(new ForpTreePrinter());
+$gui = new ForpGUI(new ForpHTMLPrinter());
 $gui->setStack($dump);
 $gui->render();
