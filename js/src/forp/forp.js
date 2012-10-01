@@ -35,16 +35,18 @@ var SortedFixedArray = function(filter, size) {
 var forp = function(stack) {
     var self = this;
 
-    this.stack = stack; //[]; // RAW stack
+    this.stack = stack; // RAW stack
     this.hstack = null; // hashed stack
     this.topCpu = null;
     this.topCalls = null;
     this.topMemory = null;
     this.console = null;
+    this.found = {};
 
 
     // DOM Element wrapper
-    var o = function(element) {
+    var o = function(element)
+    {
         //console.log(element);
         this.element = element;
         this.bind = function(evType, fn) {
@@ -60,7 +62,8 @@ var forp = function(stack) {
         }
     };
 
-    this.f = function(mixed) {
+    this.f = function(mixed)
+    {
         if(typeof(mixed) == 'object') {
             return new o(mixed);
         } else {
@@ -68,14 +71,16 @@ var forp = function(stack) {
         }
     };
 
-    this.c = function(tag, appendTo, inner) {
+    this.c = function(tag, appendTo, inner)
+    {
         var e = document.createElement(tag);
         if(inner) e.innerHTML = inner;
         if(appendTo) appendTo.appendChild(e);
         return e;
     };
 
-    this.getHStack = function() {
+    this.getHStack = function()
+    {
         if(!this.hstack) {
             // hashing stack
             var id;
@@ -85,8 +90,10 @@ var forp = function(stack) {
                 id += this.stack[entry].function;
                 if(this.hstack[id]) {
                     this.hstack[id].calls ++;
-                    this.hstack[id].usec += parseInt(this.stack[entry].usec);
-                    this.hstack[id].bytes += parseInt(this.stack[entry].bytes);
+                    this.hstack[id].usec =
+                        parseInt(this.hstack[id].usec) +
+                        (parseInt(this.stack[entry].usec) / 1000);
+                    this.hstack[id].bytes += (Math.round((parseInt(this.stack[entry].bytes) / 1024)));// * 100) / 100);
                 } else {
                     this.hstack[id] = {};
                     this.hstack[id].id = id;
@@ -94,18 +101,33 @@ var forp = function(stack) {
                         (this.hstack[id].class = this.stack[entry].class);
                     this.hstack[id].function = this.stack[entry].function;
                     this.hstack[id].file = this.stack[entry].file;
-                    this.hstack[id].lineno = this.stack[entry].lineno;
+                    this.hstack[id].filelineno = this.stack[entry].file
+                        + (this.stack[entry].lineno ? ':' + this.stack[entry].lineno : '');
                     this.hstack[id].level = this.stack[entry].level;
                     this.hstack[id].calls = 1;
-                    this.hstack[id].usec = parseInt(this.stack[entry].usec);
-                    this.hstack[id].bytes = parseInt(this.stack[entry].bytes);
+                    this.hstack[id].usec = (parseInt(this.stack[entry].usec) / 1000);
+                    this.hstack[id].bytes = (Math.round((parseInt(this.stack[entry].bytes) / 1024)));// * 100) / 100);
                 }
             }
         }
         return this.hstack;
     };
 
-    this.getTopCalls = function() {
+    this.find = function(query)
+    {
+        if(!this.found[query]) {
+            this.found[query] = [];
+            for(var entry in this.getHStack()) {
+                var r = new RegExp(query);
+                if(r.test(this.hstack[entry].id))
+                this.found[query].push(this.hstack[entry]);
+            }
+        }
+        return this.found[query];
+    };
+
+    this.getTopCalls = function()
+    {
         if(!this.topCalls) {
             this.topCalls = new SortedFixedArray(
                 function(a, b) {return (a.calls > b.calls);},
@@ -119,12 +141,13 @@ var forp = function(stack) {
         return this.topCalls.stack;
     };
 
-    this.getTopCpu = function() {
+    this.getTopCpu = function()
+    {
         if(!this.topCpu) {
             this.topCpu = new SortedFixedArray(
                 function(a, b) {
-                    a.usecavg = (a.usec / a.calls);
-                    b.usecavg = (b.usec / b.calls);
+                    a.usecavg = Math.round((a.usec / a.calls) * 1000) / 1000;
+                    b.usecavg = Math.round((b.usec / b.calls) * 1000) / 1000;
                     return (a.usecavg > b.usecavg);
                 },
                 20
@@ -137,12 +160,13 @@ var forp = function(stack) {
         return this.topCpu.stack;
     };
 
-    this.getTopMemory = function() {
+    this.getTopMemory = function()
+    {
         if(!this.topMemory) {
             this.topMemory = new SortedFixedArray(
                 function(a, b) {
-                    a.bytesavg = (a.bytes / a.calls);
-                    b.bytesavg = (b.bytes / b.calls);
+                    a.bytesavg = Math.round((a.bytes / a.calls) * 100) / 100;
+                    b.bytesavg = Math.round((b.bytes / b.calls) * 100) / 100;
                     return (a.bytesavg > b.bytesavg);
                 },
                 20
@@ -155,91 +179,146 @@ var forp = function(stack) {
         return this.topMemory.stack;
     };
 
-    this.clear = function() {
-        this.console.innerHTML = "";
+    this.clear = function()
+    {
+        if(this.console) this.console.innerHTML = "";
     };
 
-    this.show = function(datas, func) {
+    this.show = function(datas, func)
+    {
         if(!this.console) {
             this.console = document.createElement("div");
             this.window.appendChild(this.console);
-        } else {
-            this.clear();
         }
         this.console.appendChild(func(datas));
     };
 
-    this.search = function(query) {
-        alert('search');
-    };
-
     // Init
     this.window = document.createElement("div");
-    var iSearch = document.createElement("input")
+    this.window.id = "forp";
+    document.body.appendChild(this.window);
+
+    var nav = document.createElement("nav")
+        ,iSearch = document.createElement("input")
         , aFull = document.createElement("a")
         , aTopCpu = document.createElement("a")
         , aTopMemory = document.createElement("a")
         , aTopCalls = document.createElement("a")
         ;
 
-    this.window.id = "forp";
-    document.body.appendChild(this.window);
+    this.window.appendChild(nav);
+
+    //nav.appendChild(document.createTextNode("forp"));
 
     aFull.innerHTML = "full";
-    this.window.appendChild(aFull);
+    nav.appendChild(aFull);
 
     aTopCpu.innerHTML = "CPU";
     aTopCpu.href = "#";
-    this.window.appendChild(aTopCpu);
+    nav.appendChild(aTopCpu);
 
     aTopMemory.innerHTML = "memory";
-    this.window.appendChild(aTopMemory);
+    aTopMemory.href = "#";
+    nav.appendChild(aTopMemory);
 
     aTopCalls.innerHTML = "calls";
-    this.window.appendChild(aTopCalls);
+    nav.appendChild(aTopCalls);
 
     iSearch.type = "search";
-    iSearch.autosave = "some_unique_value";
+    iSearch.autosave = "forp";
+    var results = document.createAttribute("results");
+    results.nodeValue = 5;
+    iSearch.setAttributeNode(results);
     iSearch.name = "s";
-    iSearch.results = 5;
     iSearch.placeholder = "Search forp";
-    this.window.appendChild(iSearch);
+    nav.appendChild(iSearch);
 
     this.f(aFull)
         .bind(
             'click',
             function() {
-               self.show(self.stack);
+                self.clear();
+                self.show(
+                    self.stack
+                    , function(datas) {
+                        var t = self.c("table")
+                            ,tr = self.c("tr", t);
+
+                        //self.c("th", tr, "function");
+                        //self.c("th", tr, "calls");
+                        //self.c("th", tr, "duration&nbsp;(ms)");
+                        //self.c("th", tr, "memory&nbsp;(kb)");
+                        //self.c("th", tr, "file");
+                        for(var i in datas) {
+                            tr = self.c("div", t);
+                            var id = '';
+                            for (var j = 0; j < datas[i].level; ++j) {
+                                if (j == datas[i].level - 1) id += "&nbsp;&nbsp;|----&nbsp;&nbsp;";
+                                else id += "&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;";
+                            }
+                            id += (datas[i].class) ? datas[i].class + '::' : '';
+                            id += datas[i].function;
+                            self.c("td", tr, id);
+                            //self.c("td", tr, datas[i].calls);
+                            //self.c("td", tr, datas[i].usec);
+                            //self.c("td", tr, datas[i].bytes + '');
+                            //self.c("td", tr, datas[i].file);
+                        }
+                        return t;
+                    }
+                );
             }
         );
     this.f(aTopCalls)
         .bind(
             'click',
             function() {
-               self.show(self.getTopCalls());
+                self.clear();
+                self.show(
+                    self.getTopCalls()
+                    , function(datas) {
+                        var t = self.c("table")
+                            ,tr = self.c("tr", t);
+                        self.c("th", tr, "function");
+                        self.c("th", tr, "calls");
+                        self.c("th", tr, "duration&nbsp;(ms)");
+                        self.c("th", tr, "memory&nbsp;(kb)");
+                        self.c("th", tr, "file");
+                        for(var i in datas) {
+                            tr = self.c("tr", t);
+                            self.c("td", tr, datas[i].id);
+                            self.c("td", tr, datas[i].calls);
+                            self.c("td", tr, datas[i].usec);
+                            self.c("td", tr, datas[i].bytes + '');
+                            self.c("td", tr, datas[i].filelineno);
+                        }
+                        return t;
+                    }
+                );
             }
         );
     this.f(aTopCpu)
         .bind(
             'click',
             function() {
+                self.clear();
                 self.show(
                     self.getTopCpu()
                     , function(datas) {
                         var t = self.c("table")
                             ,tr = self.c("tr", t);
                         self.c("th", tr, "function");
-                        self.c("th", tr, "avg duration");
+                        self.c("th", tr, "avg&nbsp;duration&nbsp;(ms)");
                         self.c("th", tr, "calls");
-                        self.c("th", tr, "duration");
+                        self.c("th", tr, "duration&nbsp;(ms)");
                         self.c("th", tr, "file");
                         for(var i in datas) {
                             tr = self.c("tr", t);
-                            self.c("td", tr, datas[i].function);
-                            self.c("td", tr, datas[i].usecavg / 1000);
+                            self.c("td", tr, datas[i].id);
+                            self.c("td", tr, datas[i].usecavg);
                             self.c("td", tr, datas[i].calls);
-                            self.c("td", tr, datas[i].usec / 1000);
-                            self.c("td", tr, datas[i].file + ":" + datas[i].lineno);
+                            self.c("td", tr, datas[i].usec);
+                            self.c("td", tr, datas[i].filelineno);
                         }
                         return t;
                     }
@@ -250,13 +329,57 @@ var forp = function(stack) {
         .bind(
             'click',
             function() {
-               self.show(self.getTopMemory());
+                self.clear();
+                self.show(
+                    self.getTopMemory()
+                    , function(datas) {
+                        var t = self.c("table")
+                            ,tr = self.c("tr", t);
+                        self.c("th", tr, "function");
+                        self.c("th", tr, "avg&nbsp;memory&nbsp;(kb)");
+                        self.c("th", tr, "calls");
+                        self.c("th", tr, "memory&nbsp;(kb)");
+                        self.c("th", tr, "file");
+                        for(var i in datas) {
+                            tr = self.c("tr", t);
+                            self.c("td", tr, datas[i].id);
+                            self.c("td", tr, datas[i].bytesavg);
+                            self.c("td", tr, datas[i].calls);
+                            self.c("td", tr, datas[i].bytes);
+                            self.c("td", tr, datas[i].filelineno);
+                        }
+                        return t;
+                    }
+                );
             }
         );
     this.f(iSearch)
         .bind(
-            'change',
-            function() {alert('yuyu');}
+            'keyup',
+            function() {
+                self.clear();
+                self.show(
+                    self.find(this.value)
+                    , function(datas) {
+                        var t = self.c("table")
+                            ,tr = self.c("tr", t);
+                        self.c("th", tr, "function");
+                        self.c("th", tr, "calls");
+                        self.c("th", tr, "duration (ms)");
+                        self.c("th", tr, "memory (kb)");
+                        self.c("th", tr, "file");
+                        for(var i in datas) {
+                            tr = self.c("tr", t);
+                            self.c("td", tr, datas[i].id);
+                            self.c("td", tr, datas[i].calls);
+                            self.c("td", tr, datas[i].usec);
+                            self.c("td", tr, datas[i].bytes + '');
+                            self.c("td", tr, datas[i].filelineno);
+                        }
+                        return t;
+                    }
+                );
+            }
         );
 };
 
