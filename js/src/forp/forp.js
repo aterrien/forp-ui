@@ -188,6 +188,9 @@ var forp = function(stack) {
     {
         if(!this.console) {
             this.console = document.createElement("div");
+            var classAttr = document.createAttribute("class");
+            classAttr.nodeValue = "console";
+            this.console.setAttributeNode(classAttr);
             this.window.appendChild(this.console);
         }
         this.console.appendChild(func(datas));
