@@ -7,9 +7,7 @@
         <script type="text/javascript">
         (function() {
             var s = document.createElement('script');
-            s.type = 'text/javascript';
-            s.async = true;
-            s.src = 'src/forp/forp.js';
+            s.type = 'text/javascript'; s.async = true; s.src = 'src/forp/forp.js';
             (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(s);
         })();
         </script>
@@ -35,8 +33,7 @@
                 border-radius: 5px;
             }
             #forp nav{
-                border-bottom : 1px solid #333;
-                padding: 10px 0px;
+                padding: 10px;
             }
             #forp a{
                 margin: 0px 5px;
@@ -47,28 +44,53 @@
                 border-radius: 5px;
             }
             #forp table{
-                width: 100%
+                width: 100%;
+                //table-layout:fixed;
+                border-collapse:collapse;
             }
             #forp .console{
-                padding: 10px;
+                border-top: 1px solid #999;
+            }
+            #forp .tree{
+                padding: 10px
+            }
+            #forp th, #forp td{
+                padding: 5px
+            }
+            #forp th{
+                background-color : #DDD
             }
             #forp td{
                 text-align: right;
-            }
-            #forp td.left{
+                text-overflow: ellipsis;
                 text-align: left;
+                border: 1px solid #DDD;
+            }
+            #forp td.numeric{
+                text-align: right;
             }
         </style>
     </head>
     <body>
-        <div id="forp">
-            2342ms 123.43kb
-            <a href="#" id="forp.full">full stack</a> |
-            <a href="#" id="forp.topcpu">top CPU</a> |
-            <a href="#" id="forp.topmemory">top memory</a> |
-            <a href="#" id="forp.topcalls">top calls</a> |
-            <input id="forp.search" type=search results=5 autosave=some_unique_value name=s placeholder="Search forp">
-        </div>
-        sqqsdqsdqsdqsdqsdqsdqs
+        Nisi mihi Phaedrum, inquam, tu mentitum aut
+        Post hanc adclinis Libano monti Phoenice, regio
+        Ut enim quisque sibi plurimum confidit et ut
+        Ob haec et huius modi multa, quae cernebantur in
+        Haec igitur Epicuri non probo, inquam. De cetero
+        Illud tamen te esse admonitum volo, primum ut
+        Circa hos dies Lollianus primae lanuginis
+        Illud tamen te esse admonitum volo, primum ut
+        Hac ex causa conlaticia stipe Valerius humatur
+        Quibus occurrere bene pertinax miles explicatis
+        Iam virtutem ex consuetudine vitae sermonisque
+        Incenderat autem audaces usque ad insaniam homines
+        Quare talis improborum consensio non modo
+        Novo denique perniciosoque exemplo idem Gallus
+        Nihil est enim virtute amabilius, nihil quod magis
+        Quod si rectum statuerimus vel concedere amicis,
+        Quid enim tam absurdum quam delectari multis
+        Illud autem non dubitatur quod cum esset aliquando
+        Etenim si attendere diligenter, existimare vere de
+        Quam quidem partem accusationis admiratus sum et
     </body>
 </html>

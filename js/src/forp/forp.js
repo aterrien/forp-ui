@@ -30,8 +30,6 @@ var SortedFixedArray = function(filter, size) {
     };
 };
 
-
-
 var forp = function(stack) {
     var self = this;
 
@@ -43,7 +41,6 @@ var forp = function(stack) {
     this.console = null;
     this.found = {};
 
-
     // DOM Element wrapper
     var o = function(element)
     {
@@ -52,14 +49,36 @@ var forp = function(stack) {
         this.bind = function(evType, fn) {
             if (this.element.addEventListener) {
                 this.element.addEventListener(evType, fn, false);
-                return true;
             } else if (this.element.attachEvent) {
                 var r = this.element.attachEvent("on"+evType, fn);
                 return r;
-            } else {
-                return false;
             }
-        }
+            return this;
+        };
+        this.append = function(o) {
+            this.element.appendChild(o.element);
+            return this;
+        };
+        this.appendTo = function(o) {
+            o.append(this);
+            return this;
+        };
+        this.addClass = function(c) {
+            return this.attr("class", c)
+        };
+        this.text = function(t) {
+            this.element.innerHTML = t;
+            return this;
+        };
+        this.attr = function(attr, val) {
+            var attr = document.createAttribute(attr);
+            attr.nodeValue = val;
+            this.element.setAttributeNode(attr);
+            return this;
+        };
+        this.remove = function() {
+            this.element.parentNode.removeChild(this.element);
+        };
     };
 
     this.f = function(mixed)
@@ -71,12 +90,17 @@ var forp = function(stack) {
         }
     };
 
-    this.c = function(tag, appendTo, inner)
+    this.c = function(tag, appendTo, inner, css)
     {
         var e = document.createElement(tag);
         if(inner) e.innerHTML = inner;
-        if(appendTo) appendTo.appendChild(e);
-        return e;
+        if(appendTo) appendTo.append(new o(e));
+        if(css) {
+            var classAttr = document.createAttribute("class");
+            classAttr.nodeValue = css;
+            e.setAttributeNode(classAttr);
+        }
+        return new o(e);
     };
 
     this.getHStack = function()
@@ -118,7 +142,7 @@ var forp = function(stack) {
         if(!this.found[query]) {
             this.found[query] = [];
             for(var entry in this.getHStack()) {
-                var r = new RegExp(query);
+                var r = new RegExp(query, "i");
                 if(r.test(this.hstack[entry].id))
                 this.found[query].push(this.hstack[entry]);
             }
@@ -181,62 +205,58 @@ var forp = function(stack) {
 
     this.clear = function()
     {
-        if(this.console) this.console.innerHTML = "";
+        if(this.console) this.console.text("");
     };
 
     this.show = function(datas, func)
     {
         if(!this.console) {
-            this.console = document.createElement("div");
-            var classAttr = document.createAttribute("class");
-            classAttr.nodeValue = "console";
-            this.console.setAttributeNode(classAttr);
-            this.window.appendChild(this.console);
+            this.console = this.c("div").addClass("console");
+            this.window.append(this.console);
+            var aCollapse = this.c("a")
+                .text("^")
+                .attr("href", "#")
+                .appendTo(this.nav)
+                .bind(
+                    'click',
+                    function(e) {
+                        self.console.remove();
+                        self.console = null;
+                        aCollapse.remove();
+                    }
+                );
         }
-        this.console.appendChild(func(datas));
+        this.console.append(func(datas));
     };
 
     // Init
-    this.window = document.createElement("div");
-    this.window.id = "forp";
-    document.body.appendChild(this.window);
+    this.window = this
+        .c("div")
+        .attr("id", "forp");
 
-    var nav = document.createElement("nav")
-        ,iSearch = document.createElement("input")
-        , aFull = document.createElement("a")
-        , aTopCpu = document.createElement("a")
-        , aTopMemory = document.createElement("a")
-        , aTopCalls = document.createElement("a")
-        ;
+    document.body.appendChild(this.window.element);
 
-    this.window.appendChild(nav);
+    this.nav = this
+        .c("nav")
+        .appendTo(this.window);
 
-    //nav.appendChild(document.createTextNode("forp"));
+    var iSearch = this.c("input")
+        , aFull = this.c("a")
+        , aTopCpu = this.c("a")
+        , aTopMemory = this.c("a")
+        , aTopCalls = this.c("a");
 
-    aFull.innerHTML = "full";
-    nav.appendChild(aFull);
+    this.nav.append(new o(document.createTextNode(
+        Math.round((this.stack[0].usec / 1000) * 100) / 100 + 'ms ')
+    ));
+    this.nav.append(new o(document.createTextNode(
+        Math.round((this.stack[0].bytes / 1024) * 100) / 100 + 'kb')
+    ));
 
-    aTopCpu.innerHTML = "CPU";
-    aTopCpu.href = "#";
-    nav.appendChild(aTopCpu);
-
-    aTopMemory.innerHTML = "memory";
-    aTopMemory.href = "#";
-    nav.appendChild(aTopMemory);
-
-    aTopCalls.innerHTML = "calls";
-    nav.appendChild(aTopCalls);
-
-    iSearch.type = "search";
-    iSearch.autosave = "forp";
-    var results = document.createAttribute("results");
-    results.nodeValue = 5;
-    iSearch.setAttributeNode(results);
-    iSearch.name = "s";
-    iSearch.placeholder = "Search forp";
-    nav.appendChild(iSearch);
-
-    this.f(aFull)
+    aFull
+        .text("Full stack")
+        .attr("href", "#")
+        .appendTo(this.nav)
         .bind(
             'click',
             function() {
@@ -244,16 +264,10 @@ var forp = function(stack) {
                 self.show(
                     self.stack
                     , function(datas) {
-                        var t = self.c("table")
-                            ,tr = self.c("tr", t);
+                        var d = self.c("div")
+                                    .addClass("tree");
 
-                        //self.c("th", tr, "function");
-                        //self.c("th", tr, "calls");
-                        //self.c("th", tr, "duration&nbsp;(ms)");
-                        //self.c("th", tr, "memory&nbsp;(kb)");
-                        //self.c("th", tr, "file");
                         for(var i in datas) {
-                            tr = self.c("div", t);
                             var id = '';
                             for (var j = 0; j < datas[i].level; ++j) {
                                 if (j == datas[i].level - 1) id += "&nbsp;&nbsp;|----&nbsp;&nbsp;";
@@ -261,18 +275,18 @@ var forp = function(stack) {
                             }
                             id += (datas[i].class) ? datas[i].class + '::' : '';
                             id += datas[i].function;
-                            self.c("td", tr, id);
-                            //self.c("td", tr, datas[i].calls);
-                            //self.c("td", tr, datas[i].usec);
-                            //self.c("td", tr, datas[i].bytes + '');
-                            //self.c("td", tr, datas[i].file);
+                            self.c("div", d, id);
                         }
-                        return t;
+                        return d;
                     }
                 );
             }
         );
-    this.f(aTopCalls)
+
+    aTopCalls
+        .text("Calls")
+        .attr("href", "#")
+        .appendTo(this.nav)
         .bind(
             'click',
             function() {
@@ -284,15 +298,15 @@ var forp = function(stack) {
                             ,tr = self.c("tr", t);
                         self.c("th", tr, "function");
                         self.c("th", tr, "calls");
-                        self.c("th", tr, "duration&nbsp;(ms)");
-                        self.c("th", tr, "memory&nbsp;(kb)");
+                        self.c("th", tr, "duration<br>(ms)");
+                        self.c("th", tr, "memory<br>(kb)");
                         self.c("th", tr, "file");
                         for(var i in datas) {
                             tr = self.c("tr", t);
                             self.c("td", tr, datas[i].id);
-                            self.c("td", tr, datas[i].calls);
-                            self.c("td", tr, datas[i].usec);
-                            self.c("td", tr, datas[i].bytes + '');
+                            self.c("td", tr, datas[i].calls, "numeric");
+                            self.c("td", tr, datas[i].usec, "numeric");
+                            self.c("td", tr, datas[i].bytes + '', "numeric");
                             self.c("td", tr, datas[i].filelineno);
                         }
                         return t;
@@ -300,7 +314,11 @@ var forp = function(stack) {
                 );
             }
         );
-    this.f(aTopCpu)
+
+    aTopCpu
+        .text("CPU")
+        .attr("href", "#")
+        .appendTo(this.nav)
         .bind(
             'click',
             function() {
@@ -311,16 +329,16 @@ var forp = function(stack) {
                         var t = self.c("table")
                             ,tr = self.c("tr", t);
                         self.c("th", tr, "function");
-                        self.c("th", tr, "avg&nbsp;duration&nbsp;(ms)");
+                        self.c("th", tr, "avg&nbsp;duration<br>(ms)");
                         self.c("th", tr, "calls");
-                        self.c("th", tr, "duration&nbsp;(ms)");
+                        self.c("th", tr, "duration<br>(ms)");
                         self.c("th", tr, "file");
                         for(var i in datas) {
                             tr = self.c("tr", t);
                             self.c("td", tr, datas[i].id);
-                            self.c("td", tr, datas[i].usecavg);
-                            self.c("td", tr, datas[i].calls);
-                            self.c("td", tr, datas[i].usec);
+                            self.c("td", tr, datas[i].usecavg, "numeric");
+                            self.c("td", tr, datas[i].calls, "numeric");
+                            self.c("td", tr, datas[i].usec, "numeric");
                             self.c("td", tr, datas[i].filelineno);
                         }
                         return t;
@@ -328,7 +346,11 @@ var forp = function(stack) {
                 );
             }
         );
-    this.f(aTopMemory)
+
+    aTopMemory
+        .text("Memory")
+        .attr("href", "#")
+        .appendTo(this.nav)
         .bind(
             'click',
             function() {
@@ -339,16 +361,16 @@ var forp = function(stack) {
                         var t = self.c("table")
                             ,tr = self.c("tr", t);
                         self.c("th", tr, "function");
-                        self.c("th", tr, "avg&nbsp;memory&nbsp;(kb)");
+                        self.c("th", tr, "avg&nbsp;memory<br>(kb)");
                         self.c("th", tr, "calls");
-                        self.c("th", tr, "memory&nbsp;(kb)");
+                        self.c("th", tr, "memory<br>(kb)");
                         self.c("th", tr, "file");
                         for(var i in datas) {
                             tr = self.c("tr", t);
                             self.c("td", tr, datas[i].id);
-                            self.c("td", tr, datas[i].bytesavg);
-                            self.c("td", tr, datas[i].calls);
-                            self.c("td", tr, datas[i].bytes);
+                            self.c("td", tr, datas[i].bytesavg, "numeric");
+                            self.c("td", tr, datas[i].calls, "numeric");
+                            self.c("td", tr, datas[i].bytes, "numeric");
                             self.c("td", tr, datas[i].filelineno);
                         }
                         return t;
@@ -356,7 +378,15 @@ var forp = function(stack) {
                 );
             }
         );
-    this.f(iSearch)
+
+
+    iSearch
+        .attr("type", "search")
+        .attr("autosave", "forp")
+        .attr("results", 5)
+        .attr("name", "forpSearch")
+        .attr("placeholder", "Search forp")
+        .appendTo(this.nav)
         .bind(
             'keyup',
             function() {
@@ -368,15 +398,15 @@ var forp = function(stack) {
                             ,tr = self.c("tr", t);
                         self.c("th", tr, "function");
                         self.c("th", tr, "calls");
-                        self.c("th", tr, "duration (ms)");
-                        self.c("th", tr, "memory (kb)");
+                        self.c("th", tr, "duration<br>(ms)");
+                        self.c("th", tr, "memory<br>(kb)");
                         self.c("th", tr, "file");
                         for(var i in datas) {
                             tr = self.c("tr", t);
                             self.c("td", tr, datas[i].id);
-                            self.c("td", tr, datas[i].calls);
-                            self.c("td", tr, datas[i].usec);
-                            self.c("td", tr, datas[i].bytes + '');
+                            self.c("td", tr, datas[i].calls, "numeric");
+                            self.c("td", tr, datas[i].usec, "numeric");
+                            self.c("td", tr, datas[i].bytes + '', "numeric");
                             self.c("td", tr, datas[i].filelineno);
                         }
                         return t;
