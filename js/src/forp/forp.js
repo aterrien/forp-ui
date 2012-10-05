@@ -44,7 +44,6 @@ var forp = function(stack) {
     // DOM Element wrapper
     var o = function(element)
     {
-        //console.log(element);
         this.element = element;
         this.bind = function(evType, fn) {
             if (this.element.addEventListener) {
@@ -118,19 +117,34 @@ var forp = function(stack) {
                         parseInt(this.hstack[id].usec) +
                         (parseInt(this.stack[entry].usec) / 1000);
                     this.hstack[id].bytes += (Math.round((parseInt(this.stack[entry].bytes) / 1024)));// * 100) / 100);
+
+                    var el = this.hstack[id].entries.length;
+                    this.hstack[id].entries[el] = {};
+                    this.hstack[id].entries[el].usec = parseInt(this.stack[entry].usec) / 1000;
+                    this.hstack[id].entries[el].bytes = Math.round((parseInt(this.stack[entry].bytes) / 1024));
+                    this.hstack[id].entries[el].file = this.stack[entry].file;
+                    this.hstack[id].entries[el].filelineno = this.stack[entry].file
+                        + (this.stack[entry].lineno ? ':' + this.stack[entry].lineno : '');
+                    this.hstack[id].entries[el].info = this.stack[entry].info ? this.stack[entry].info : '';
                 } else {
                     this.hstack[id] = {};
                     this.hstack[id].id = id;
                     this.stack[entry].class &&
                         (this.hstack[id].class = this.stack[entry].class);
                     this.hstack[id].function = this.stack[entry].function;
-                    this.hstack[id].file = this.stack[entry].file;
-                    this.hstack[id].filelineno = this.stack[entry].file
-                        + (this.stack[entry].lineno ? ':' + this.stack[entry].lineno : '');
                     this.hstack[id].level = this.stack[entry].level;
                     this.hstack[id].calls = 1;
                     this.hstack[id].usec = (parseInt(this.stack[entry].usec) / 1000);
                     this.hstack[id].bytes = (Math.round((parseInt(this.stack[entry].bytes) / 1024)));// * 100) / 100);
+
+                    this.hstack[id].entries = [];
+                    this.hstack[id].entries[0] = {}
+                    this.hstack[id].entries[0].usec = parseInt(this.stack[entry].usec) / 1000;
+                    this.hstack[id].entries[0].bytes = Math.round((parseInt(this.stack[entry].bytes) / 1024));
+                    this.hstack[id].entries[0].file = this.stack[entry].file;
+                    this.hstack[id].entries[0].filelineno = this.stack[entry].file
+                        + (this.stack[entry].lineno ? ':' + this.stack[entry].lineno : '');
+                    this.hstack[id].entries[0].info = this.stack[entry].info ? this.stack[entry].info : '';
                 }
             }
         }
@@ -289,7 +303,7 @@ var forp = function(stack) {
         .appendTo(this.nav)
         .bind(
             'click',
-            function() {
+            function(e) {
                 self.clear();
                 self.show(
                     self.getTopCalls()
@@ -307,7 +321,15 @@ var forp = function(stack) {
                             self.c("td", tr, datas[i].calls, "numeric");
                             self.c("td", tr, datas[i].usec, "numeric");
                             self.c("td", tr, datas[i].bytes + '', "numeric");
-                            self.c("td", tr, datas[i].filelineno);
+
+                            for(var j in datas[i].entries) {
+                                tr = self.c("tr", t);
+                                self.c("td", tr, datas[i].entries[j].info, "sub");
+                                self.c("td", tr, '-', "sub numeric");
+                                self.c("td", tr, datas[i].entries[j].usec, "sub numeric");
+                                self.c("td", tr, datas[i].entries[j].bytes, "sub numeric");
+                                self.c("td", tr, datas[i].entries[j].filelineno, "sub");
+                            }
                         }
                         return t;
                     }
@@ -447,5 +469,63 @@ dom.ready = function(callback) {
 };
 
 dom.ready(
-    function(){new forp(forp.stack)}
+    function(){
+        var s = document.createElement('style'),
+            t = document.createTextNode('\n\
+#forp {\n\
+    margin: 10px;\n\
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;\n\
+    font-weight: 300;\n\
+    text-rendering: optimizelegibility;\n\
+    background-color: #EEE;\n\
+    position:absolute; top:0px; right:0px; left:0px;\n\
+    font-size : 13px;\n\
+    border-radius: 5px;\n\
+}\n\
+#forp nav{\n\
+    padding: 10px;\n\
+}\n\
+#forp a{\n\
+    margin: 0px 5px;\n\
+    padding: 5px;\n\
+    background-color: #777;\n\
+    color: #FFF;\n\
+    text-decoration: none;\n\
+    border-radius: 5px;\n\
+}\n\
+#forp table{\n\
+    width: 100%;\n\
+    border-collapse:collapse;\n\
+}\n\
+#forp .console{\n\
+    border-top: 1px solid #999;\n\
+}\n\
+#forp .tree{\n\
+    padding: 10px\n\
+}\n\
+#forp th, #forp td{\n\
+    padding: 5px\n\
+}\n\
+#forp th{\n\
+    background-color : #DDD\n\
+}\n\
+#forp td{\n\
+    text-align: right;\n\
+    text-overflow: ellipsis;\n\
+    text-align: left;\n\
+    border: 1px solid #DDD;\n\
+}\n\
+#forp td.sub{\n\
+    color:#009\n\
+}\n\
+#forp td.numeric{\n\
+    text-align: right;\n\
+}\n\
+');
+        s.appendChild(t);
+        (document.getElementsByTagName('head')[0]
+            || document.getElementsByTagName('body')[0]).appendChild(s);
+
+        new forp(forp.stack);
+    }
 );

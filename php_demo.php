@@ -7,9 +7,10 @@ include('common.php');
 
 // next code can be append to PHP scripts in dev mode
 // buffering forp stack
-$json_dump = json_encode(forp_dump());
-?>
-<script src="js/src/forp/forp.js"></script>
-<script>
-    forp.stack = <?php echo $json_dump; ?>
-</script>
+$dump = forp_dump();
+
+// giving stack to GUI Manager and render
+include_once "php/forp/ForpGUI.php";
+$gui = new ForpGUI(new ForpHTMLPrinter());
+$gui->setStack($dump);
+$gui->render();
