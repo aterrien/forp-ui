@@ -49,6 +49,22 @@ for($i=0;$i<5;$i++){ test1(); }
 $lambda();
 $foo = new Foo();
 $foo->bar();
+// fibo
+$br = (php_sapi_name() == "cli")? "\n":"<br>\n";
+function fibo( $x ) {
+    if ( $x < 2) {
+        return 1;
+    } else {
+        return fibo($x - 1) + fibo($x - 2);
+    }
+}
+
+for( $i = 1; $i < 10; $i++) {
+    printf(
+        'fibo(%1$s) = %2$s'.$br,
+        $i, fibo($i)
+    );
+}
 ?>
     </body>
 </html>

@@ -118,14 +118,26 @@ var forp = function(stack) {
                         (parseInt(this.stack[entry].usec) / 1000);
                     this.hstack[id].bytes += (Math.round((parseInt(this.stack[entry].bytes) / 1024)));// * 100) / 100);
 
-                    var el = this.hstack[id].entries.length;
-                    this.hstack[id].entries[el] = {};
-                    this.hstack[id].entries[el].usec = parseInt(this.stack[entry].usec) / 1000;
-                    this.hstack[id].entries[el].bytes = Math.round((parseInt(this.stack[entry].bytes) / 1024));
-                    this.hstack[id].entries[el].file = this.stack[entry].file;
-                    this.hstack[id].entries[el].filelineno = this.stack[entry].file
+                    var el = this.hstack[id].entries.length
+                        ,filelineno = this.stack[entry].file
                         + (this.stack[entry].lineno ? ':' + this.stack[entry].lineno : '');
-                    this.hstack[id].entries[el].info = this.stack[entry].info ? this.stack[entry].info : '';
+                    if(this.hstack[id].entries[filelineno]) {
+                        this.hstack[id].entries[filelineno].calls++;
+                        this.hstack[id].entries[filelineno].usec =
+                            this.hstack[id].entries[filelineno].usec;
+                            + (parseInt(this.stack[entry].usec) / 1000);
+                        this.hstack[id].entries[filelineno].bytes += Math.round((parseInt(this.stack[entry].bytes) / 1024));
+                    } else {
+                        this.hstack[id].entries[filelineno] = {};
+                        this.hstack[id].entries[filelineno].calls = 1;
+                        this.hstack[id].entries[filelineno].usec =
+                            (parseInt(this.stack[entry].usec) / 1000);
+                        this.hstack[id].entries[filelineno].bytes = Math.round((parseInt(this.stack[entry].bytes) / 1024));
+                        this.hstack[id].entries[filelineno].file = this.stack[entry].file;
+                        this.hstack[id].entries[filelineno].filelineno = filelineno;
+                        this.hstack[id].entries[filelineno].info = this.stack[entry].info ? this.stack[entry].info : '';
+                    }
+
                 } else {
                     this.hstack[id] = {};
                     this.hstack[id].id = id;
@@ -137,14 +149,16 @@ var forp = function(stack) {
                     this.hstack[id].usec = (parseInt(this.stack[entry].usec) / 1000);
                     this.hstack[id].bytes = (Math.round((parseInt(this.stack[entry].bytes) / 1024)));// * 100) / 100);
 
-                    this.hstack[id].entries = [];
-                    this.hstack[id].entries[0] = {}
-                    this.hstack[id].entries[0].usec = parseInt(this.stack[entry].usec) / 1000;
-                    this.hstack[id].entries[0].bytes = Math.round((parseInt(this.stack[entry].bytes) / 1024));
-                    this.hstack[id].entries[0].file = this.stack[entry].file;
-                    this.hstack[id].entries[0].filelineno = this.stack[entry].file
+                    var filelineno = this.stack[entry].file
                         + (this.stack[entry].lineno ? ':' + this.stack[entry].lineno : '');
-                    this.hstack[id].entries[0].info = this.stack[entry].info ? this.stack[entry].info : '';
+                    this.hstack[id].entries = [];
+                    this.hstack[id].entries[filelineno] = {}
+                    this.hstack[id].entries[filelineno].calls = 1;
+                    this.hstack[id].entries[filelineno].usec = (parseInt(this.stack[entry].usec) / 1000);
+                    this.hstack[id].entries[filelineno].bytes = Math.round((parseInt(this.stack[entry].bytes) / 1024));
+                    this.hstack[id].entries[filelineno].file = this.stack[entry].file;
+                    this.hstack[id].entries[filelineno].filelineno = filelineno;
+                    this.hstack[id].entries[filelineno].info = this.stack[entry].info ? this.stack[entry].info : '';
                 }
             }
         }
@@ -264,7 +278,7 @@ var forp = function(stack) {
         Math.round((this.stack[0].usec / 1000) * 100) / 100 + 'ms ')
     ));
     this.nav.append(new o(document.createTextNode(
-        Math.round((this.stack[0].bytes / 1024) * 100) / 100 + 'kb')
+        Math.round((this.stack[0].bytes / 1024) * 100) / 100 + 'Kb')
     ));
 
     aFull
@@ -278,20 +292,30 @@ var forp = function(stack) {
                 self.show(
                     self.stack
                     , function(datas) {
-                        var d = self.c("div")
-                                    .addClass("tree");
+                        var t = self.c("table").addClass("tree")
+                            ,tr = self.c("tr", t);
+
+                        self.c("th", tr, "ms");
+                        self.c("th", tr, "Kb");
+                        self.c("th", tr, "tree");
 
                         for(var i in datas) {
-                            var id = '';
+                            var id = ''
+                                , tr = self.c("tr", t);
+
+                            self.c("td", tr, (Math.round(100 * (datas[i].usec / 1000)) / 100) + '', 'numeric');
+                            self.c("td", tr, (Math.round(1000 * datas[i].bytes / 1024) / 1000) + '', 'numeric');
+
                             for (var j = 0; j < datas[i].level; ++j) {
                                 if (j == datas[i].level - 1) id += "&nbsp;&nbsp;|----&nbsp;&nbsp;";
                                 else id += "&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;";
                             }
                             id += (datas[i].class) ? datas[i].class + '::' : '';
                             id += datas[i].function;
-                            self.c("div", d, id);
+
+                            self.c("td", tr, id);
                         }
-                        return d;
+                        return t;
                     }
                 );
             }
@@ -312,9 +336,9 @@ var forp = function(stack) {
                             ,tr = self.c("tr", t);
                         self.c("th", tr, "function");
                         self.c("th", tr, "calls");
-                        self.c("th", tr, "duration<br>(ms)");
-                        self.c("th", tr, "memory<br>(kb)");
-                        self.c("th", tr, "file");
+                        self.c("th", tr, "ms");
+                        self.c("th", tr, "Kb");
+                        self.c("th", tr, "called from");
                         for(var i in datas) {
                             tr = self.c("tr", t);
                             self.c("td", tr, datas[i].id);
@@ -325,9 +349,9 @@ var forp = function(stack) {
                             for(var j in datas[i].entries) {
                                 tr = self.c("tr", t);
                                 self.c("td", tr, datas[i].entries[j].info, "sub");
-                                self.c("td", tr, '-', "sub numeric");
+                                self.c("td", tr, datas[i].entries[j].calls, "sub numeric");
                                 self.c("td", tr, datas[i].entries[j].usec, "sub numeric");
-                                self.c("td", tr, datas[i].entries[j].bytes, "sub numeric");
+                                self.c("td", tr, datas[i].entries[j].bytes + '', "sub numeric");
                                 self.c("td", tr, datas[i].entries[j].filelineno, "sub");
                             }
                         }
@@ -351,10 +375,10 @@ var forp = function(stack) {
                         var t = self.c("table")
                             ,tr = self.c("tr", t);
                         self.c("th", tr, "function");
-                        self.c("th", tr, "avg&nbsp;duration<br>(ms)");
+                        self.c("th", tr, "avg&nbsp;ms");
                         self.c("th", tr, "calls");
-                        self.c("th", tr, "duration<br>(ms)");
-                        self.c("th", tr, "file");
+                        self.c("th", tr, "ms");
+                        self.c("th", tr, "called from");
                         for(var i in datas) {
                             tr = self.c("tr", t);
                             self.c("td", tr, datas[i].id);
@@ -362,6 +386,15 @@ var forp = function(stack) {
                             self.c("td", tr, datas[i].calls, "numeric");
                             self.c("td", tr, datas[i].usec, "numeric");
                             self.c("td", tr, datas[i].filelineno);
+
+                            for(var j in datas[i].entries) {
+                                tr = self.c("tr", t);
+                                self.c("td", tr, datas[i].entries[j].info, "sub");
+                                self.c("td", tr, Math.round((1000 * datas[i].entries[j].usec) / datas[i].entries[j].calls) / 1000, "sub numeric");
+                                self.c("td", tr, datas[i].entries[j].calls, "sub numeric");
+                                self.c("td", tr, datas[i].entries[j].usec, "sub numeric");
+                                self.c("td", tr, datas[i].entries[j].filelineno, "sub");
+                            }
                         }
                         return t;
                     }
@@ -383,17 +416,26 @@ var forp = function(stack) {
                         var t = self.c("table")
                             ,tr = self.c("tr", t);
                         self.c("th", tr, "function");
-                        self.c("th", tr, "avg&nbsp;memory<br>(kb)");
+                        self.c("th", tr, "avg&nbsp;Kb");
                         self.c("th", tr, "calls");
-                        self.c("th", tr, "memory<br>(kb)");
-                        self.c("th", tr, "file");
+                        self.c("th", tr, "Kb");
+                        self.c("th", tr, "called from");
                         for(var i in datas) {
                             tr = self.c("tr", t);
                             self.c("td", tr, datas[i].id);
                             self.c("td", tr, datas[i].bytesavg, "numeric");
                             self.c("td", tr, datas[i].calls, "numeric");
-                            self.c("td", tr, datas[i].bytes, "numeric");
+                            self.c("td", tr, datas[i].bytes + '', "numeric");
                             self.c("td", tr, datas[i].filelineno);
+
+                            for(var j in datas[i].entries) {
+                                tr = self.c("tr", t);
+                                self.c("td", tr, datas[i].entries[j].info, "sub");
+                                self.c("td", tr, (Math.round((1000 * datas[i].entries[j].bytes) / datas[i].entries[j].calls) / 1000) + '', "sub numeric");
+                                self.c("td", tr, datas[i].entries[j].calls, "sub numeric");
+                                self.c("td", tr, datas[i].entries[j].bytes + '', "sub numeric");
+                                self.c("td", tr, datas[i].entries[j].filelineno, "sub");
+                            }
                         }
                         return t;
                     }
@@ -420,9 +462,9 @@ var forp = function(stack) {
                             ,tr = self.c("tr", t);
                         self.c("th", tr, "function");
                         self.c("th", tr, "calls");
-                        self.c("th", tr, "duration<br>(ms)");
-                        self.c("th", tr, "memory<br>(kb)");
-                        self.c("th", tr, "file");
+                        self.c("th", tr, "ms");
+                        self.c("th", tr, "Kb");
+                        self.c("th", tr, "called from");
                         for(var i in datas) {
                             tr = self.c("tr", t);
                             self.c("td", tr, datas[i].id);
@@ -430,6 +472,15 @@ var forp = function(stack) {
                             self.c("td", tr, datas[i].usec, "numeric");
                             self.c("td", tr, datas[i].bytes + '', "numeric");
                             self.c("td", tr, datas[i].filelineno);
+
+                            for(var j in datas[i].entries) {
+                                tr = self.c("tr", t);
+                                self.c("td", tr, datas[i].entries[j].info, "sub");
+                                self.c("td", tr, datas[i].entries[j].calls, "sub numeric");
+                                self.c("td", tr, datas[i].entries[j].usec, "sub numeric");
+                                self.c("td", tr, datas[i].entries[j].bytes + '', "sub numeric");
+                                self.c("td", tr, datas[i].entries[j].filelineno, "sub");
+                            }
                         }
                         return t;
                     }
@@ -500,9 +551,6 @@ dom.ready(
 #forp .console{\n\
     border-top: 1px solid #999;\n\
 }\n\
-#forp .tree{\n\
-    padding: 10px\n\
-}\n\
 #forp th, #forp td{\n\
     padding: 5px\n\
 }\n\
@@ -520,7 +568,7 @@ dom.ready(
 }\n\
 #forp td.numeric{\n\
     text-align: right;\n\
-}\n\
+}\n\\n\
 ');
         s.appendChild(t);
         (document.getElementsByTagName('head')[0]
