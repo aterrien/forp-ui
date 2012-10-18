@@ -35,6 +35,7 @@ var forp = function(stack) {
 
     this.stack = stack; // RAW stack
     this.hstack = null; // hashed stack
+    this.includes = null; // included files
     this.topCpu = null;
     this.topCalls = null;
     this.topMemory = null;
@@ -102,12 +103,13 @@ var forp = function(stack) {
         return new o(e);
     };
 
-    this.getHStack = function()
+    this.aggregate = function()
     {
         if(!this.hstack) {
             // hashing stack
             var id;
             this.hstack = {};
+            this.includes = {};
             for(var entry in this.stack) {
                 id = (this.stack[entry].class) ? this.stack[entry].class + '::' : '';
                 id += this.stack[entry].function;
@@ -160,10 +162,21 @@ var forp = function(stack) {
                     this.hstack[id].entries[filelineno].filelineno = filelineno;
                     this.hstack[id].entries[filelineno].info = this.stack[entry].info ? this.stack[entry].info : '';
                 }
+
+                if(!this.includes[this.stack[entry].file]) {
+                    this.includes[this.stack[entry].file] = 1;
+                } else {
+                    this.includes[this.stack[entry].file]++;
+                }
             }
         }
-        return this.hstack;
+        return this;
     };
+
+    this.getHStack = function()
+    {
+        return this.aggregate().hstack;
+    }
 
     this.find = function(query)
     {
@@ -231,6 +244,11 @@ var forp = function(stack) {
         return this.topMemory.stack;
     };
 
+    this.getIncludes = function()
+    {
+        return this.aggregate().includes;
+    };
+
     this.clear = function()
     {
         if(this.console) this.console.text("");
@@ -272,7 +290,8 @@ var forp = function(stack) {
         , aFull = this.c("a")
         , aTopCpu = this.c("a")
         , aTopMemory = this.c("a")
-        , aTopCalls = this.c("a");
+        , aTopCalls = this.c("a")
+        , aFiles = this.c("a");
 
     this.nav.append(new o(document.createTextNode(
         Math.round((this.stack[0].usec / 1000) * 100) / 100 + 'ms ')
@@ -443,6 +462,33 @@ var forp = function(stack) {
             }
         );
 
+    aFiles
+        .text("Files")
+        .attr("href", "#")
+        .appendTo(this.nav)
+        .bind(
+            'click',
+            function() {
+                self.clear();
+                self.show(
+                    self.getIncludes()
+                    , function(datas) {
+                        var t = self.c("table").addClass("tree")
+                            ,tr = self.c("tr", t);
+
+                        self.c("th", tr, "usage");
+                        self.c("th", tr, "path");
+
+                        for(var i in datas) {
+                            var tr = self.c("tr", t);
+                            self.c("td", tr, datas[i], 'numeric');
+                            self.c("td", tr, i);
+                        }
+                        return t;
+                    }
+                );
+            }
+        );
 
     iSearch
         .attr("type", "search")
