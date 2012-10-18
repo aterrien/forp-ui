@@ -103,6 +103,11 @@ var forp = function(stack) {
         return new o(e);
     };
 
+    /**
+     * Aggregates stack entries
+     * This is the main function
+     * @return this
+     */
     this.aggregate = function()
     {
         if(!this.hstack) {
@@ -173,11 +178,20 @@ var forp = function(stack) {
         return this;
     };
 
+    /**
+     * @return array
+     */
     this.getHStack = function()
     {
         return this.aggregate().hstack;
     }
 
+
+    /**
+     * Regexp search in stack functions
+     * @param string query
+     * @return array founds
+     */
     this.find = function(query)
     {
         if(!this.found[query]) {
@@ -191,6 +205,10 @@ var forp = function(stack) {
         return this.found[query];
     };
 
+    /**
+     * Top X calls
+     * @return array SortedFixedArray stack
+     */
     this.getTopCalls = function()
     {
         if(!this.topCalls) {
@@ -206,6 +224,10 @@ var forp = function(stack) {
         return this.topCalls.stack;
     };
 
+    /**
+     * Top X CPU
+     * @return array SortedFixedArray stack
+     */
     this.getTopCpu = function()
     {
         if(!this.topCpu) {
@@ -225,6 +247,10 @@ var forp = function(stack) {
         return this.topCpu.stack;
     };
 
+    /**
+     * Top X memory
+     * @return array SortedFixedArray stack
+     */
     this.getTopMemory = function()
     {
         if(!this.topMemory) {
@@ -244,16 +270,29 @@ var forp = function(stack) {
         return this.topMemory.stack;
     };
 
+    /**
+     * Distinct included files
+     * @return array Files
+     */
     this.getIncludes = function()
     {
         return this.aggregate().includes;
     };
 
+    /**
+     * Clear UI
+     * @return this
+     */
     this.clear = function()
     {
         if(this.console) this.console.text("");
+        return this;
     };
 
+    /**
+     * Display datas
+     * @param array datas
+     */
     this.show = function(datas, func)
     {
         if(!this.console) {
