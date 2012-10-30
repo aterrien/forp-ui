@@ -32,25 +32,55 @@ echo   'Nisi mihi Phaedrum, inquam, tu mentitum aut
         Quam quidem partem accusationis admiratus sum et';
 mysql_query("SELECT * FROM world WHERE 1=1;");
 
-// user function
+/**
+ * @ProfileGroup("Foo Group")
+ * @ProfileCaption("User function")
+ */
 function test(){ echo 'Hello world !'; };
-// user function that call another one
+/**
+ * @ProfileGroup("Foo Group")
+ * @ProfileCaption("User function that calls another one")
+ */
 function test1(){test();};
 // user class
 class Foo {
+    /**
+     * @ProfileGroup("Foo Group")
+     * @ProfileCaption("Caption of bar.")
+     */
     function bar() { test1(); }
+
+    /**
+     * @ProfileGroup("Foo Group")
+     * @ProfileCaption("Caption of bar2.")
+     */
+    function bar2() { }
 }
 // closure
-$lambda = function() { sleep(1); };
+$lambda =
+/**
+ * @ProfileGroup("Foo Group")
+ * @ProfileCaption("Closure")
+ */
+function() { sleep(1); };
 //
 // calls
 test();
 for($i=0;$i<5;$i++){ test1(); }
 $lambda();
+$lambda();
 $foo = new Foo();
 $foo->bar();
+$foo->bar2();
 // fibo
 $br = (php_sapi_name() == "cli")? "\n":"<br>\n";
+
+/**
+ * @ProfileGroup("Fibo Group")
+ * @ProfileCaption("Caption of fibo, value #1")
+ * @param type $x
+ * @return int
+ */
 function fibo( $x ) {
     if ( $x < 2) {
         return 1;
