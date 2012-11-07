@@ -62,7 +62,9 @@ $lambda =
  * @ProfileGroup("Foo Group")
  * @ProfileCaption("Closure")
  */
-function() { sleep(1); };
+function() {
+    //sleep(1);
+};
 //
 // calls
 test();
@@ -77,7 +79,7 @@ $br = (php_sapi_name() == "cli")? "\n":"<br>\n";
 
 /**
  * @ProfileGroup("Fibo Group")
- * @ProfileCaption("Caption of fibo, value #1")
+ * @ProfileCaption("Caption of fibo, value #1 #1 #1 #1")
  * @param type $x
  * @return int
  */
