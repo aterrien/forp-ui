@@ -30,7 +30,7 @@ echo   'Nisi mihi Phaedrum, inquam, tu mentitum aut
         Illud autem non dubitatur quod cum esset aliquando
         Etenim si attendere diligenter, existimare vere de
         Quam quidem partem accusationis admiratus sum et';
-mysql_query("SELECT * FROM world WHERE 1=1;");
+//mysql_query("SELECT * FROM world WHERE 1=1;");
 
 /**
  * @ProfileGroup("Foo Group")
@@ -45,7 +45,7 @@ function test1(){test();};
 // user class
 class Foo {
     /**
-     * @ProfileGroup("Foo Group")
+     * @ProfileGroup("Foo","data")
      * @ProfileCaption("Caption of bar.")
      */
     function bar() { test1(); }
@@ -61,8 +61,10 @@ $lambda =
 /**
  * @ProfileGroup("Foo Group")
  * @ProfileCaption("Closure")
+ * @ProfileHighlight("Closure")
  */
 function() {
+    echo "html highlight me !";
     //sleep(1);
 };
 //

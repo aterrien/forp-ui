@@ -255,15 +255,17 @@ var forp = function(stack) {
                     this.hstack[id].entries[filelineno].caption = this.stack[entry].caption ? this.stack[entry].caption : '';
 
                     // Groups
-                    if(this.stack[entry].group) {
-                        if(!this.groups[this.stack[entry].group]) {
-                            this.groups[this.stack[entry].group] = {};
-                            this.groups[this.stack[entry].group].calls = 0;
-                            this.groups[this.stack[entry].group].usec = 0;
-                            this.groups[this.stack[entry].group].bytes = 0;
-                            this.groups[this.stack[entry].group].refs = [];
+                    if(this.stack[entry].groups) {
+                        for(g in this.stack[entry].groups) {
+                            if(!this.groups[this.stack[entry].groups[g]]) {
+                                this.groups[this.stack[entry].groups[g]] = {};
+                                this.groups[this.stack[entry].groups[g]].calls = 0;
+                                this.groups[this.stack[entry].groups[g]].usec = 0;
+                                this.groups[this.stack[entry].groups[g]].bytes = 0;
+                                this.groups[this.stack[entry].groups[g]].refs = [];
+                            }
+                            this.groups[this.stack[entry].groups[g]].refs.push(id);
                         }
-                        this.groups[this.stack[entry].group].refs.push(id);
                     }
                 }
 
@@ -420,11 +422,11 @@ var forp = function(stack) {
     this.getConsole = function()
     {
         if(!this.console) {
-            this.console = this.c("div").addClass("console");
+            this.console = this.c("div").addClass("console").attr("style", "max-height:" + (window.innerHeight-100) + "px");
             this.window.append(this.console);
             var aCollapse = this.c("a")
                 .text("^")
-                .attr("href", "#")
+                .attr("href", "javascript:void(0);")
                 .appendTo(this.nav)
                 .bind(
                     'click',
@@ -454,7 +456,7 @@ var forp = function(stack) {
                    .bind(
                         "click",
                         function(){
-                            alert('yo');
+                            //alert('yo');
                         }
                    );
     };
@@ -470,6 +472,8 @@ var forp = function(stack) {
         .c("nav")
         .appendTo(this.window);
 
+    //this.nav.append(this.c("span").text('User : 0000ms<br>System : 0000ms '));
+
     this.nav.append(new o(document.createTextNode(
         self.roundDiv(this.stack[0].usec, 1000) + 'ms ')
     ));
@@ -478,7 +482,10 @@ var forp = function(stack) {
         self.roundDiv(this.stack[0].bytes, 1024) + 'Kb')
     ));
 
-    this.treeList = function(entry) {
+    //this.info = this.c("div").appendTo(this.nav);
+
+    this.treeList = function(entry, recursive) {
+
         var ul = this
                     .c("ul")
                     .class("l" + entry.level)
@@ -499,7 +506,11 @@ var forp = function(stack) {
                     .c("li")
                     .text(entry.id);
 
-        if(entry.group) li.append(this.getDomTag(entry.group));
+        if(entry.groups) {
+            for(g in entry.groups) {
+                li.append(this.getDomTag(entry.groups[g]));
+            }
+        }
         if(entry.caption) li.append(this.c("span").text(entry.caption));
 
         li.append(ex)
@@ -508,11 +519,11 @@ var forp = function(stack) {
           .appendTo(ul);
 
         if(entry.childrenRefs) {
-            if(parseInt(entry.level) >= 2){
+            //if(parseInt(entry.level) >= 2){
                 li.addClass("collapsed");
-            } else {
-                li.addClass("expanded");
-            }
+            //} else {
+            //    li.addClass("expanded");
+            //}
             ex.bind(
                 'click'
                 , function() {
@@ -520,12 +531,28 @@ var forp = function(stack) {
                         li.class("collapsed");
                     } else {
                         li.class("expanded");
+                        if(!li.getAttr("data-tree")) {
+                            for(var i in entry.childrenRefs) {
+                                self.treeList(self.stack[entry.childrenRefs[i]], true)
+                                    .appendTo(li);
+                            }
+                            li.attr("data-tree", 1);
+                        }
                     }
                 }
             );
-            for(var i in entry.childrenRefs) {
-                this.treeList(this.stack[entry.childrenRefs[i]])
-                    .appendTo(li);
+
+            if(parseInt(entry.level) < 2) {
+                li.class("expanded");
+                if(!li.getAttr("data-tree")) {
+                    for(var i in entry.childrenRefs) {
+                        this.treeList(this.stack[entry.childrenRefs[i]])
+                            .appendTo(li);
+                    }
+                    li.attr("data-tree", 1);
+                }
+            } else {
+                li.addClass("collapsed");
             }
         }
         return ul;
@@ -533,12 +560,15 @@ var forp = function(stack) {
 
     this.c("a")
         .text("Full stack")
-        .attr("href", "#")
+        .attr("href", "javascript:void(0);")
         .appendTo(this.nav)
         .bind(
             'click',
             function() {
                 self.clear();
+
+                var tree = self.aggregate().treeList(self.stack[0], true);
+
                 self.c("div")
                     .attr("style", "margin-top: 10px")
                     .append(
@@ -548,7 +578,7 @@ var forp = function(stack) {
                                 .bind(
                                     "click",
                                     function() {
-                                        self.f("li.collapsed")
+                                        self.f("li.collapsed[data-tree]")
                                             .each(
                                                 function(e){
                                                     e.attr("class", "expanded");
@@ -571,7 +601,7 @@ var forp = function(stack) {
                                             );
                                     })
                             )
-                    .append(self.aggregate().treeList(self.stack[0]))
+                    .append(tree)
                     .appendTo(self.getConsole());
             }
         );
@@ -865,7 +895,7 @@ dom.ready(
     font-family: \'Helvetica Neue\', Helvetica, Arial, sans-serif;\n\
     font-weight: 300;\n\
     text-rendering: optimizelegibility;\n\
-    position:absolute; top:0px; right:0px; left:0px;\n\
+    position:fixed; top:0px; right:0px; left:0px;\n\
     font-size : 13px;\n\
     border-radius: 8px;\n\
     color: #222;\n\
@@ -897,6 +927,7 @@ dom.ready(
     border-collapse:collapse;\n\
 }\n\
 #forp .console{\n\
+    overflow:auto;\n\
     border-top: 1px solid #999;\n\
 }\n\
 #forp th, #forp td{\n\
