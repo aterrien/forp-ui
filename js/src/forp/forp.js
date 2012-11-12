@@ -92,6 +92,24 @@ var forp = function(stack) {
         this.remove = function() {
             this.element.parentNode.removeChild(this.element);
         };
+        this.top = function() {
+            return this.getPosition().y;
+        };
+        this.getPosition = function() {
+            var x = 0, y = 0, e = this.element;
+            while(e){
+                x += e.offsetLeft;
+                y += e.offsetTop;
+                e = e.offsetParent;
+            }
+            return {x: x, y: y};
+        };
+        this.height = function() {
+            return this.element.offsetHeight;
+        };
+        this.width = function() {
+            return this.element.offsetWidth;
+        };
     };
 
     var oColl = function(elements)
@@ -422,7 +440,8 @@ var forp = function(stack) {
     this.getConsole = function()
     {
         if(!this.console) {
-            this.console = this.c("div").addClass("console").attr("style", "max-height:" + (window.innerHeight-100) + "px");
+
+            this.console = this.c("div").addClass("console").attr("style", "max-height:" + (window.innerHeight - 100) + "px");
             this.window.append(this.console);
             var aCollapse = this.c("a")
                 .text("^")
@@ -482,8 +501,6 @@ var forp = function(stack) {
         self.roundDiv(this.stack[0].bytes, 1024) + 'Kb')
     ));
 
-    //this.info = this.c("div").appendTo(this.nav);
-
     this.treeList = function(entry, recursive) {
 
         var ul = this
@@ -527,6 +544,11 @@ var forp = function(stack) {
             ex.bind(
                 'click'
                 , function() {
+                    var h2 = (self.getConsole().height() / 2);
+
+                    // scroll to middle
+                    if(ex.top() > h2) self.getConsole().element.scrollTop = ex.top() - h2;
+
                     if(li.getClass() == "expanded") {
                         li.class("collapsed");
                     } else {
@@ -839,13 +861,33 @@ var forp = function(stack) {
                             self.c("td", tr, datas[i].usec.toFixed(2) + '', "numeric");
                             self.c("td", tr, datas[i].bytes.toFixed(2) + '', "numeric");
                             self.c("td", tr, datas[i].filelineno);
-
                             for(var j in datas[i].entries) {
                                 tr = self.c("tr", t).class("sub");
                                 self.c("td", tr, "");
-                                self.c("td", tr, datas[i].entries[j].calls, "numeric");
-                                self.c("td", tr, datas[i].entries[j].usec.toFixed(2) + '', "numeric");
-                                self.c("td", tr, datas[i].entries[j].bytes.toFixed(2) + '', "numeric");
+                                self.c("td", tr, '', "numeric")
+                                    .append(
+                                        self.gauge(
+                                            self.round((datas[i].entries[j].calls * 100) / datas[i].calls)
+                                            , datas[i].entries[j].calls
+                                        )
+                                    );
+
+                                self.c("td", tr, '', "numeric")
+                                    .append(
+                                        self.gauge(
+                                            self.round((datas[i].entries[j].usec * 100) / datas[i].usec)
+                                            , datas[i].entries[j].usec.toFixed(2)
+                                        )
+                                    );
+
+                                self.c("td", tr, '', "numeric")
+                                    .append(
+                                        self.gauge(
+                                            self.round((datas[i].entries[j].bytes * 100) / datas[i].bytes)
+                                            , datas[i].entries[j].bytes.toFixed(2)
+                                        )
+                                    );
+
                                 self.c("td", tr, datas[i].entries[j].filelineno);
                             }
                         }
@@ -891,6 +933,8 @@ dom.ready(
         var s = document.createElement('style'),
             t = document.createTextNode('\n\
 #forp {\n\
+    z-index: 2147483647;\n\
+    text-decoration: none;\n\
     margin: 15px;\n\
     font-family: \'Helvetica Neue\', Helvetica, Arial, sans-serif;\n\
     font-weight: 300;\n\
@@ -923,11 +967,14 @@ dom.ready(
     border-radius: 5px;\n\
 }\n\
 #forp table{\n\
+    font-weight: 300;\n\
+    font-size : 13px;\n\
     width: 100%;\n\
-    border-collapse:collapse;\n\
+    border-collapse: collapse;\n\
 }\n\
 #forp .console{\n\
-    overflow:auto;\n\
+    overflow: auto;\n\
+    padding-bottom: 15px;\n\
     border-top: 1px solid #999;\n\
 }\n\
 #forp th, #forp td{\n\
