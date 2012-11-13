@@ -147,7 +147,7 @@ var forp = function(stack) {
 
     this.gauge = function(percent, text, hcolor)
     {
-        hcolor = hcolor ? hcolor : "#BBB";
+        hcolor = hcolor ? hcolor : "#CCC";
         return self.c("div")
             .text(text)
             .attr(
@@ -642,9 +642,9 @@ var forp = function(stack) {
                         var t = self.c("table")
                             ,tr = self.c("tr", t);
                         self.c("th", tr, "function");
-                        self.c("th", tr, "avg&nbsp;ms");
-                        self.c("th", tr, "calls");
-                        self.c("th", tr, "ms");
+                        self.c("th", tr, "avg&nbsp;ms", "w100");
+                        self.c("th", tr, "calls", "w100");
+                        self.c("th", tr, "ms", "w100");
                         self.c("th", tr, "called from");
                         for(var i in datas) {
                             tr = self.c("tr", t);
@@ -683,9 +683,9 @@ var forp = function(stack) {
                         var t = self.c("table")
                             ,tr = self.c("tr", t);
                         self.c("th", tr, "function");
-                        self.c("th", tr, "avg&nbsp;Kb");
-                        self.c("th", tr, "calls");
-                        self.c("th", tr, "Kb");
+                        self.c("th", tr, "avg&nbsp;Kb", "w100");
+                        self.c("th", tr, "calls", "w100");
+                        self.c("th", tr, "Kb", "w100");
                         self.c("th", tr, "called from");
                         for(var i in datas) {
                             tr = self.c("tr", t);
@@ -724,9 +724,9 @@ var forp = function(stack) {
                         var t = self.c("table")
                             ,tr = self.c("tr", t);
                         self.c("th", tr, "function");
-                        self.c("th", tr, "calls");
-                        self.c("th", tr, "ms");
-                        self.c("th", tr, "Kb");
+                        self.c("th", tr, "calls", "w100");
+                        self.c("th", tr, "ms", "w100");
+                        self.c("th", tr, "Kb", "w100");
                         self.c("th", tr, "called from");
                         for(var i in datas) {
                             tr = self.c("tr", t);
@@ -794,9 +794,9 @@ var forp = function(stack) {
                             ,tr = self.c("tr", t);
 
                         self.c("th", tr, "group");
-                        self.c("th", tr, "calls");
-                        self.c("th", tr, "ms");
-                        self.c("th", tr, "Kb");
+                        self.c("th", tr, "calls", "w100");
+                        self.c("th", tr, "ms", "w100");
+                        self.c("th", tr, "Kb", "w100");
 
                         for(var i in datas) {
                             var tr = self.c("tr", t);
@@ -850,9 +850,9 @@ var forp = function(stack) {
                         var t = self.c("table")
                             ,tr = self.c("tr", t);
                         self.c("th", tr, "function");
-                        self.c("th", tr, "calls");
-                        self.c("th", tr, "ms");
-                        self.c("th", tr, "Kb");
+                        self.c("th", tr, "calls", "w100");
+                        self.c("th", tr, "ms", "w100");
+                        self.c("th", tr, "Kb", "w100");
                         self.c("th", tr, "called from");
                         for(var i in datas) {
                             tr = self.c("tr", t);
@@ -984,12 +984,17 @@ dom.ready(
     color: #fff;\n\
     background-color : #777\n\
 }\n\
+#forp .w100{\n\
+    min-width: 100px;\n\
+}\n\
 //#forp tr:nth-child(even){ background-color:#fff; }\n\
 //#forp tr:nth-child(odd){ background-color:#eee; }\n\
 #forp td{\n\
-    text-align: right;\n\
-    text-overflow: ellipsis;\n\
+    //width: 250px;\n\
     text-align: left;\n\
+    text-overflow: ellipsis;\n\
+    word-space: nowrap;\n\
+    overflow: hidden;\n\
     border: 1px solid #DDD;\n\
 }\n\
 #forp tr.sub{\n\

@@ -61,7 +61,8 @@ $lambda =
 /**
  * @ProfileGroup("Foo Group")
  * @ProfileCaption("Closure")
- * @ProfileHighlight("Closure")
+ * @ProfileHighlight("1")
+ * @ProfileAlias("HighlightTestClosure")
  */
 function() {
     echo "html highlight me !";

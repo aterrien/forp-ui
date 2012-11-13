@@ -10,7 +10,7 @@ register_shutdown_function(
         // next code can be append to PHP scripts in dev mode
         // buffering forp stack
         $json_dump = json_encode($dump = forp_dump());
-
+        echo 'Stack size : ' . count($dump) . ' entries<br>';
         //var_dump($dump);
 
         //echo '<pre>';
