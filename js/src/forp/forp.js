@@ -33,6 +33,7 @@ var SortedFixedArray = function(filter, size) {
 var forp = function(stack) {
     var self = this;
 
+    this.window = null;
     this.stack = stack; // RAW stack
     this.hstack = null; // hashed stack
     this.includes = null; // included files
@@ -46,12 +47,22 @@ var forp = function(stack) {
     // DOM Element wrapper
     var o = function(element)
     {
+        var self = this;
         this.element = element;
         this.bind = function(evType, fn) {
             if (this.element.addEventListener) {
                 this.element.addEventListener(evType, fn, false);
             } else if (this.element.attachEvent) {
                 var r = this.element.attachEvent("on"+evType, fn);
+                return r;
+            }
+            return this;
+        };
+        this.unbind = function(evType, fn) {
+            if (this.element.removeEventListener) {
+                this.element.removeEventListener(evType, fn, false);
+            } else if (this.element.detachEvent) {
+                var r = this.element.detachEvent("on"+evType, fn);
                 return r;
             }
             return this;
@@ -110,6 +121,19 @@ var forp = function(stack) {
         this.width = function() {
             return this.element.offsetWidth;
         };
+        this.open = function()
+        {
+            self.class('opened')
+                .unbind('click', self.open);
+            return self;
+        };
+        this.close = function()
+        {
+            self.class('closed')
+                .unbind('click', self.close);
+            return self;
+        };
+
     };
 
     var oColl = function(elements)
@@ -167,7 +191,7 @@ var forp = function(stack) {
      */
     this.round = function(v)
     {
-        return (~~ (0.5 + (v * 100))) / 100;
+        return (~~ (0.5 + (v * 1000))) / 1000;
     }
 
     /**
@@ -447,6 +471,7 @@ var forp = function(stack) {
                 .text("^")
                 .attr("href", "javascript:void(0);")
                 .appendTo(this.nav)
+                .class("btn")
                 .bind(
                     'click',
                     function(e) {
@@ -461,14 +486,17 @@ var forp = function(stack) {
 
     /**
      * Display datas
+     *
      * @param array datas
+     * @return Object
      */
     this.show = function(datas, func)
     {
         this.getConsole().append(func(datas));
     };
 
-    this.getDomTag = function(name) {
+    this.getDomTag = function(name)
+    {
         return this.c("a")
                    .class("tag")
                    .text(name)
@@ -480,28 +508,126 @@ var forp = function(stack) {
                    );
     };
 
-    // Init
-    this.window = this
-        .c("div")
-        .attr("id", "forp");
+    /**
+     * Run window manager
+     */
+    this.run = function()
+    {
+        // Init
+        this.window = this
+            .c("div")
+            .attr("id", "forp")
+            .close();
 
-    document.body.appendChild(this.window.element);
+        this.window.bind(
+            "click",
+            function() { self.open(); }
+        );
+        document.body.appendChild(this.window.element);
 
-    this.nav = this
-        .c("nav")
-        .appendTo(this.window);
+        this.nav = this
+            .c("nav")
+            .appendTo(this.window);
 
-    //this.nav.append(this.c("span").text('User : 0000ms<br>System : 0000ms '));
+        //this.nav.append(this.c("span").text('User : 0000ms<br>System : 0000ms '));
 
-    this.nav.append(new o(document.createTextNode(
-        self.roundDiv(this.stack[0].usec, 1000) + 'ms ')
-    ));
+        this.c("div")
+            .class("i")
+            .append(
+                this.c("a")
+                    .attr("href", "https://github.com/aterrien/forp")
+                    .attr("target", "_blank")
+                    .text("i")
+                    )
+            .appendTo(this.window);
 
-    this.nav.append(new o(document.createTextNode(
-        self.roundDiv(this.stack[0].bytes, 1024) + 'Kb')
-    ));
+        this.c("div")
+            .text(self.roundDiv(this.stack[0].usec, 1000) + ' ms ')
+            .appendTo(this.nav);
 
-    this.treeList = function(entry, recursive) {
+        this.c("div")
+            .text(self.roundDiv(this.stack[0].bytes, 1024) + ' Kb')
+            .appendTo(this.nav);
+
+        this.c("div")
+            .text('&nbsp;')
+            .appendTo(this.nav);
+
+        this.c("input")
+            .attr("type", "search")
+            .attr("autosave", "forp")
+            .attr("results", 5)
+            .attr("name", "forpSearch")
+            .attr("placeholder", "Search forp")
+            .appendTo(this.nav)
+            .bind(
+                'keyup',
+                function() {
+                    self.window.open();
+                    self.clear();
+                    self.show(
+                        self.find(this.value)
+                        , function(datas) {
+                            var t = self.c("table")
+                                ,tr = self.c("tr", t);
+                            self.c("th", tr, "function");
+                            self.c("th", tr, "calls", "w100");
+                            self.c("th", tr, "ms", "w100");
+                            self.c("th", tr, "Kb", "w100");
+                            self.c("th", tr, "called from");
+                            for(var i in datas) {
+                                tr = self.c("tr", t);
+                                self.c("td", tr, datas[i].id);
+                                self.c("td", tr, datas[i].calls, "numeric");
+                                self.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
+                                self.c("td", tr, datas[i].bytes.toFixed(3) + '', "numeric");
+                                self.c("td", tr, datas[i].filelineno);
+                                for(var j in datas[i].entries) {
+                                    tr = self.c("tr", t).class("sub");
+                                    self.c("td", tr, "");
+                                    self.c("td", tr, '', "numeric")
+                                        .append(
+                                            self.gauge(
+                                                self.round((datas[i].entries[j].calls * 100) / datas[i].calls)
+                                                , datas[i].entries[j].calls
+                                            )
+                                        );
+
+                                    self.c("td", tr, '', "numeric")
+                                        .append(
+                                            self.gauge(
+                                                self.round((datas[i].entries[j].usec * 100) / datas[i].usec)
+                                                , datas[i].entries[j].usec.toFixed(3)
+                                            )
+                                        );
+
+                                    self.c("td", tr, '', "numeric")
+                                        .append(
+                                            self.gauge(
+                                                self.round((datas[i].entries[j].bytes * 100) / datas[i].bytes)
+                                                , datas[i].entries[j].bytes.toFixed(3)
+                                            )
+                                        );
+
+                                    self.c("td", tr, datas[i].entries[j].filelineno);
+                                }
+                            }
+                            return t;
+                        }
+                    );
+                }
+            );
+    };
+
+    /**
+     * Generates a tree representation (UL) of the stack
+     *
+     * @param array entry Root entry
+     * @param boolean recursive Says if we have to fetch it recursively
+     * @return Object Wrapped UL
+     */
+    this.treeList = function(entry, recursive)
+    {
 
         var ul = this
                     .c("ul")
@@ -531,9 +657,9 @@ var forp = function(stack) {
         if(entry.caption) li.append(this.c("span").text(entry.caption));
 
         li.append(ex)
-          .append(gd)
-          .append(gb)
-          .appendTo(ul);
+        .append(gd)
+        .append(gb)
+        .appendTo(ul);
 
         if(entry.childrenRefs) {
             //if(parseInt(entry.level) >= 2){
@@ -580,322 +706,282 @@ var forp = function(stack) {
         return ul;
     };
 
-    this.c("a")
-        .text("Full stack")
-        .attr("href", "javascript:void(0);")
-        .appendTo(this.nav)
-        .bind(
-            'click',
-            function() {
-                self.clear();
+    /**
+     * Expand main window
+     */
+    this.opened = false;
+    this.open = function()
+    {
+        if(this.opened) return; // TODO unbind
+        this.opened = true;
 
-                var tree = self.aggregate().treeList(self.stack[0], true);
+        this.window.open();
 
-                self.c("div")
-                    .attr("style", "margin-top: 10px")
-                    .append(
-                            self.c("a")
-                                .text("Expand all")
-                                .attr("href", "#")
-                                .bind(
-                                    "click",
-                                    function() {
-                                        self.f("li.collapsed[data-tree]")
-                                            .each(
-                                                function(e){
-                                                    e.attr("class", "expanded");
-                                                }
-                                            );
-                                    })
-                            )
-                    .append(
-                            self.c("a")
-                                .text("Collapse all")
-                                .attr("href", "#")
-                                .bind(
-                                    "click",
-                                    function() {
-                                        self.f("li.expanded")
-                                            .each(
-                                                function(e){
-                                                    e.attr("class", "collapsed");
-                                                }
-                                            );
-                                    })
-                            )
-                    .append(tree)
-                    .appendTo(self.getConsole());
-            }
-        );
+        this.c("a")
+            .text("Full stack")
+            .attr("href", "javascript:void(0);")
+            .class("btn")
+            .appendTo(this.nav)
+            .bind(
+                'click',
+                function() {
+                    self.clear();
 
-    this.c("a")
-        .text("Duration")
-        .attr("href", "#")
-        .appendTo(this.nav)
-        .bind(
-            'click',
-            function() {
-                self.clear();
-                self.show(
-                    self.getTopCpu()
-                    , function(datas) {
-                        var t = self.c("table")
-                            ,tr = self.c("tr", t);
-                        self.c("th", tr, "function");
-                        self.c("th", tr, "avg&nbsp;ms", "w100");
-                        self.c("th", tr, "calls", "w100");
-                        self.c("th", tr, "ms", "w100");
-                        self.c("th", tr, "called from");
-                        for(var i in datas) {
-                            tr = self.c("tr", t);
-                            self.c("td", tr, datas[i].id);
-                            self.c("td", tr, datas[i].usecavg.toFixed(2), "numeric");
-                            self.c("td", tr, datas[i].calls, "numeric");
-                            self.c("td", tr, datas[i].usec.toFixed(2) + '', "numeric");
-                            self.c("td", tr, datas[i].filelineno);
+                    var tree = self.aggregate().treeList(self.stack[0], true);
 
-                            for(var j in datas[i].entries) {
-                                tr = self.c("tr", t).class("sub");
-                                self.c("td", tr, "");
-                                self.c("td", tr, (self.round((100 * datas[i].entries[j].usec) / datas[i].entries[j].calls) / 100).toFixed(2), "numeric");
-                                self.c("td", tr, datas[i].entries[j].calls, "numeric");
-                                self.c("td", tr, datas[i].entries[j].usec.toFixed(2) + '', "numeric");
-                                self.c("td", tr, datas[i].entries[j].filelineno);
+                    self.c("div")
+                        .attr("style", "margin-top: 10px")
+                        .append(
+                                self.c("a")
+                                    .text("Expand all")
+                                    .attr("href", "#")
+                                    .bind(
+                                        "click",
+                                        function() {
+                                            self.f("li.collapsed[data-tree]")
+                                                .each(
+                                                    function(e){
+                                                        e.attr("class", "expanded");
+                                                    }
+                                                );
+                                        })
+                                )
+                        .append(
+                                self.c("a")
+                                    .text("Collapse all")
+                                    .attr("href", "#")
+                                    .bind(
+                                        "click",
+                                        function() {
+                                            self.f("li.expanded")
+                                                .each(
+                                                    function(e){
+                                                        e.attr("class", "collapsed");
+                                                    }
+                                                );
+                                        })
+                                )
+                        .append(tree)
+                        .appendTo(self.getConsole());
+                }
+            );
+
+        this.c("a")
+            .text("Duration")
+            .attr("href", "#")
+            .class("btn")
+            .appendTo(this.nav)
+            .bind(
+                'click',
+                function() {
+                    self.clear();
+                    self.show(
+                        self.getTopCpu()
+                        , function(datas) {
+                            var t = self.c("table")
+                                ,tr = self.c("tr", t);
+                            self.c("th", tr, "function");
+                            self.c("th", tr, "avg&nbsp;ms", "w100");
+                            self.c("th", tr, "calls", "w100");
+                            self.c("th", tr, "ms", "w100");
+                            self.c("th", tr, "called from");
+                            for(var i in datas) {
+                                tr = self.c("tr", t);
+                                self.c("td", tr, datas[i].id);
+                                self.c("td", tr, datas[i].usecavg.toFixed(3), "numeric");
+                                self.c("td", tr, datas[i].calls, "numeric");
+                                self.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
+                                self.c("td", tr, datas[i].filelineno);
+
+                                for(var j in datas[i].entries) {
+                                    tr = self.c("tr", t).class("sub");
+                                    self.c("td", tr, "");
+                                    self.c("td", tr, (self.round((100 * datas[i].entries[j].usec) / datas[i].entries[j].calls) / 100).toFixed(2), "numeric");
+                                    self.c("td", tr, datas[i].entries[j].calls, "numeric");
+                                    self.c("td", tr, datas[i].entries[j].usec.toFixed(3) + '', "numeric");
+                                    self.c("td", tr, datas[i].entries[j].filelineno);
+                                }
                             }
+                            return t;
                         }
-                        return t;
-                    }
-                );
-            }
-        );
+                    );
+                }
+            );
 
-    this.c("a")
-        .text("Memory")
-        .attr("href", "#")
-        .appendTo(this.nav)
-        .bind(
-            'click',
-            function() {
-                self.clear();
-                self.show(
-                    self.getTopMemory()
-                    , function(datas) {
-                        var t = self.c("table")
-                            ,tr = self.c("tr", t);
-                        self.c("th", tr, "function");
-                        self.c("th", tr, "avg&nbsp;Kb", "w100");
-                        self.c("th", tr, "calls", "w100");
-                        self.c("th", tr, "Kb", "w100");
-                        self.c("th", tr, "called from");
-                        for(var i in datas) {
-                            tr = self.c("tr", t);
-                            self.c("td", tr, datas[i].id);
-                            self.c("td", tr, datas[i].bytesavg.toFixed(2) + '', "numeric");
-                            self.c("td", tr, datas[i].calls + '', "numeric");
-                            self.c("td", tr, datas[i].bytes.toFixed(2) + '', "numeric");
-                            self.c("td", tr, datas[i].filelineno);
+        this.c("a")
+            .text("Memory")
+            .attr("href", "#")
+            .class("btn")
+            .appendTo(this.nav)
+            .bind(
+                'click',
+                function() {
+                    self.clear();
+                    self.show(
+                        self.getTopMemory()
+                        , function(datas) {
+                            var t = self.c("table")
+                                ,tr = self.c("tr", t);
+                            self.c("th", tr, "function");
+                            self.c("th", tr, "avg&nbsp;Kb", "w100");
+                            self.c("th", tr, "calls", "w100");
+                            self.c("th", tr, "Kb", "w100");
+                            self.c("th", tr, "called from");
+                            for(var i in datas) {
+                                tr = self.c("tr", t);
+                                self.c("td", tr, datas[i].id);
+                                self.c("td", tr, datas[i].bytesavg.toFixed(3) + '', "numeric");
+                                self.c("td", tr, datas[i].calls + '', "numeric");
+                                self.c("td", tr, datas[i].bytes.toFixed(3) + '', "numeric");
+                                self.c("td", tr, datas[i].filelineno);
 
-                            for(var j in datas[i].entries) {
-                                tr = self.c("tr", t).class("sub");
-                                self.c("td", tr, "");
-                                self.c("td", tr, (self.round((100 * datas[i].entries[j].bytes) / datas[i].entries[j].calls) / 100).toFixed(2) + '', "numeric");
-                                self.c("td", tr, datas[i].entries[j].calls + '', "numeric");
-                                self.c("td", tr, datas[i].entries[j].bytes.toFixed(2) + '', "numeric");
-                                self.c("td", tr, datas[i].entries[j].filelineno);
+                                for(var j in datas[i].entries) {
+                                    tr = self.c("tr", t).class("sub");
+                                    self.c("td", tr, "");
+                                    self.c("td", tr, (self.round((100 * datas[i].entries[j].bytes) / datas[i].entries[j].calls) / 100).toFixed(2) + '', "numeric");
+                                    self.c("td", tr, datas[i].entries[j].calls + '', "numeric");
+                                    self.c("td", tr, datas[i].entries[j].bytes.toFixed(3) + '', "numeric");
+                                    self.c("td", tr, datas[i].entries[j].filelineno);
+                                }
                             }
+                            return t;
                         }
-                        return t;
-                    }
-                );
-            }
-        );
+                    );
+                }
+            );
 
-    this.c("a")
-        .text("Calls")
-        .attr("href", "#")
-        .appendTo(this.nav)
-        .bind(
-            'click',
-            function(e) {
-                self.clear();
-                self.show(
-                    self.getTopCalls()
-                    , function(datas) {
-                        var t = self.c("table")
-                            ,tr = self.c("tr", t);
-                        self.c("th", tr, "function");
-                        self.c("th", tr, "calls", "w100");
-                        self.c("th", tr, "ms", "w100");
-                        self.c("th", tr, "Kb", "w100");
-                        self.c("th", tr, "called from");
-                        for(var i in datas) {
-                            tr = self.c("tr", t);
-                            self.c("td", tr, datas[i].id);
-                            self.c("td", tr, datas[i].calls, "numeric");
-                            self.c("td", tr, datas[i].usec.toFixed(2) + '', "numeric");
-                            self.c("td", tr, datas[i].bytes.toFixed(2) + '', "numeric");
-                            self.c("td", tr, '');
+        this.c("a")
+            .text("Calls")
+            .attr("href", "#")
+            .class("btn")
+            .appendTo(this.nav)
+            .bind(
+                'click',
+                function(e) {
+                    self.clear();
+                    self.show(
+                        self.getTopCalls()
+                        , function(datas) {
+                            var t = self.c("table")
+                                ,tr = self.c("tr", t);
+                            self.c("th", tr, "function");
+                            self.c("th", tr, "calls", "w100");
+                            self.c("th", tr, "ms", "w100");
+                            self.c("th", tr, "Kb", "w100");
+                            self.c("th", tr, "called from");
+                            for(var i in datas) {
+                                tr = self.c("tr", t);
+                                self.c("td", tr, datas[i].id);
+                                self.c("td", tr, datas[i].calls, "numeric");
+                                self.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
+                                self.c("td", tr, datas[i].bytes.toFixed(3) + '', "numeric");
+                                self.c("td", tr, '');
 
-                            for(var j in datas[i].entries) {
-                                tr = self.c("tr", t).class("sub");
-                                self.c("td", tr, "");
-                                self.c("td", tr, datas[i].entries[j].calls, "numeric");
-                                self.c("td", tr, datas[i].entries[j].usec.toFixed(2) + '', "numeric");
-                                self.c("td", tr, datas[i].entries[j].bytes.toFixed(2) + '', "numeric");
-                                self.c("td", tr, datas[i].entries[j].filelineno);
+                                for(var j in datas[i].entries) {
+                                    tr = self.c("tr", t).class("sub");
+                                    self.c("td", tr, "");
+                                    self.c("td", tr, datas[i].entries[j].calls, "numeric");
+                                    self.c("td", tr, datas[i].entries[j].usec.toFixed(3) + '', "numeric");
+                                    self.c("td", tr, datas[i].entries[j].bytes.toFixed(3) + '', "numeric");
+                                    self.c("td", tr, datas[i].entries[j].filelineno);
+                                }
                             }
+                            return t;
                         }
-                        return t;
-                    }
-                );
-            }
-        );
+                    );
+                }
+            );
 
-    this.c("a")
-        .text("Files")
-        .attr("href", "#")
-        .appendTo(this.nav)
-        .bind(
-            'click',
-            function() {
-                self.clear();
-                self.show(
-                    self.getIncludes()
-                    , function(datas) {
-                        var t = self.c("table").addClass("tree")
-                            ,tr = self.c("tr", t);
+        this.c("a")
+            .text("Files")
+            .attr("href", "#")
+            .class("btn")
+            .appendTo(this.nav)
+            .bind(
+                'click',
+                function() {
+                    self.clear();
+                    self.show(
+                        self.getIncludes()
+                        , function(datas) {
+                            var t = self.c("table").addClass("tree")
+                                ,tr = self.c("tr", t);
 
-                        self.c("th", tr, "usage");
-                        self.c("th", tr, "path");
+                            self.c("th", tr, "usage");
+                            self.c("th", tr, "path");
 
-                        for(var i in datas) {
-                            var tr = self.c("tr", t);
-                            self.c("td", tr, datas[i], 'numeric');
-                            self.c("td", tr, i);
-                        }
-                        return t;
-                    }
-                );
-            }
-        );
-
-    this.c("a")
-        .text("Groups")
-        .attr("href", "#")
-        .appendTo(this.nav)
-        .bind(
-            'click',
-            function() {
-                self.clear();
-                self.show(
-                    self.getGroups()
-                    , function(datas) {
-                        var t = self.c("table")
-                            ,tr = self.c("tr", t);
-
-                        self.c("th", tr, "group");
-                        self.c("th", tr, "calls", "w100");
-                        self.c("th", tr, "ms", "w100");
-                        self.c("th", tr, "Kb", "w100");
-
-                        for(var i in datas) {
-                            var tr = self.c("tr", t);
-                            self.c("td", tr).append(self.getDomTag(i));
-                            self.c("td", tr, datas[i].calls, 'numeric');
-                            self.c("td", tr, datas[i].usec.toFixed(2) + '', 'numeric');
-                            self.c("td", tr, datas[i].bytes.toFixed(2) + '', 'numeric');
-                            for(var j in datas[i].refs) {
-                                var trsub = self.c("tr", t).class("sub");
-                                self.c("td", trsub, datas[i].refs[j]);
-                                self.c("td", trsub, "", 'numeric')
-                                    .append(
-                                        self.gauge(
-                                                self.round((self.hstack[datas[i].refs[j]].calls * 100) / datas[i].calls)
-                                                , self.hstack[datas[i].refs[j]].calls)
-                                    );
-                                self.c("td", trsub, "", 'numeric')
-                                    .append(
-                                        self.gauge(
-                                                self.round((self.hstack[datas[i].refs[j]].usec * 100) / datas[i].usec)
-                                                , self.hstack[datas[i].refs[j]].usec.toFixed(2))
-                                    );
-                                self.c("td", trsub,  "", 'numeric')
-                                    .append(
-                                        self.gauge(
-                                                self.round((self.hstack[datas[i].refs[j]].bytes * 100) / datas[i].bytes)
-                                                , self.hstack[datas[i].refs[j]].bytes.toFixed(2))
-                                    );
+                            for(var i in datas) {
+                                var tr = self.c("tr", t);
+                                self.c("td", tr, datas[i], 'numeric');
+                                self.c("td", tr, i);
                             }
+                            return t;
                         }
-                        return t;
-                    }
-                );
-            }
-        );
+                    );
+                }
+            );
 
-    this.c("input")
-        .attr("type", "search")
-        .attr("autosave", "forp")
-        .attr("results", 5)
-        .attr("name", "forpSearch")
-        .attr("placeholder", "Search forp")
-        .appendTo(this.nav)
-        .bind(
-            'keyup',
-            function() {
-                self.clear();
-                self.show(
-                    self.find(this.value)
-                    , function(datas) {
-                        var t = self.c("table")
-                            ,tr = self.c("tr", t);
-                        self.c("th", tr, "function");
-                        self.c("th", tr, "calls", "w100");
-                        self.c("th", tr, "ms", "w100");
-                        self.c("th", tr, "Kb", "w100");
-                        self.c("th", tr, "called from");
-                        for(var i in datas) {
-                            tr = self.c("tr", t);
-                            self.c("td", tr, datas[i].id);
-                            self.c("td", tr, datas[i].calls, "numeric");
-                            self.c("td", tr, datas[i].usec.toFixed(2) + '', "numeric");
-                            self.c("td", tr, datas[i].bytes.toFixed(2) + '', "numeric");
-                            self.c("td", tr, datas[i].filelineno);
-                            for(var j in datas[i].entries) {
-                                tr = self.c("tr", t).class("sub");
-                                self.c("td", tr, "");
-                                self.c("td", tr, '', "numeric")
-                                    .append(
-                                        self.gauge(
-                                            self.round((datas[i].entries[j].calls * 100) / datas[i].calls)
-                                            , datas[i].entries[j].calls
-                                        )
-                                    );
+        this.c("a")
+            .text("Groups")
+            .attr("href", "#")
+            .class("btn")
+            .appendTo(this.nav)
+            .bind(
+                'click',
+                function() {
+                    self.clear();
+                    self.show(
+                        self.getGroups()
+                        , function(datas) {
+                            var t = self.c("table")
+                                ,tr = self.c("tr", t);
 
-                                self.c("td", tr, '', "numeric")
-                                    .append(
-                                        self.gauge(
-                                            self.round((datas[i].entries[j].usec * 100) / datas[i].usec)
-                                            , datas[i].entries[j].usec.toFixed(2)
-                                        )
-                                    );
+                            self.c("th", tr, "group");
+                            self.c("th", tr, "calls", "w100");
+                            self.c("th", tr, "ms", "w100");
+                            self.c("th", tr, "Kb", "w100");
 
-                                self.c("td", tr, '', "numeric")
-                                    .append(
-                                        self.gauge(
-                                            self.round((datas[i].entries[j].bytes * 100) / datas[i].bytes)
-                                            , datas[i].entries[j].bytes.toFixed(2)
-                                        )
-                                    );
-
-                                self.c("td", tr, datas[i].entries[j].filelineno);
+                            for(var i in datas) {
+                                var tr = self.c("tr", t);
+                                self.c("td", tr)
+                                    .append(self.getDomTag(i))
+                                    .append(self.c("span").text(datas[i].refs.length + ' ' + (datas[i].refs.length>1 ? 'entries' : 'entry')));
+                                self.c("td", tr, datas[i].calls, 'numeric');
+                                self.c("td", tr, datas[i].usec.toFixed(3) + '', 'numeric');
+                                self.c("td", tr, datas[i].bytes.toFixed(3) + '', 'numeric');
+                                for(var j in datas[i].refs) {
+                                    var trsub = self.c("tr", t).class("sub");
+                                    self.c("td", trsub, datas[i].refs[j]);
+                                    self.c("td", trsub, "", 'numeric')
+                                        .append(
+                                            self.gauge(
+                                                    self.round((self.hstack[datas[i].refs[j]].calls * 100) / datas[i].calls)
+                                                    , self.hstack[datas[i].refs[j]].calls)
+                                        );
+                                    self.c("td", trsub, "", 'numeric')
+                                        .append(
+                                            self.gauge(
+                                                    self.round((self.hstack[datas[i].refs[j]].usec * 100) / datas[i].usec)
+                                                    , self.hstack[datas[i].refs[j]].usec.toFixed(3))
+                                        );
+                                    self.c("td", trsub,  "", 'numeric')
+                                        .append(
+                                            self.gauge(
+                                                    self.round((self.hstack[datas[i].refs[j]].bytes * 100) / datas[i].bytes)
+                                                    , self.hstack[datas[i].refs[j]].bytes.toFixed(3))
+                                        );
+                                }
                             }
+                            return t;
                         }
-                        return t;
-                    }
-                );
-            }
-        );
+                    );
+                }
+            );
+    };
+
+    this.run();
+
+
 };
 
 // static functions
@@ -936,24 +1022,61 @@ dom.ready(
     z-index: 2147483647;\n\
     text-decoration: none;\n\
     margin: 15px;\n\
-    font-family: \'Helvetica Neue\', Helvetica, Arial, sans-serif;\n\
+    font-family: "Helvetica Neue", Helvetica, Nimbus, Arial, sans-serif;\n\
     font-weight: 300;\n\
     text-rendering: optimizelegibility;\n\
-    position:fixed; top:0px; right:0px; left:0px;\n\
+    position:fixed; \n\
+    top:0px; \n\
+    right:0px; \n\
+    max-width: 300px;\n\
     font-size : 13px;\n\
     border-radius: 8px;\n\
     color: #222;\n\
-    border: 3px solid #222;\n\
+    border: 3px solid #333;\n\
     background-color: #fff;\n\
+}\n\
+#forp.opened {\n\
+    opacity: 1;\n\
+}\n\
+#forp.closed {\n\
+    width: 150px;\n\
+    opacity: .5;\n\
+}\n\
+#forp.closed:hover {\n\
+    opacity: 1;\n\
+}\n\
+#forp.opened{\n\
+    max-width: 100%;\n\
+    left:0px\n\
+}\n\
+#forp.opened a{\n\
+    display: inline;\n\
 }\n\
 #forp nav{\n\
     border-radius: 8px;\n\
     padding: 10px;\n\
 }\n\
+#forp.closed nav>div{\n\
+    margin: 3px 0px;\n\
+}\n\
+#forp.opened nav>div{\n\
+    float: left;\n\
+    margin: 0px 5px;\n\
+}\n\
 #forp a{\n\
+    white-space:nowrap;\n\
+    text-decoration: none;\n\
+}\n\
+#forp nav>a.btn, #forp div.console a{\n\
+    color: #FFF;\n\
     margin: 0px 5px;\n\
     padding: 5px;\n\
     background-color: #777;\n\
+    background-image: linear-gradient(top,#777,#666);\n\
+    background-image: -webkit-linear-gradient(top,#777,#666);\n\
+    background-image: -moz-linear-gradient(top,#777,#666);\n\
+    background-image: -ms-linear-gradient(top,#777,#666);\n\
+    background-image: -o-linear-gradient(top,#777,#666);\n\
     color: #FFF;\n\
     text-decoration: none;\n\
 }\n\
@@ -964,7 +1087,7 @@ dom.ready(
     padding: 2px 5px;\n\
 }\n\
 #forp a.tag, #forp a{\n\
-    border-radius: 5px;\n\
+    border-radius: 3px;\n\
 }\n\
 #forp table{\n\
     font-weight: 300;\n\
@@ -972,7 +1095,7 @@ dom.ready(
     width: 100%;\n\
     border-collapse: collapse;\n\
 }\n\
-#forp .console{\n\
+#forp div.console{\n\
     overflow: auto;\n\
     padding-bottom: 15px;\n\
     border-top: 1px solid #999;\n\
@@ -985,10 +1108,8 @@ dom.ready(
     background-color : #777\n\
 }\n\
 #forp .w100{\n\
-    min-width: 100px;\n\
+   width: 120px;\n\
 }\n\
-//#forp tr:nth-child(even){ background-color:#fff; }\n\
-//#forp tr:nth-child(odd){ background-color:#eee; }\n\
 #forp td{\n\
     //width: 250px;\n\
     text-align: left;\n\
@@ -1047,7 +1168,21 @@ dom.ready(
     font-size: 0.8em;\n\
     padding: 0px 3px;\n\
 }\n\
-');
+#forp div.i{\n\
+    position: absolute;\n\
+    top: 3px;\n\
+    right: 3px;\n\
+    font-weight: 900;\n\
+    text-align: center;\n\
+    background-color: #DDD;\n\
+    width: 15px;\n\
+    height: 15px;\n\
+    border-radius: 10px;\n\
+}\n\
+#forp div.i>a{\n\
+    font-family: Georgia;\n\
+    color: #FFF;\n\
+}');
         s.appendChild(t);
         (document.getElementsByTagName('head')[0]
             || document.getElementsByTagName('body')[0]).appendChild(s);
