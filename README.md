@@ -1,4 +1,4 @@
-!Still under development!
+!under development!
 
 
 A simple GUI lib for forp.
@@ -10,6 +10,7 @@ A complete GUI for forp with :
 - top 20 Calls
 - top 20 CPU
 - top 20 Memory
+- groups
 - Search input
 
 forp extension > json_encode() > forp.js
@@ -20,6 +21,6 @@ or js/index.html for a bigger stack
 
 # PHP GUI #
 
-If you are afraid to use Javascript to display the forp stack.
+... if you are afraid to use Javascript to display the forp stack.
 
 See php_demo.php

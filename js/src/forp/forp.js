@@ -468,7 +468,7 @@ var forp = function(stack) {
             this.console = this.c("div").addClass("console").attr("style", "max-height:" + (window.innerHeight - 100) + "px");
             this.window.append(this.console);
             var aCollapse = this.c("a")
-                .text("^")
+                .text("&and;")
                 .attr("href", "javascript:void(0);")
                 .appendTo(this.nav)
                 .class("btn")
@@ -535,7 +535,7 @@ var forp = function(stack) {
             .class("i")
             .append(
                 this.c("a")
-                    .attr("href", "https://github.com/aterrien/forp")
+                    .attr("href", "https://github.com/aterrien/forpgui")
                     .attr("target", "_blank")
                     .text("i")
                     )
@@ -554,11 +554,13 @@ var forp = function(stack) {
             .appendTo(this.nav);
 
         this.c("input")
+            .class("right")
             .attr("type", "search")
-            .attr("autosave", "forp")
-            .attr("results", 5)
+            //.attr("autosave", "unique")
+            //.attr("results", 5)
             .attr("name", "forpSearch")
-            .attr("placeholder", "Search forp")
+            .attr("placeholder", "Search forp ...")
+            .attr("style", "margin: -2px 25px 5px 25px")
             .appendTo(this.nav)
             .bind(
                 'keyup',
@@ -718,7 +720,7 @@ var forp = function(stack) {
         this.window.open();
 
         this.c("a")
-            .text("Full stack")
+            .text("&equiv; stack")
             .attr("href", "javascript:void(0);")
             .class("btn")
             .appendTo(this.nav)
@@ -730,44 +732,52 @@ var forp = function(stack) {
                     var tree = self.aggregate().treeList(self.stack[0], true);
 
                     self.c("div")
-                        .attr("style", "margin-top: 10px")
+                        .attr("style", "margin-top: 10px;")
                         .append(
-                                self.c("a")
-                                    .text("Expand all")
-                                    .attr("href", "#")
-                                    .bind(
-                                        "click",
-                                        function() {
-                                            self.f("li.collapsed[data-tree]")
-                                                .each(
-                                                    function(e){
-                                                        e.attr("class", "expanded");
-                                                    }
-                                                );
-                                        })
-                                )
+                            self.c("div")
+                                .attr("style", "position: fixed; margin: 5px; right: 20px")
+                                .append(
+                                        self.c("a")
+                                            .text("expand")
+                                            .attr("href", "#")
+                                            .class("btn")
+                                            .bind(
+                                                "click",
+                                                function() {
+                                                    self.f("li.collapsed[data-tree]")
+                                                        .each(
+                                                            function(e){
+                                                                e.attr("class", "expanded");
+                                                            }
+                                                        );
+                                                })
+                                        )
+                                .append(
+                                        self.c("a")
+                                            .text("collapse")
+                                            .attr("href", "#")
+                                            .class("btn")
+                                            .bind(
+                                                "click",
+                                                function() {
+                                                    self.f("li.expanded")
+                                                        .each(
+                                                            function(e){
+                                                                e.attr("class", "collapsed");
+                                                            }
+                                                        );
+                                                })
+                                        )
+                        )
                         .append(
-                                self.c("a")
-                                    .text("Collapse all")
-                                    .attr("href", "#")
-                                    .bind(
-                                        "click",
-                                        function() {
-                                            self.f("li.expanded")
-                                                .each(
-                                                    function(e){
-                                                        e.attr("class", "collapsed");
-                                                    }
-                                                );
-                                        })
-                                )
-                        .append(tree)
+                            self.c("div").append(tree)
+                        )
                         .appendTo(self.getConsole());
                 }
             );
 
         this.c("a")
-            .text("Duration")
+            .text("duration")
             .attr("href", "#")
             .class("btn")
             .appendTo(this.nav)
@@ -796,7 +806,7 @@ var forp = function(stack) {
                                 for(var j in datas[i].entries) {
                                     tr = self.c("tr", t).class("sub");
                                     self.c("td", tr, "");
-                                    self.c("td", tr, (self.round((100 * datas[i].entries[j].usec) / datas[i].entries[j].calls) / 100).toFixed(2), "numeric");
+                                    self.c("td", tr, (self.round((100 * datas[i].entries[j].usec) / datas[i].entries[j].calls) / 100).toFixed(3), "numeric");
                                     self.c("td", tr, datas[i].entries[j].calls, "numeric");
                                     self.c("td", tr, datas[i].entries[j].usec.toFixed(3) + '', "numeric");
                                     self.c("td", tr, datas[i].entries[j].filelineno);
@@ -809,7 +819,7 @@ var forp = function(stack) {
             );
 
         this.c("a")
-            .text("Memory")
+            .text("memory")
             .attr("href", "#")
             .class("btn")
             .appendTo(this.nav)
@@ -838,7 +848,7 @@ var forp = function(stack) {
                                 for(var j in datas[i].entries) {
                                     tr = self.c("tr", t).class("sub");
                                     self.c("td", tr, "");
-                                    self.c("td", tr, (self.round((100 * datas[i].entries[j].bytes) / datas[i].entries[j].calls) / 100).toFixed(2) + '', "numeric");
+                                    self.c("td", tr, (self.round((100 * datas[i].entries[j].bytes) / datas[i].entries[j].calls) / 100).toFixed(3) + '', "numeric");
                                     self.c("td", tr, datas[i].entries[j].calls + '', "numeric");
                                     self.c("td", tr, datas[i].entries[j].bytes.toFixed(3) + '', "numeric");
                                     self.c("td", tr, datas[i].entries[j].filelineno);
@@ -851,7 +861,7 @@ var forp = function(stack) {
             );
 
         this.c("a")
-            .text("Calls")
+            .text("calls")
             .attr("href", "#")
             .class("btn")
             .appendTo(this.nav)
@@ -893,7 +903,7 @@ var forp = function(stack) {
             );
 
         this.c("a")
-            .text("Files")
+            .text("files")
             .attr("href", "#")
             .class("btn")
             .appendTo(this.nav)
@@ -922,7 +932,7 @@ var forp = function(stack) {
             );
 
         this.c("a")
-            .text("Groups")
+            .text("&there4; groups")
             .attr("href", "#")
             .class("btn")
             .appendTo(this.nav)
@@ -1039,8 +1049,8 @@ dom.ready(
     opacity: 1;\n\
 }\n\
 #forp.closed {\n\
-    width: 150px;\n\
-    opacity: .5;\n\
+    width: 200px;\n\
+    opacity: .7;\n\
 }\n\
 #forp.closed:hover {\n\
     opacity: 1;\n\
@@ -1067,7 +1077,7 @@ dom.ready(
     white-space:nowrap;\n\
     text-decoration: none;\n\
 }\n\
-#forp nav>a.btn, #forp div.console a{\n\
+#forp nav>a.btn, #forp div.console a.btn{\n\
     color: #FFF;\n\
     margin: 0px 5px;\n\
     padding: 5px;\n\
@@ -1085,6 +1095,7 @@ dom.ready(
     color : #222;\n\
     font-size : 10px;\n\
     padding: 2px 5px;\n\
+    margin: 0px 5px;\n\
 }\n\
 #forp a.tag, #forp a{\n\
     border-radius: 3px;\n\
@@ -1160,6 +1171,9 @@ dom.ready(
     float: left;\n\
     //border: 1px solid #00F\n\
 }\n\
+#forp .right{\n\
+    float: right;\n\
+}\n\
 #forp div.gauge{\n\
     margin: 4px 5px 0px 0px;\n\
     //height: 10px;\n\
@@ -1182,6 +1196,8 @@ dom.ready(
 #forp div.i>a{\n\
     font-family: Georgia;\n\
     color: #FFF;\n\
+}\n\
+#forp input[type="search"]{\n\
 }');
         s.appendChild(t);
         (document.getElementsByTagName('head')[0]
