@@ -1080,7 +1080,7 @@ dom.ready(
 #forp nav>a.btn, #forp div.console a.btn{\n\
     color: #FFF;\n\
     margin: 0px 5px;\n\
-    padding: 5px;\n\
+    padding: 4px 5px 6px 5px;\n\
     background-color: #777;\n\
     background-image: linear-gradient(top,#777,#666);\n\
     background-image: -webkit-linear-gradient(top,#777,#666);\n\
