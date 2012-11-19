@@ -468,7 +468,7 @@ var forp = function(stack) {
             this.console = this.c("div").addClass("console").attr("style", "max-height:" + (window.innerHeight - 100) + "px");
             this.window.append(this.console);
             var aCollapse = this.c("a")
-                .text("&and;")
+                .text("^")
                 .attr("href", "javascript:void(0);")
                 .appendTo(this.nav)
                 .class("btn")
@@ -542,83 +542,16 @@ var forp = function(stack) {
             .appendTo(this.window);
 
         this.c("div")
+            .attr("style", "margin-right: 10px")
             .text(self.roundDiv(this.stack[0].usec, 1000) + ' ms ')
             .appendTo(this.nav);
 
         this.c("div")
+            .attr("style", "margin-right: 10px")
             .text(self.roundDiv(this.stack[0].bytes, 1024) + ' Kb')
             .appendTo(this.nav);
 
-        this.c("div")
-            .text('&nbsp;')
-            .appendTo(this.nav);
 
-        this.c("input")
-            .class("right")
-            .attr("type", "search")
-            //.attr("autosave", "unique")
-            //.attr("results", 5)
-            .attr("name", "forpSearch")
-            .attr("placeholder", "Search forp ...")
-            .attr("style", "margin: -2px 25px 5px 25px")
-            .appendTo(this.nav)
-            .bind(
-                'keyup',
-                function() {
-                    self.window.open();
-                    self.clear();
-                    self.show(
-                        self.find(this.value)
-                        , function(datas) {
-                            var t = self.c("table")
-                                ,tr = self.c("tr", t);
-                            self.c("th", tr, "function");
-                            self.c("th", tr, "calls", "w100");
-                            self.c("th", tr, "ms", "w100");
-                            self.c("th", tr, "Kb", "w100");
-                            self.c("th", tr, "called from");
-                            for(var i in datas) {
-                                tr = self.c("tr", t);
-                                self.c("td", tr, datas[i].id);
-                                self.c("td", tr, datas[i].calls, "numeric");
-                                self.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
-                                self.c("td", tr, datas[i].bytes.toFixed(3) + '', "numeric");
-                                self.c("td", tr, datas[i].filelineno);
-                                for(var j in datas[i].entries) {
-                                    tr = self.c("tr", t).class("sub");
-                                    self.c("td", tr, "");
-                                    self.c("td", tr, '', "numeric")
-                                        .append(
-                                            self.gauge(
-                                                self.round((datas[i].entries[j].calls * 100) / datas[i].calls)
-                                                , datas[i].entries[j].calls
-                                            )
-                                        );
-
-                                    self.c("td", tr, '', "numeric")
-                                        .append(
-                                            self.gauge(
-                                                self.round((datas[i].entries[j].usec * 100) / datas[i].usec)
-                                                , datas[i].entries[j].usec.toFixed(3)
-                                            )
-                                        );
-
-                                    self.c("td", tr, '', "numeric")
-                                        .append(
-                                            self.gauge(
-                                                self.round((datas[i].entries[j].bytes * 100) / datas[i].bytes)
-                                                , datas[i].entries[j].bytes.toFixed(3)
-                                            )
-                                        );
-
-                                    self.c("td", tr, datas[i].entries[j].filelineno);
-                                }
-                            }
-                            return t;
-                        }
-                    );
-                }
-            );
     };
 
     /**
@@ -708,6 +641,13 @@ var forp = function(stack) {
         return ul;
     };
 
+    this.tab = function(target)
+    {
+        self.window.find(".tbtn").each(function(o) {o.class("tbtn");});
+        self.f(target).class("tbtn selected");
+        return this;
+    };
+
     /**
      * Expand main window
      */
@@ -719,19 +659,22 @@ var forp = function(stack) {
 
         this.window.open();
 
+        var container = this.c("div").attr("style", "margin-top: -5px");
+        container.appendTo(this.nav);
+
         this.c("a")
-            .text("&equiv; stack")
+            .text("stack")
             .attr("href", "javascript:void(0);")
-            .class("btn")
-            .appendTo(this.nav)
+            .class("tbtn")
+            .appendTo(container)
             .bind(
                 'click',
                 function() {
-                    self.clear();
-
                     var tree = self.aggregate().treeList(self.stack[0], true);
 
-                    self.c("div")
+                    self.tab(this)
+                        .clear()
+                        .c("div")
                         .attr("style", "margin-top: 10px;")
                         .append(
                             self.c("div")
@@ -779,13 +722,14 @@ var forp = function(stack) {
         this.c("a")
             .text("duration")
             .attr("href", "#")
-            .class("btn")
-            .appendTo(this.nav)
+            .class("tbtn")
+            .appendTo(container)
             .bind(
                 'click',
                 function() {
-                    self.clear();
-                    self.show(
+                    self.clear()
+                        .tab(this)
+                        .show(
                         self.getTopCpu()
                         , function(datas) {
                             var t = self.c("table")
@@ -821,13 +765,14 @@ var forp = function(stack) {
         this.c("a")
             .text("memory")
             .attr("href", "#")
-            .class("btn")
-            .appendTo(this.nav)
+            .class("tbtn")
+            .appendTo(container)
             .bind(
                 'click',
                 function() {
-                    self.clear();
-                    self.show(
+                    self.clear()
+                        .tab(this)
+                        .show(
                         self.getTopMemory()
                         , function(datas) {
                             var t = self.c("table")
@@ -863,13 +808,14 @@ var forp = function(stack) {
         this.c("a")
             .text("calls")
             .attr("href", "#")
-            .class("btn")
-            .appendTo(this.nav)
+            .class("tbtn")
+            .appendTo(container)
             .bind(
                 'click',
                 function(e) {
-                    self.clear();
-                    self.show(
+                    self.clear()
+                        .tab(this)
+                        .show(
                         self.getTopCalls()
                         , function(datas) {
                             var t = self.c("table")
@@ -905,13 +851,14 @@ var forp = function(stack) {
         this.c("a")
             .text("files")
             .attr("href", "#")
-            .class("btn")
-            .appendTo(this.nav)
+            .class("tbtn")
+            .appendTo(container)
             .bind(
                 'click',
                 function() {
-                    self.clear();
-                    self.show(
+                    self.clear()
+                        .tab(this)
+                        .show(
                         self.getIncludes()
                         , function(datas) {
                             var t = self.c("table").addClass("tree")
@@ -932,15 +879,16 @@ var forp = function(stack) {
             );
 
         this.c("a")
-            .text("&there4; groups")
+            .text("groups")
             .attr("href", "#")
-            .class("btn")
-            .appendTo(this.nav)
+            .class("tbtn")
+            .appendTo(container)
             .bind(
                 'click',
                 function() {
-                    self.clear();
-                    self.show(
+                    self.clear()
+                        .tab(this)
+                        .show(
                         self.getGroups()
                         , function(datas) {
                             var t = self.c("table")
@@ -980,6 +928,80 @@ var forp = function(stack) {
                                                     self.round((self.hstack[datas[i].refs[j]].bytes * 100) / datas[i].bytes)
                                                     , self.hstack[datas[i].refs[j]].bytes.toFixed(3))
                                         );
+                                }
+                            }
+                            return t;
+                        }
+                    );
+                }
+            );
+
+        this.c("input")
+            //.class("right")
+            .attr("type", "text")
+            //.attr("autosave", "unique")
+            //.attr("results", 5)
+            .attr("name", "forpSearch")
+            .attr("placeholder", "Search forp ...")
+            //.attr("style", "margin: -2px 25px 5px 25px")
+            .appendTo(container)
+            .bind(
+                "click",
+                function() {
+                    self.f(this).class("selected");
+                    self.tab(this);
+                }
+            )
+            .bind(
+                "keyup",
+                function() {
+                    self.window.open();
+                    self.clear()
+                        .show(
+                        self.find(this.value)
+                        , function(datas) {
+                            var t = self.c("table")
+                                ,tr = self.c("tr", t);
+                            self.c("th", tr, "function");
+                            self.c("th", tr, "calls", "w100");
+                            self.c("th", tr, "ms", "w100");
+                            self.c("th", tr, "Kb", "w100");
+                            self.c("th", tr, "called from");
+                            for(var i in datas) {
+                                tr = self.c("tr", t);
+                                self.c("td", tr, datas[i].id);
+                                self.c("td", tr, datas[i].calls, "numeric");
+                                self.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
+                                self.c("td", tr, datas[i].bytes.toFixed(3) + '', "numeric");
+                                self.c("td", tr, datas[i].filelineno);
+                                for(var j in datas[i].entries) {
+                                    tr = self.c("tr", t).class("sub");
+                                    self.c("td", tr, "");
+                                    self.c("td", tr, '', "numeric")
+                                        .append(
+                                            self.gauge(
+                                                self.round((datas[i].entries[j].calls * 100) / datas[i].calls)
+                                                , datas[i].entries[j].calls
+                                            )
+                                        );
+
+                                    self.c("td", tr, '', "numeric")
+                                        .append(
+                                            self.gauge(
+                                                self.round((datas[i].entries[j].usec * 100) / datas[i].usec)
+                                                , datas[i].entries[j].usec.toFixed(3)
+                                            )
+                                        );
+
+                                    self.c("td", tr, '', "numeric")
+                                        .append(
+                                            self.gauge(
+                                                self.round((datas[i].entries[j].bytes * 100) / datas[i].bytes)
+                                                , datas[i].entries[j].bytes.toFixed(3)
+                                            )
+                                        );
+
+                                    self.c("td", tr, datas[i].entries[j].filelineno);
                                 }
                             }
                             return t;
@@ -1046,11 +1068,15 @@ dom.ready(
     background-color: #fff;\n\
 }\n\
 #forp.opened {\n\
+    opacity: .6;\n\
+}\n\
+#forp.opened:hover {\n\
     opacity: 1;\n\
 }\n\
 #forp.closed {\n\
     width: 200px;\n\
-    opacity: .7;\n\
+    opacity: .6;\n\
+    cursor: pointer;\n\
 }\n\
 #forp.closed:hover {\n\
     opacity: 1;\n\
@@ -1066,21 +1092,26 @@ dom.ready(
     border-radius: 8px;\n\
     padding: 10px;\n\
 }\n\
+#forp.closed nav{\n\
+    height: auto;\n\
+}\n\
 #forp.closed nav>div{\n\
     margin: 3px 0px;\n\
 }\n\
+#forp.opened nav{\n\
+    height: 18px;\n\
+}\n\
 #forp.opened nav>div{\n\
     float: left;\n\
-    margin: 0px 5px;\n\
 }\n\
 #forp a{\n\
     white-space:nowrap;\n\
     text-decoration: none;\n\
 }\n\
-#forp nav>a.btn, #forp div.console a.btn{\n\
+#forp a.btn, a.tbtn{\n\
     color: #FFF;\n\
     margin: 0px 5px;\n\
-    padding: 4px 5px 6px 5px;\n\
+    padding: 4px 5px 5px 5px;\n\
     background-color: #777;\n\
     background-image: linear-gradient(top,#777,#666);\n\
     background-image: -webkit-linear-gradient(top,#777,#666);\n\
@@ -1089,6 +1120,14 @@ dom.ready(
     background-image: -o-linear-gradient(top,#777,#666);\n\
     color: #FFF;\n\
     text-decoration: none;\n\
+}\n\
+#forp a.selected {\n\
+    background-color: #4D90FE;\n\
+    background-image: linear-gradient(top,#4D90FE,#4787ED);\n\
+    background-image: -webkit-linear-gradient(top,#4D90FE,#4787ED);\n\
+    background-image: -moz-linear-gradient(top,#4D90FE,#4787ED);\n\
+    background-image: -ms-linear-gradient(top,#4D90FE,#4787ED);\n\
+    background-image: -o-linear-gradient(top,#4D90FE,#4787ED);\n\
 }\n\
 #forp a.tag{\n\
     background-color: #EE0;\n\
@@ -1122,7 +1161,6 @@ dom.ready(
    width: 120px;\n\
 }\n\
 #forp td{\n\
-    //width: 250px;\n\
     text-align: left;\n\
     text-overflow: ellipsis;\n\
     word-space: nowrap;\n\
@@ -1146,9 +1184,6 @@ dom.ready(
 #forp ul.l0{\n\
     padding-left: 10px;\n\
 }\n\
-#forp li{\n\
-    //padding: 3px 0px;\n\
-}\n\
 #forp li > div.numeric{\n\
     min-width: 60px;\n\
     margin: 0px 10px\n\
@@ -1169,14 +1204,12 @@ dom.ready(
 }\n\
 #forp .left{\n\
     float: left;\n\
-    //border: 1px solid #00F\n\
 }\n\
 #forp .right{\n\
     float: right;\n\
 }\n\
 #forp div.gauge{\n\
     margin: 4px 5px 0px 0px;\n\
-    //height: 10px;\n\
     width: 100px;\n\
     text-align: right;\n\
     font-size: 0.8em;\n\
@@ -1197,7 +1230,13 @@ dom.ready(
     font-family: Georgia;\n\
     color: #FFF;\n\
 }\n\
-#forp input[type="search"]{\n\
+#forp input[type=text]{\n\
+    font-size: 11px;\n\
+    padding: 5px;\n\
+    border: 1px solid #333;\n\
+    -moz-border-radius: 3px;\n\
+    -webkit-border-radius: 3px;\n\
+    border-radius: 3px;\n\
 }');
         s.appendChild(t);
         (document.getElementsByTagName('head')[0]
