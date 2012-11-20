@@ -19,7 +19,7 @@ register_shutdown_function(
         ?>
         <script src="js/src/forp/forp.js"></script>
         <script>
-            forp.stack = <?php echo $json_dump; ?>
+            forp.stack = <?php echo $json_dump; ?>;
         </script>
         <?php
     }
