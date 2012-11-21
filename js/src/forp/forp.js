@@ -150,6 +150,7 @@ forp.DOMElementWrapperCollection = function(elements)
  * @param forp f
  */
 (function(f) {
+    'use strict';
     /**
      * Sorted Fixed Array Class
      * @param callback filter
@@ -326,8 +327,10 @@ forp.DOMElementWrapperCollection = function(elements)
                             this.hstack[id].entries[filelineno].bytes = this.roundDiv(this.stack[entry].bytes, 1024);
                             this.hstack[id].entries[filelineno].file = this.stack[entry].file;
                             this.hstack[id].entries[filelineno].filelineno = filelineno;
-                            this.hstack[id].entries[filelineno].caption = this.stack[entry].caption ? this.stack[entry].caption : '';
+                            this.hstack[id].entries[filelineno].stackRefs = [];
+                        //    this.hstack[id].entries[filelineno].caption = this.stack[entry].caption ? this.stack[entry].caption : '';
                         }
+                        this.hstack[id].entries[filelineno].stackRefs.push(entry);
                     } else {
                         this.hstack[id] = {};
                         this.hstack[id].id = id;
@@ -349,11 +352,12 @@ forp.DOMElementWrapperCollection = function(elements)
                         this.hstack[id].entries[filelineno].bytes = this.hstack[id].bytes;
                         this.hstack[id].entries[filelineno].file = this.stack[entry].file;
                         this.hstack[id].entries[filelineno].filelineno = filelineno;
-                        this.hstack[id].entries[filelineno].caption = this.stack[entry].caption ? this.stack[entry].caption : '';
+                        this.hstack[id].entries[filelineno].stackRefs = [];
+                        this.hstack[id].entries[filelineno].stackRefs.push(entry);
 
                         // Groups
                         if(this.stack[entry].groups) {
-                            for(g in this.stack[entry].groups) {
+                            for(var g in this.stack[entry].groups) {
                                 if(!this.groups[this.stack[entry].groups[g]]) {
                                     this.groups[this.stack[entry].groups[g]] = {};
                                     this.groups[this.stack[entry].groups[g]].calls = 0;
@@ -653,7 +657,7 @@ forp.DOMElementWrapperCollection = function(elements)
                         .text(entry.id);
 
             if(entry.groups) {
-                for(g in entry.groups) {
+                for(var g in entry.groups) {
                     li.append(this.getDomTag(entry.groups[g]));
                 }
             }
@@ -1000,6 +1004,18 @@ forp.DOMElementWrapperCollection = function(elements)
                                                         self.round((self.hstack[datas[i].refs[j]].bytes * 100) / datas[i].bytes)
                                                         , self.hstack[datas[i].refs[j]].bytes.toFixed(3))
                                             );
+
+                                        for(var entry in self.hstack[datas[i].refs[j]].entries) {
+                                            for(var ref in self.hstack[datas[i].refs[j]].entries[entry].stackRefs) {
+                                                if(self.stack[ref].caption) {
+                                                    var trsubsub = self.c("tr", t);
+                                                    self.c("td", trsubsub, self.stack[ref].caption)
+                                                        .attr("colspan","2");
+                                                    self.c("td", trsubsub, self.roundDiv(self.stack[ref].usec, 1000).toFixed(3), 'numeric');
+                                                    self.c("td", trsubsub, self.roundDiv(self.stack[ref].bytes, 1024).toFixed(3), 'numeric');
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                                 return t;
