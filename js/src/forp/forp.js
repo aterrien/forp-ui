@@ -1,10 +1,9 @@
-var forp = {};
 /**
  * DOM Element wrapper creator
  * @param DOM Element
  * @return forp.DOMElementWrapper
  */
-forp = function(element)
+var forp = function(element)
 {
     return new forp.DOMElementWrapper(element);
 }
