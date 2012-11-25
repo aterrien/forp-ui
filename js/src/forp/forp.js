@@ -196,7 +196,9 @@ forp.DOMElementWrapperCollection = function(elements)
         this.stack = stack; // RAW stack
         this.hstack = null; // indexed stack
         this.includes = null; // included files
+        this.includesCount = 0;
         this.groups = null; // groups
+        this.groupsCount = 0;
         this.topCpu = null;
         this.topCalls = null;
         this.topMemory = null;
@@ -283,12 +285,33 @@ forp.DOMElementWrapperCollection = function(elements)
         {
             if(!this.hstack) {
                 // hashing stack
-                var id;
+                var id, filelineno, ms, kb;
                 this.hstack = {};
                 this.includes = {};
                 this.groups = {};
+
+                /*this.topCpu = new f.SortedFixedArray(
+                    function(a, b) {
+                        return (a.usec > b.usec);
+                    },
+                    20
+                );
+                this.topMemory = new f.SortedFixedArray(
+                    function(a, b) {
+                        return (a.bytes > b.bytes);
+                    },
+                    20
+                );*/
+
                 for(var entry in this.stack) {
+
                     id = this.getEntryId(this.stack[entry]);
+                    filelineno = this.stack[entry].file + (this.stack[entry].lineno ? ':' + this.stack[entry].lineno : '');
+                    ms = this.roundDiv(this.stack[entry].usec, 1000);
+                    kb = this.roundDiv(this.stack[entry].bytes, 1024);
+
+                    //this.topCpu.put(this.stack[entry]);
+                    //this.topMemory.put(this.stack[entry]);
 
                     this.stack[entry].id = id;
 
@@ -306,25 +329,23 @@ forp.DOMElementWrapperCollection = function(elements)
 
                         var makeSum = !this.isRecursive(entry);
                         if(makeSum) {
-                            this.hstack[id].usec += this.roundDiv(this.stack[entry].usec, 1000);
-                            this.hstack[id].bytes += this.roundDiv(this.stack[entry].bytes, 1024);
+                            this.hstack[id].usec += ms;
+                            this.hstack[id].bytes += kb;
                         }
 
-                        var el = this.hstack[id].entries.length
-                            ,filelineno = this.stack[entry].file
-                            + (this.stack[entry].lineno ? ':' + this.stack[entry].lineno : '');
+                        //var el = this.hstack[id].entries.length;
 
                         if(this.hstack[id].entries[filelineno]) {
                             this.hstack[id].entries[filelineno].calls++;
                             if(makeSum) {
-                                this.hstack[id].entries[filelineno].usec += this.roundDiv(this.stack[entry].usec, 1000);
-                                this.hstack[id].entries[filelineno].bytes += this.roundDiv(this.stack[entry].bytes, 1024);
+                                this.hstack[id].entries[filelineno].usec += ms;
+                                this.hstack[id].entries[filelineno].bytes += kb;
                             }
                         } else {
                             this.hstack[id].entries[filelineno] = {};
                             this.hstack[id].entries[filelineno].calls = 1;
-                            this.hstack[id].entries[filelineno].usec = this.roundDiv(this.stack[entry].usec, 1000);
-                            this.hstack[id].entries[filelineno].bytes = this.roundDiv(this.stack[entry].bytes, 1024);
+                            this.hstack[id].entries[filelineno].usec = ms;
+                            this.hstack[id].entries[filelineno].bytes = kb;
                             this.hstack[id].entries[filelineno].file = this.stack[entry].file;
                             this.hstack[id].entries[filelineno].filelineno = filelineno;
                             this.hstack[id].entries[filelineno].stackRefs = [];
@@ -340,8 +361,8 @@ forp.DOMElementWrapperCollection = function(elements)
                         this.hstack[id].level = this.stack[entry].level;
 
                         this.hstack[id].calls = 1;
-                        this.hstack[id].usec = this.roundDiv(this.stack[entry].usec, 1000);
-                        this.hstack[id].bytes = this.roundDiv(this.stack[entry].bytes, 1024);
+                        this.hstack[id].usec = ms;
+                        this.hstack[id].bytes = kb;
 
                         var filelineno = this.stack[entry].file
                             + (this.stack[entry].lineno ? ':' + this.stack[entry].lineno : '');
@@ -372,14 +393,21 @@ forp.DOMElementWrapperCollection = function(elements)
 
                     // Files
                     if(!this.includes[this.stack[entry].file]) {
-                        this.includes[this.stack[entry].file] = 1;
+                        this.includes[this.stack[entry].file] = {};
+                        this.includes[this.stack[entry].file].usec = ms;
+                        this.includes[this.stack[entry].file].bytes = kb;
+                        this.includes[this.stack[entry].file].calls = 1;
+                        this.includesCount++;
                     } else {
-                        this.includes[this.stack[entry].file]++;
+                        this.includes[this.stack[entry].file].usec += ms;
+                        this.includes[this.stack[entry].file].bytes += kb;
+                        this.includes[this.stack[entry].file].calls++;
                     }
                 }
 
                 // Finalize groups
                 for(var group in this.groups) {
+                    this.groupsCount++;
                     for(var i in this.groups[group].refs) {
                         this.groups[group].calls += this.hstack[this.groups[group].refs[i]].calls;
                         this.groups[group].usec += this.hstack[this.groups[group].refs[i]].usec;
@@ -739,7 +767,7 @@ forp.DOMElementWrapperCollection = function(elements)
             container.appendTo(this.nav);
 
             this.c("a")
-                .text("stack")
+                .text("stack (" + self.aggregate().stack.length + ")")
                 .attr("href", "javascript:void(0);")
                 .class("tbtn")
                 .appendTo(container)
@@ -796,7 +824,7 @@ forp.DOMElementWrapperCollection = function(elements)
                 );
 
             this.c("a")
-                .text("duration")
+                .text("top 20 duration")
                 .attr("href", "#")
                 .class("tbtn")
                 .appendTo(container)
@@ -811,14 +839,14 @@ forp.DOMElementWrapperCollection = function(elements)
                                 var t = self.c("table")
                                     ,tr = self.c("tr", t);
                                 self.c("th", tr, "function");
-                                self.c("th", tr, "avg&nbsp;ms", "w100");
+                                //self.c("th", tr, "avg&nbsp;ms", "w100");
                                 self.c("th", tr, "calls", "w100");
                                 self.c("th", tr, "ms", "w100");
                                 self.c("th", tr, "called from");
                                 for(var i in datas) {
                                     tr = self.c("tr", t);
                                     self.c("td", tr, datas[i].id);
-                                    self.c("td", tr, datas[i].usecavg.toFixed(3), "numeric");
+                                    //self.c("td", tr, datas[i].usecavg.toFixed(3), "numeric");
                                     self.c("td", tr, datas[i].calls, "numeric");
                                     self.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
                                     self.c("td", tr, datas[i].filelineno);
@@ -826,7 +854,7 @@ forp.DOMElementWrapperCollection = function(elements)
                                     for(var j in datas[i].entries) {
                                         tr = self.c("tr", t).class("sub");
                                         self.c("td", tr, "");
-                                        self.c("td", tr, (self.round((100 * datas[i].entries[j].usec) / datas[i].entries[j].calls) / 100).toFixed(3), "numeric");
+                                        //self.c("td", tr, (self.round((100 * datas[i].entries[j].usec) / datas[i].entries[j].calls) / 100).toFixed(3), "numeric");
                                         self.c("td", tr, datas[i].entries[j].calls, "numeric");
                                         self.c("td", tr, datas[i].entries[j].usec.toFixed(3) + '', "numeric");
                                         self.c("td", tr, datas[i].entries[j].filelineno);
@@ -839,7 +867,7 @@ forp.DOMElementWrapperCollection = function(elements)
                 );
 
             this.c("a")
-                .text("memory")
+                .text("top 20 memory")
                 .attr("href", "#")
                 .class("tbtn")
                 .appendTo(container)
@@ -882,7 +910,7 @@ forp.DOMElementWrapperCollection = function(elements)
                 );
 
             this.c("a")
-                .text("calls")
+                .text("top 20 calls")
                 .attr("href", "#")
                 .class("tbtn")
                 .appendTo(container)
@@ -924,8 +952,9 @@ forp.DOMElementWrapperCollection = function(elements)
                     }
                 );
 
+            if(self.aggregate().includesCount > 0)
             this.c("a")
-                .text("files")
+                .text("files (" + self.aggregate().includesCount + ")")
                 .attr("href", "#")
                 .class("tbtn")
                 .appendTo(container)
@@ -940,13 +969,22 @@ forp.DOMElementWrapperCollection = function(elements)
                                 var t = self.c("table").addClass("tree")
                                     ,tr = self.c("tr", t);
 
-                                self.c("th", tr, "usage");
-                                self.c("th", tr, "path");
+                                self.c("th", tr, "file");
+                                self.c("th", tr, "calls", "w100");
+                                self.c("th", tr, "ms", "w100");
+                                self.c("th", tr, "kb", "w100");
 
                                 for(var i in datas) {
                                     var tr = self.c("tr", t);
-                                    self.c("td", tr, datas[i], 'numeric');
                                     self.c("td", tr, i);
+                                    self.c("td", tr, "", 'numeric')
+                                        .append(
+                                            self.gauge(
+                                                self.round((datas[i].calls * 100) / self.stack.length),
+                                                datas[i].calls)
+                                        );
+                                    self.c("td", tr, datas[i].usec.toFixed(3), 'numeric');
+                                    self.c("td", tr, datas[i].bytes.toFixed(3), 'numeric');
                                 }
                                 return t;
                             }
@@ -954,8 +992,10 @@ forp.DOMElementWrapperCollection = function(elements)
                     }
                 );
 
+
+            if(self.aggregate().groupsCount > 0)
             this.c("a")
-                .text("groups")
+                .text("groups (" + self.aggregate().groupsCount + ")")
                 .attr("href", "#")
                 .class("tbtn")
                 .appendTo(container)
@@ -1164,7 +1204,8 @@ forp.ready(
 }\n\
 #forp a{\n\
     white-space:nowrap;\n\
-    text-decoration: none;\n\
+    text-decoration: none;\n\\n\
+    color: #FFF;\n\
 }\n\
 #forp a.btn, a.tbtn{\n\
     color: #FFF;\n\
@@ -1176,7 +1217,6 @@ forp.ready(
     background-image: -moz-linear-gradient(top,#777,#666);\n\
     background-image: -ms-linear-gradient(top,#777,#666);\n\
     background-image: -o-linear-gradient(top,#777,#666);\n\
-    color: #FFF;\n\
     text-decoration: none;\n\
 }\n\
 #forp a.selected {\n\
