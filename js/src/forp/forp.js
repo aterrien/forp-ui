@@ -839,14 +839,14 @@ forp.DOMElementWrapperCollection = function(elements)
                                 var t = self.c("table")
                                     ,tr = self.c("tr", t);
                                 self.c("th", tr, "function");
-                                //self.c("th", tr, "avg&nbsp;ms", "w100");
+                                self.c("th", tr, "avg&nbsp;ms", "w100");
                                 self.c("th", tr, "calls", "w100");
                                 self.c("th", tr, "ms", "w100");
                                 self.c("th", tr, "called from");
                                 for(var i in datas) {
                                     tr = self.c("tr", t);
                                     self.c("td", tr, datas[i].id);
-                                    //self.c("td", tr, datas[i].usecavg.toFixed(3), "numeric");
+                                    self.c("td", tr, datas[i].usecavg.toFixed(3), "numeric");
                                     self.c("td", tr, datas[i].calls, "numeric");
                                     self.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
                                     self.c("td", tr, datas[i].filelineno);
@@ -854,7 +854,7 @@ forp.DOMElementWrapperCollection = function(elements)
                                     for(var j in datas[i].entries) {
                                         tr = self.c("tr", t).class("sub");
                                         self.c("td", tr, "");
-                                        //self.c("td", tr, (self.round((100 * datas[i].entries[j].usec) / datas[i].entries[j].calls) / 100).toFixed(3), "numeric");
+                                        self.c("td", tr, (self.round((100 * datas[i].entries[j].usec) / datas[i].entries[j].calls) / 100).toFixed(3), "numeric");
                                         self.c("td", tr, datas[i].entries[j].calls, "numeric");
                                         self.c("td", tr, datas[i].entries[j].usec.toFixed(3) + '', "numeric");
                                         self.c("td", tr, datas[i].entries[j].filelineno);
