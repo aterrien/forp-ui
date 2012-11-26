@@ -204,13 +204,14 @@ forp.DOMElementWrapperCollection = function(elements)
         this.topMemory = null;
         this.console = null;
         this.found = {};
+        this.maxNestedLevel = 0;
 
         this.f = function(mixed)
         {
             if(typeof(mixed) == 'object') {
                 return f(mixed);
             } else {
-                return f.DOMElementWrapperCollection(document.querySelectorAll(mixed));
+                return new f.DOMElementWrapperCollection(document.querySelectorAll(mixed));
             }
         };
 
@@ -229,16 +230,16 @@ forp.DOMElementWrapperCollection = function(elements)
 
         this.gauge = function(percent, text, hcolor)
         {
-            hcolor = hcolor ? hcolor : "#CCC";
+            hcolor = hcolor ? hcolor : "#EE0";
             return self.c("div")
                 .text(text)
                 .attr(
                     "style",
-                    "background: -moz-linear-gradient(left, " + hcolor + " 0%, " + hcolor + " " + percent + "%, #eee " + percent + "%, #eee 100%);\n\
-                    background: -webkit-gradient(linear, left top, right top, color-stop(0%," + hcolor + "), color-stop(" + percent + "%," + hcolor + "), color-stop(" + percent + "%,#eee), color-stop(100%,#eee));\n\
-                    background: -webkit-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%,#eee " + percent + "%,#eee 100%);\n\
-                    background: -o-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%,#eee " + percent + "%,#eee 100%);\n\
-                    background: linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%,#eee " + percent + "%,#eee 100%);\n\
+                    "background: -moz-linear-gradient(left, " + hcolor + " 0%, " + hcolor + " " + percent + "%, #BBB " + percent + "%, #BBB 100%);\n\
+                    background: -webkit-gradient(linear, left top, right top, color-stop(0%," + hcolor + "), color-stop(" + percent + "%," + hcolor + "), color-stop(" + percent + "%,#BBB), color-stop(100%,#BBB));\n\
+                    background: -webkit-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%,#BBB " + percent + "%,#BBB 100%);\n\
+                    background: -o-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%,#BBB " + percent + "%,#BBB 100%);\n\
+                    background: linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%,#BBB " + percent + "%,#BBB 100%);\n\
                     ");
         };
 
@@ -312,6 +313,9 @@ forp.DOMElementWrapperCollection = function(elements)
 
                     //this.topCpu.put(this.stack[entry]);
                     //this.topMemory.put(this.stack[entry]);
+
+                    this.maxNestedLevel = (this.stack[entry].level > this.maxNestedLevel)
+                        ? this.stack[entry].level : this.maxNestedLevel ;
 
                     this.stack[entry].id = id;
 
@@ -612,7 +616,13 @@ forp.DOMElementWrapperCollection = function(elements)
                 .attr("id", "forp")
                 .close();
 
-            document.body.appendChild(this.window.element);
+            //document.body.appendChild(this.window.element);
+ document.body.insertBefore(this.window.element, document.body.firstChild);
+ //console.log(document.getElementsByTagName("html")  );
+ //document.getElementsByTagName("html")[0].parentNode.insertBefore(
+ //   this.window.element,
+ //   document.getElementsByTagName("html")[0].parentNode.firstChild
+ //);
 
             this.nav = this.c("nav")
                             .appendTo(this.window);
@@ -782,7 +792,7 @@ forp.DOMElementWrapperCollection = function(elements)
                             .attr("style", "margin-top: 10px;")
                             .append(
                                 self.c("div")
-                                    .attr("style", "position: fixed; margin: 5px; right: 20px")
+                                    .attr("style", "position: absolute; margin: 5px; right: 20px")
                                     .append(
                                             self.c("a")
                                                 .text("expand")
@@ -1064,6 +1074,26 @@ forp.DOMElementWrapperCollection = function(elements)
                     }
                 );
 
+            /*this.c("a")
+                .text("statistics")
+                .attr("href", "#")
+                .class("tbtn")
+                .appendTo(container)
+                .bind(
+                    'click',
+                    function() {
+                        self.clear()
+                            .tab(this)
+                            .c("div")
+                            .text("\n\
+                            calls: " + self.stack.length + "<br>\n\
+                            max nested level: " + self.maxNestedLevel + "\n\
+                            \n\
+                            ")
+                            .appendTo(self.getConsole());
+                    }
+                );*/
+
             this.c("input")
                 //.class("right")
                 .attr("type", "text")
@@ -1149,29 +1179,31 @@ forp.ready(
         var s = document.createElement('style'),
             t = document.createTextNode('\n\
 #forp {\n\
+    color: #FFF;\n\
     z-index: 2147483647;\n\
     text-decoration: none;\n\
-    margin: 15px;\n\
     font-family: "Helvetica Neue", Helvetica, Nimbus, Arial, sans-serif;\n\
     font-weight: 300;\n\
     text-rendering: optimizelegibility;\n\
+    max-width: 300px;\n\
+    font-size : 13px;\n\
+    background-color: #AAA;\n\
+}\n\
+#forp.opened {\n\
+    //opacity: .6;\n\
+    -webkit-box-shadow: inset 0 -4px 8px -2px #777;\n\
+    -moz-box-shadow: inset 0 -4px 8px -2px #777;\n\
+    box-shadow: inset 0 -4px 8px -2px #777;\n\
+}\n\
+#forp.opened:hover {\n\
+    //opacity: 1;\n\
+}\n\
+#forp.closed {\n\
+    margin: 15px;\n\
+    border-radius: 8px;\n\
     position:fixed; \n\
     top:0px; \n\
     right:0px; \n\
-    max-width: 300px;\n\
-    font-size : 13px;\n\
-    border-radius: 8px;\n\
-    color: #222;\n\
-    border: 3px solid #333;\n\
-    background-color: #fff;\n\
-}\n\
-#forp.opened {\n\
-    opacity: .6;\n\
-}\n\
-#forp.opened:hover {\n\
-    opacity: 1;\n\
-}\n\
-#forp.closed {\n\
     width: 200px;\n\
     opacity: .6;\n\
     cursor: pointer;\n\
@@ -1188,7 +1220,7 @@ forp.ready(
 }\n\
 #forp nav{\n\
     border-radius: 8px;\n\
-    padding: 10px;\n\
+    padding: 14px 10px 10px 10px;\n\
 }\n\
 #forp.closed nav{\n\
     height: auto;\n\
@@ -1197,7 +1229,7 @@ forp.ready(
     margin: 3px 0px;\n\
 }\n\
 #forp.opened nav{\n\
-    height: 18px;\n\
+    height: 22px;\n\
 }\n\
 #forp.opened nav>div{\n\
     float: left;\n\
@@ -1246,7 +1278,7 @@ forp.ready(
 #forp div.console{\n\
     overflow: auto;\n\
     padding-bottom: 15px;\n\
-    border-top: 1px solid #999;\n\
+    border-top: 1px solid #ddd;\n\
 }\n\
 #forp th, #forp td{\n\
     padding: 5px\n\
@@ -1264,6 +1296,9 @@ width: 120px;\n\
     word-space: nowrap;\n\
     overflow: hidden;\n\
     border: 1px solid #DDD;\n\
+}\n\
+#forp tr{\n\
+    background-color:#ccc;\n\
 }\n\
 #forp tr.sub{\n\
     background-color:#eee;\n\
@@ -1307,6 +1342,7 @@ width: 120px;\n\
     float: right;\n\
 }\n\
 #forp div.gauge{\n\
+    color: #333;\n\
     margin: 4px 5px 0px 0px;\n\
     width: 100px;\n\
     text-align: right;\n\
@@ -1319,7 +1355,7 @@ width: 120px;\n\
     right: 3px;\n\
     font-weight: 900;\n\
     text-align: center;\n\
-    background-color: #DDD;\n\
+    background-color: #ccc;\n\
     width: 15px;\n\
     height: 15px;\n\
     border-radius: 10px;\n\
@@ -1335,6 +1371,7 @@ width: 120px;\n\
     -moz-border-radius: 3px;\n\
     -webkit-border-radius: 3px;\n\
     border-radius: 3px;\n\
+    background-color: #EEE;\n\
 }');
         s.appendChild(t);
         (document.getElementsByTagName('head')[0]
