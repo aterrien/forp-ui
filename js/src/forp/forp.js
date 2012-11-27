@@ -1298,6 +1298,7 @@ width: 120px;\n\
     border: 1px solid #DDD;\n\
 }\n\
 #forp tr{\n\
+    color: #333; \n\
     background-color:#ccc;\n\
 }\n\
 #forp tr.sub{\n\
