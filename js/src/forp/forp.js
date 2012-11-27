@@ -230,16 +230,17 @@ forp.DOMElementWrapperCollection = function(elements)
 
         this.gauge = function(percent, text, hcolor)
         {
-            hcolor = hcolor ? hcolor : "#EE0";
+            var bcolor = "#ddd";
+            hcolor = hcolor ? hcolor : "#bbb";
             return self.c("div")
                 .text(text)
                 .attr(
                     "style",
-                    "background: -moz-linear-gradient(left, " + hcolor + " 0%, " + hcolor + " " + percent + "%, #BBB " + percent + "%, #BBB 100%);\n\
-                    background: -webkit-gradient(linear, left top, right top, color-stop(0%," + hcolor + "), color-stop(" + percent + "%," + hcolor + "), color-stop(" + percent + "%,#BBB), color-stop(100%,#BBB));\n\
-                    background: -webkit-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%,#BBB " + percent + "%,#BBB 100%);\n\
-                    background: -o-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%,#BBB " + percent + "%,#BBB 100%);\n\
-                    background: linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%,#BBB " + percent + "%,#BBB 100%);\n\
+                    "background: -moz-linear-gradient(left, " + hcolor + " 0%, " + hcolor + " " + percent + "%, " + bcolor + " " + percent + "%, " + bcolor + " 100%);\n\
+                    background: -webkit-gradient(linear, left top, right top, color-stop(0%," + hcolor + "), color-stop(" + percent + "%," + hcolor + "), color-stop(" + percent + "%,#BBB), color-stop(100%," + bcolor + "));\n\
+                    background: -webkit-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);\n\
+                    background: -o-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);\n\
+                    background: linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);\n\
                     ");
         };
 
@@ -560,9 +561,10 @@ forp.DOMElementWrapperCollection = function(elements)
 
                 this.console = this.c("div")
                                    .addClass("console")
+                                   .appendTo(this.window)
                                    .attr("style", "max-height:" + (window.innerHeight - 100) + "px");
 
-                this.window.append(this.console);
+                //this.window.append(this.console);
 
                 var aCollapse = this.c("a")
                     .text("^")
@@ -617,12 +619,7 @@ forp.DOMElementWrapperCollection = function(elements)
                 .close();
 
             //document.body.appendChild(this.window.element);
- document.body.insertBefore(this.window.element, document.body.firstChild);
- //console.log(document.getElementsByTagName("html")  );
- //document.getElementsByTagName("html")[0].parentNode.insertBefore(
- //   this.window.element,
- //   document.getElementsByTagName("html")[0].parentNode.firstChild
- //);
+            document.body.insertBefore(this.window.element, document.body.firstChild);
 
             this.nav = this.c("nav")
                             .appendTo(this.window);
@@ -990,8 +987,9 @@ forp.DOMElementWrapperCollection = function(elements)
                                     self.c("td", tr, "", 'numeric')
                                         .append(
                                             self.gauge(
-                                                self.round((datas[i].calls * 100) / self.stack.length),
-                                                datas[i].calls)
+                                                    self.round((datas[i].calls * 100) / self.stack.length),
+                                                    datas[i].calls)
+                                                .addClass("gauge")
                                         );
                                     self.c("td", tr, datas[i].usec.toFixed(3), 'numeric');
                                     self.c("td", tr, datas[i].bytes.toFixed(3), 'numeric');
@@ -1041,18 +1039,21 @@ forp.DOMElementWrapperCollection = function(elements)
                                                 self.gauge(
                                                         self.round((self.hstack[datas[i].refs[j]].calls * 100) / datas[i].calls)
                                                         , self.hstack[datas[i].refs[j]].calls)
+                                                    .addClass("gauge")
                                             );
                                         self.c("td", trsub, "", 'numeric')
                                             .append(
                                                 self.gauge(
                                                         self.round((self.hstack[datas[i].refs[j]].usec * 100) / datas[i].usec)
                                                         , self.hstack[datas[i].refs[j]].usec.toFixed(3))
+                                                    .addClass("gauge")
                                             );
                                         self.c("td", trsub,  "", 'numeric')
                                             .append(
                                                 self.gauge(
                                                         self.round((self.hstack[datas[i].refs[j]].bytes * 100) / datas[i].bytes)
                                                         , self.hstack[datas[i].refs[j]].bytes.toFixed(3))
+                                                    .addClass("gauge")
                                             );
 
                                         for(var entry in self.hstack[datas[i].refs[j]].entries) {
@@ -1140,7 +1141,7 @@ forp.DOMElementWrapperCollection = function(elements)
                                                 self.gauge(
                                                     self.round((datas[i].entries[j].calls * 100) / datas[i].calls)
                                                     , datas[i].entries[j].calls
-                                                )
+                                                ).addClass("gauge")
                                             );
 
                                         self.c("td", tr, '', "numeric")
@@ -1148,7 +1149,7 @@ forp.DOMElementWrapperCollection = function(elements)
                                                 self.gauge(
                                                     self.round((datas[i].entries[j].usec * 100) / datas[i].usec)
                                                     , datas[i].entries[j].usec.toFixed(3)
-                                                )
+                                                ).addClass("gauge")
                                             );
 
                                         self.c("td", tr, '', "numeric")
@@ -1156,7 +1157,7 @@ forp.DOMElementWrapperCollection = function(elements)
                                                 self.gauge(
                                                     self.round((datas[i].entries[j].bytes * 100) / datas[i].bytes)
                                                     , datas[i].entries[j].bytes.toFixed(3)
-                                                )
+                                                ).addClass("gauge")
                                             );
 
                                         self.c("td", tr, datas[i].entries[j].filelineno);
@@ -1179,7 +1180,7 @@ forp.ready(
         var s = document.createElement('style'),
             t = document.createTextNode('\n\
 #forp {\n\
-    color: #FFF;\n\
+    color: #222;\n\
     z-index: 2147483647;\n\
     text-decoration: none;\n\
     font-family: "Helvetica Neue", Helvetica, Nimbus, Arial, sans-serif;\n\
@@ -1187,16 +1188,17 @@ forp.ready(
     text-rendering: optimizelegibility;\n\
     max-width: 300px;\n\
     font-size : 13px;\n\
-    background-color: #AAA;\n\
+    background-color: #eee;\n\
 }\n\
 #forp.opened {\n\
     //opacity: .6;\n\
-    -webkit-box-shadow: inset 0 -4px 8px -2px #777;\n\
-    -moz-box-shadow: inset 0 -4px 8px -2px #777;\n\
-    box-shadow: inset 0 -4px 8px -2px #777;\n\
-}\n\
-#forp.opened:hover {\n\
-    //opacity: 1;\n\
+    -webkit-box-shadow: inset 0 -3px 8px -2px #aaa;\n\
+    -moz-box-shadow: inset 0 -3px 8px -2px #aaa;\n\
+    box-shadow: inset 0 -3px 8px -2px #aaa;\n\
+    //transition: margin-top 2s;\n\
+    //-moz-transition: margin-top 2s;\n\
+    //-webkit-transition: margin-top 2s;\n\
+    //-o-transition: margin-top 2s;\n\
 }\n\
 #forp.closed {\n\
     margin: 15px;\n\
@@ -1243,21 +1245,11 @@ forp.ready(
     color: #FFF;\n\
     margin: 0px 5px;\n\
     padding: 4px 5px 5px 5px;\n\
-    background-color: #777;\n\
-    background-image: linear-gradient(top,#777,#666);\n\
-    background-image: -webkit-linear-gradient(top,#777,#666);\n\
-    background-image: -moz-linear-gradient(top,#777,#666);\n\
-    background-image: -ms-linear-gradient(top,#777,#666);\n\
-    background-image: -o-linear-gradient(top,#777,#666);\n\
+    background-color: #555;\n\
     text-decoration: none;\n\
 }\n\
 #forp a.selected {\n\
     background-color: #4D90FE;\n\
-    background-image: linear-gradient(top,#4D90FE,#4787ED);\n\
-    background-image: -webkit-linear-gradient(top,#4D90FE,#4787ED);\n\
-    background-image: -moz-linear-gradient(top,#4D90FE,#4787ED);\n\
-    background-image: -ms-linear-gradient(top,#4D90FE,#4787ED);\n\
-    background-image: -o-linear-gradient(top,#4D90FE,#4787ED);\n\
 }\n\
 #forp a.tag{\n\
     background-color: #EE0;\n\
@@ -1278,31 +1270,31 @@ forp.ready(
 #forp div.console{\n\
     overflow: auto;\n\
     padding-bottom: 15px;\n\
-    border-top: 1px solid #ddd;\n\
+    border-top: 1px solid #aaa;\n\
 }\n\
 #forp th, #forp td{\n\
     padding: 5px\n\
 }\n\
 #forp th{\n\
     color: #fff;\n\
-    background-color : #777\n\
+    background-color : #888\n\
 }\n\
 #forp .w100{\n\
-width: 120px;\n\
+    width: 120px;\n\
 }\n\
 #forp td{\n\
     text-align: left;\n\
     text-overflow: ellipsis;\n\
     word-space: nowrap;\n\
     overflow: hidden;\n\
-    border: 1px solid #DDD;\n\
+    border: 1px solid #ddd;\n\
 }\n\
 #forp tr{\n\
-    color: #333; \n\
-    background-color:#ccc;\n\
+    color: #333;\n\
+    background-color:#eee;\n\
 }\n\
 #forp tr.sub{\n\
-    background-color:#eee;\n\
+    background-color:#fff;\n\
 }\n\
 #forp tr:hover{ \n\
     background-color:#EEB; \n\
@@ -1343,6 +1335,7 @@ width: 120px;\n\
     float: right;\n\
 }\n\
 #forp div.gauge{\n\
+    line-height: 1.8;\n\
     color: #333;\n\
     margin: 4px 5px 0px 0px;\n\
     width: 100px;\n\
@@ -1368,12 +1361,14 @@ width: 120px;\n\
 #forp input[type=text]{\n\
     font-size: 11px;\n\
     padding: 5px;\n\
-    border: 1px solid #333;\n\
+    border: 1px solid #777;\n\
     -moz-border-radius: 3px;\n\
     -webkit-border-radius: 3px;\n\
     border-radius: 3px;\n\
-    background-color: #EEE;\n\
-}');
+    background-color: #fff;\n\
+    margin: 0px 5px\n\
+}\n\
+');
         s.appendChild(t);
         (document.getElementsByTagName('head')[0]
             || document.getElementsByTagName('body')[0]).appendChild(s);
