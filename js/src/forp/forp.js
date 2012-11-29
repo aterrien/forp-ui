@@ -1268,6 +1268,7 @@ forp.ready(
     border-collapse: collapse;\n\
 }\n\
 #forp div.console{\n\
+    background-color: #fff;\n\
     overflow: auto;\n\
     padding-bottom: 15px;\n\
     border-top: 1px solid #aaa;\n\
