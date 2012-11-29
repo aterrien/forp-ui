@@ -230,18 +230,13 @@ forp.DOMElementWrapperCollection = function(elements)
 
         this.gauge = function(percent, text, hcolor)
         {
-            var bcolor = "#ddd";
-            hcolor = hcolor ? hcolor : "#bbb";
+            var bcolor = "#ccc";
+            hcolor = hcolor ? hcolor : "#4D90FE";
             return self.c("div")
                 .text(text)
                 .attr(
                     "style",
-                    "background: -moz-linear-gradient(left, " + hcolor + " 0%, " + hcolor + " " + percent + "%, " + bcolor + " " + percent + "%, " + bcolor + " 100%);\n\
-                    background: -webkit-gradient(linear, left top, right top, color-stop(0%," + hcolor + "), color-stop(" + percent + "%," + hcolor + "), color-stop(" + percent + "%,#BBB), color-stop(100%," + bcolor + "));\n\
-                    background: -webkit-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);\n\
-                    background: -o-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);\n\
-                    background: linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);\n\
-                    ");
+                    "background: -moz-linear-gradient(left, " + hcolor + " 0%, " + hcolor + " " + percent + "%, " + bcolor + " " + percent + "%, " + bcolor + " 100%);background: -webkit-gradient(linear, left top, right top, color-stop(0%," + hcolor + "), color-stop(" + percent + "%," + hcolor + "), color-stop(" + percent + "%,#BBB), color-stop(100%," + bcolor + "));background: -webkit-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);background: -o-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);background: linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);");
         };
 
         /**
@@ -360,11 +355,9 @@ forp.DOMElementWrapperCollection = function(elements)
                     } else {
                         this.hstack[id] = {};
                         this.hstack[id].id = id;
-                        this.stack[entry].class &&
-                            (this.hstack[id].class = this.stack[entry].class);
+                        this.stack[entry].class && (this.hstack[id].class = this.stack[entry].class);
                         this.hstack[id].function = this.stack[entry].function;
                         this.hstack[id].level = this.stack[entry].level;
-
                         this.hstack[id].calls = 1;
                         this.hstack[id].usec = ms;
                         this.hstack[id].bytes = kb;
@@ -569,8 +562,8 @@ forp.DOMElementWrapperCollection = function(elements)
                 var aCollapse = this.c("a")
                     .text("^")
                     .attr("href", "javascript:void(0);")
-                    .appendTo(this.nav)
-                    .class("btn")
+                    .appendTo(this.window)
+                    .class("btn close")
                     .bind(
                         'click',
                         function(e) {
@@ -769,6 +762,11 @@ forp.DOMElementWrapperCollection = function(elements)
             this.opened = true;
 
             this.window.open();
+
+            // footer
+            this.c("div")
+                .class("footer")
+                .appendTo(this.window);
 
             var container = this.c("div").attr("style", "margin-top: -5px");
             container.appendTo(this.nav);
@@ -977,7 +975,7 @@ forp.DOMElementWrapperCollection = function(elements)
                                     ,tr = self.c("tr", t);
 
                                 self.c("th", tr, "file");
-                                self.c("th", tr, "calls", "w100");
+                                self.c("th", tr, "calls from", "w100");
                                 self.c("th", tr, "ms", "w100");
                                 self.c("th", tr, "kb", "w100");
 
@@ -1057,13 +1055,14 @@ forp.DOMElementWrapperCollection = function(elements)
                                             );
 
                                         for(var entry in self.hstack[datas[i].refs[j]].entries) {
-                                            for(var ref in self.hstack[datas[i].refs[j]].entries[entry].stackRefs) {
-                                                if(self.stack[ref].caption) {
+                                            var stackRefs = self.hstack[datas[i].refs[j]].entries[entry].stackRefs;
+                                            for(var k = 0; k < stackRefs.length; k++) {
+                                                if(self.stack[stackRefs[k]].caption) {
                                                     var trsubsub = self.c("tr", t);
-                                                    self.c("td", trsubsub, self.stack[ref].caption)
+                                                    self.c("td", trsubsub, self.stack[stackRefs[k]].caption, "indent")
                                                         .attr("colspan","2");
-                                                    self.c("td", trsubsub, self.roundDiv(self.stack[ref].usec, 1000).toFixed(3), 'numeric');
-                                                    self.c("td", trsubsub, self.roundDiv(self.stack[ref].bytes, 1024).toFixed(3), 'numeric');
+                                                    self.c("td", trsubsub, self.roundDiv(self.stack[stackRefs[k]].usec, 1000).toFixed(3), 'numeric');
+                                                    self.c("td", trsubsub, self.roundDiv(self.stack[stackRefs[k]].bytes, 1024).toFixed(3), 'numeric');
                                                 }
                                             }
                                         }
@@ -1180,6 +1179,7 @@ forp.ready(
         var s = document.createElement('style'),
             t = document.createTextNode('\n\
 #forp {\n\
+    position: relative;\n\
     color: #222;\n\
     z-index: 2147483647;\n\
     text-decoration: none;\n\
@@ -1190,15 +1190,12 @@ forp.ready(
     font-size : 13px;\n\
     background-color: #eee;\n\
 }\n\
-#forp.opened {\n\
-    //opacity: .6;\n\
+#forp div.footer {\n\
+    height: 10px; position: absolute;\n\
+    bottom: 0px; left: 0px; right: 0px;\n\
     -webkit-box-shadow: inset 0 -3px 8px -2px #aaa;\n\
     -moz-box-shadow: inset 0 -3px 8px -2px #aaa;\n\
     box-shadow: inset 0 -3px 8px -2px #aaa;\n\
-    //transition: margin-top 2s;\n\
-    //-moz-transition: margin-top 2s;\n\
-    //-webkit-transition: margin-top 2s;\n\
-    //-o-transition: margin-top 2s;\n\
 }\n\
 #forp.closed {\n\
     margin: 15px;\n\
@@ -1248,6 +1245,9 @@ forp.ready(
     background-color: #555;\n\
     text-decoration: none;\n\
 }\n\
+#forp a.close{\n\
+    position: absolute; bottom: -13px; left: 40%; right: 40%; text-align: center;\n\
+}\n\
 #forp a.selected {\n\
     background-color: #4D90FE;\n\
 }\n\
@@ -1291,13 +1291,13 @@ forp.ready(
 }\n\
 #forp tr{\n\
     color: #333;\n\
-    background-color:#eee;\n\
+    background-color: #fff;\n\
 }\n\
 #forp tr.sub{\n\
-    background-color:#fff;\n\
+    background-color: #eee;\n\
 }\n\
 #forp tr:hover{ \n\
-    background-color:#EEB; \n\
+    background-color: #eeb; \n\
 }\n\
 #forp .numeric{\n\
     text-align: right;\n\
@@ -1336,7 +1336,7 @@ forp.ready(
 }\n\
 #forp div.gauge{\n\
     line-height: 1.8;\n\
-    color: #333;\n\
+    color: #fff;\n\
     margin: 4px 5px 0px 0px;\n\
     width: 100px;\n\
     text-align: right;\n\
@@ -1367,6 +1367,9 @@ forp.ready(
     border-radius: 3px;\n\
     background-color: #fff;\n\
     margin: 0px 5px\n\
+}\n\
+#forp .indent {\n\
+    padding-left: 30px\n\
 }\n\
 ');
         s.appendChild(t);

@@ -33,8 +33,8 @@ echo   'Nisi mihi Phaedrum, inquam, tu mentitum aut
 //mysql_query("SELECT * FROM world WHERE 1=1;");
 
 /**
- * @ProfileGroup("Foo Group")
- * @ProfileCaption("User function")
+ * @ProfileGroup("Test")
+ * @ProfileCaption("User function Hello world !")
  */
 function test(){ echo 'Hello world !'; };
 /**
