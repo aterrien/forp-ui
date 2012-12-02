@@ -8,6 +8,34 @@ var forp = function(element)
     return new forp.DOMElementWrapper(element);
 }
 /**
+ * Shortcut
+ */
+forp.c = function(tag, appendTo, inner, css)
+{
+    var e = document.createElement(tag);
+    if(inner) e.innerHTML = inner;
+    if(appendTo) appendTo.append(forp(e));
+    if(css) {
+        var classAttr = document.createAttribute("class");
+        classAttr.nodeValue = css;
+        e.setAttributeNode(classAttr);
+    }
+    return forp(e);
+};
+/**
+ * Find a DOM Element
+ * @param mixed
+ * @return forp.DOMElementWrapper|forp.DOMElementWrapperCollection
+ */
+forp.find = function(mixed)
+{
+    if(typeof(mixed) == 'object') {
+        return forp(mixed);
+    } else {
+        return new forp.DOMElementWrapperCollection(document.querySelectorAll(mixed));
+    }
+};
+/**
  * DOM Ready function
  * @param callback
  */
@@ -76,7 +104,7 @@ forp.DOMElementWrapper = function(element)
         return this;
     };
     this.addClass = function(c) {
-        return this.attr("class", c);
+        return this.attr("class", this.getAttr("class") + " " + c);
     };
     this.class = function(c) {
         return this.attr("class", c);
@@ -99,6 +127,10 @@ forp.DOMElementWrapper = function(element)
     };
     this.remove = function() {
         this.element.parentNode.removeChild(this.element);
+    };
+    this.empty = function() {
+        this.element.innerHTML = '';
+        return this;
     };
     this.top = function() {
         return this.getPosition().y;
@@ -130,6 +162,15 @@ forp.DOMElementWrapper = function(element)
             .unbind('click', self.close);
         return self;
     };
+    this.css = function(p, complete)
+    {
+        var _c = function() {
+            complete();
+            document.removeEventListener("webkitTransitionEnd", _c);
+        };
+        document.addEventListener( "webkitTransitionEnd", _c);
+        this.attr("style", p);
+    };
 };
 /**
  * DOM Element Collection
@@ -153,22 +194,31 @@ forp.DOMElementWrapperCollection = function(elements)
     'use strict';
     /**
      * Sorted Fixed Array Class
-     * @param callback filter
+     * @param callback compare
      * @param int size
      */
-    f.SortedFixedArray = function(filter, size) {
+    f.SortedFixedArray = function(compare, size) {
         this.stack = [];
         this.size = size;
+        /**
+         * Internal method insert
+         * @param mixed entry
+         * @param int i
+         */
         this.insert = function(entry, i) {
             for(var j = Math.min(this.size - 1, this.stack.length); j > i; j--) {
                 this.stack[j] = this.stack[j - 1];
             }
             this.stack[i] = entry;
         }
+        /**
+         * Exposed put
+         * @param mixed entry
+         */
         this.put = function(entry) {
             if(this.stack.length) {
                 for(var i = 0; i < this.stack.length; i++) {
-                    if(filter(entry, this.stack[i])) {
+                    if(compare(entry, this.stack[i])) {
                         this.insert(entry, i);
                         break;
                     }
@@ -186,10 +236,88 @@ forp.DOMElementWrapperCollection = function(elements)
     };
 
     /**
+     * forp Console
+     * console API https://developer.mozilla.org/en-US/docs/DOM/console
+     */
+    f.Console = function()
+    {
+        var self = this;
+        f.DOMElementWrapper.call(this);
+
+        this._height = (window.innerHeight - 100);
+        this.element = document.createElement("div");
+
+        this.open = function() {
+
+            this.attr("style", "max-height:" + this._height + "px")
+                .class("console opened");
+
+            f.c("a")
+             .text("^")
+             .attr("href", "javascript:void(0);")
+             .appendTo(this)
+             .class("btn close")
+             .bind(
+                'click',
+                function(e) {
+                    self.close();
+                }
+             );
+
+            return this;
+        };
+
+        this.log = function(content) {
+            this.open()
+                .append(content);
+
+            return this;
+        };
+
+        this.close = function() {
+            this.css("max-height: 0px", function() {self.empty();});
+            return this;
+        };
+
+        this.table = function(mixed) {
+            this.open();
+
+            var t = f.c("table"),
+                header = f.c("tr", t);
+
+            if(typeof mixed == "object") {
+
+                for(var i in mixed[0]) {
+                    f.c("th", header, i);
+                }
+
+                for(i in mixed) {
+                    var tr = f.c("tr", t);
+                    for(var k in mixed[i]) {
+                        f.c("td", tr, mixed[i][k]);
+                    }
+                }
+
+                t.appendTo(this);
+            }
+            return this;
+        };
+
+        /*this.row = function(cols) {
+            for(var k in mixed[i]) {
+                f.c("td", tr, mixed[i][k]);
+            }
+        };*/
+
+        this.open();
+    };
+
+    /**
      * forp window manager
      * @param array forp stack
      */
-    f.Manager = function(stack) {
+    f.Manager = function(stack)
+    {
         var self = this;
 
         this.window = null;
@@ -205,34 +333,14 @@ forp.DOMElementWrapperCollection = function(elements)
         this.console = null;
         this.found = {};
         this.maxNestedLevel = 0;
-
-        this.f = function(mixed)
-        {
-            if(typeof(mixed) == 'object') {
-                return f(mixed);
-            } else {
-                return new f.DOMElementWrapperCollection(document.querySelectorAll(mixed));
-            }
-        };
-
-        this.c = function(tag, appendTo, inner, css)
-        {
-            var e = document.createElement(tag);
-            if(inner) e.innerHTML = inner;
-            if(appendTo) appendTo.append(f(e));
-            if(css) {
-                var classAttr = document.createAttribute("class");
-                classAttr.nodeValue = css;
-                e.setAttributeNode(classAttr);
-            }
-            return f(e);
-        };
+        this.avgLevel = 0;
 
         this.gauge = function(percent, text, hcolor)
         {
             var bcolor = "#ccc";
             hcolor = hcolor ? hcolor : "#4D90FE";
-            return self.c("div")
+            return f.c("div")
+                .class("gauge")
                 .text(text)
                 .attr(
                     "style",
@@ -275,8 +383,8 @@ forp.DOMElementWrapperCollection = function(elements)
 
         /**
          * Aggregates stack entries
-         * This is the main function
-         * @return this
+         * This is the core function
+         * @return forp.Manager
          */
         this.aggregate = function()
         {
@@ -310,8 +418,11 @@ forp.DOMElementWrapperCollection = function(elements)
                     //this.topCpu.put(this.stack[entry]);
                     //this.topMemory.put(this.stack[entry]);
 
+                    // max nested level
                     this.maxNestedLevel = (this.stack[entry].level > this.maxNestedLevel)
                         ? this.stack[entry].level : this.maxNestedLevel ;
+
+                    this.avgLevel += this.stack[entry].level;
 
                     this.stack[entry].id = id;
 
@@ -333,8 +444,6 @@ forp.DOMElementWrapperCollection = function(elements)
                             this.hstack[id].bytes += kb;
                         }
 
-                        //var el = this.hstack[id].entries.length;
-
                         if(this.hstack[id].entries[filelineno]) {
                             this.hstack[id].entries[filelineno].calls++;
                             if(makeSum) {
@@ -349,7 +458,6 @@ forp.DOMElementWrapperCollection = function(elements)
                             this.hstack[id].entries[filelineno].file = this.stack[entry].file;
                             this.hstack[id].entries[filelineno].filelineno = filelineno;
                             this.hstack[id].entries[filelineno].stackRefs = [];
-                        //    this.hstack[id].entries[filelineno].caption = this.stack[entry].caption ? this.stack[entry].caption : '';
                         }
                         this.hstack[id].entries[filelineno].stackRefs.push(entry);
                     } else {
@@ -412,6 +520,8 @@ forp.DOMElementWrapperCollection = function(elements)
                         this.groups[group].bytes += this.hstack[this.groups[group].refs[i]].bytes;
                     }
                 }
+
+                this.avgLevel = this.avgLevel / this.stack.length;
             }
 
             return this;
@@ -439,7 +549,7 @@ forp.DOMElementWrapperCollection = function(elements)
          * @param string query
          * @return array founds
          */
-        this.find = function(query)
+        this.search = function(query)
         {
             if(!this.found[query]) {
                 this.found[query] = [];
@@ -536,92 +646,68 @@ forp.DOMElementWrapperCollection = function(elements)
         };
 
         /**
-         * Clear UI
-         * @return this
-         */
-        this.clear = function()
-        {
-            if(this.console) this.console.text("");
-            return this;
-        };
-
-        /**
          * @return Object Console
          */
         this.getConsole = function()
         {
             if(!this.console) {
-
-                this.console = this.c("div")
-                                   .addClass("console")
-                                   .appendTo(this.window)
-                                   .attr("style", "max-height:" + (window.innerHeight - 100) + "px");
-
-                //this.window.append(this.console);
-
-                var aCollapse = this.c("a")
-                    .text("^")
-                    .attr("href", "javascript:void(0);")
-                    .appendTo(this.window)
-                    .class("btn close")
-                    .bind(
-                        'click',
-                        function(e) {
-                            self.console.remove();
-                            self.console = null;
-                            aCollapse.remove();
-                        }
-                    );
+                this.console = new f.Console();
+                this.console.appendTo(this.window);
             }
             return this.console;
         };
 
         /**
-        * Display datas
-        *
-        * @param array datas
-        * @return Object
-        */
+         * Display datas
+         *
+         * @param array datas
+         * @return Object
+         */
         this.show = function(datas, func)
         {
-            this.getConsole().append(func(datas));
+            this.getConsole()
+                .empty()
+                .log(func(datas));
         };
 
+        /**
+         *
+         */
         this.getDomTag = function(name)
         {
-            return this.c("a")
+            return f.c("a")
                     .class("tag")
                     .text(name)
                     .bind(
-                            "click",
-                            function(){
-                                //alert('yo');
-                            }
+                        "click",
+                        function(){
+                            //alert('yo');
+                        }
                     );
         };
 
         /**
          * Run window manager
+         * @return forp.Manager
          */
         this.run = function()
         {
             // init
-            this.window = this
-                .c("div")
-                .attr("id", "forp")
-                .close();
+            this.window = f.c("div")
+                           .attr("id", "forp")
+                           .close();
 
             //document.body.appendChild(this.window.element);
             document.body.insertBefore(this.window.element, document.body.firstChild);
 
-            this.nav = this.c("nav")
-                            .appendTo(this.window);
+            this.nav = f.c("nav")
+                        .appendTo(this.window);
 
             // infos button
-            this.c("div")
+            f.c("div")
                 .class("i")
                 .append(
-                    this.c("a")
+                    f.c("a")
                         .attr("href", "https://github.com/aterrien/forpgui")
                         .attr("target", "_blank")
                         .text("i")
@@ -636,22 +722,24 @@ forp.DOMElementWrapperCollection = function(elements)
                     function() { self.open(); }
                 );
 
-                //this.nav.append(this.c("span").text('User : 0000ms<br>System : 0000ms '));
+                //this.nav.append(f.c("span").text('User : 0000ms<br>System : 0000ms '));
 
-                this.c("div")
+                f.c("div")
                     .attr("style", "margin-right: 10px")
                     .text(self.roundDiv(this.stack[0].usec, 1000) + ' ms ')
                     .appendTo(this.nav);
 
-                this.c("div")
+                f.c("div")
                     .attr("style", "margin-right: 10px")
                     .text(self.roundDiv(this.stack[0].bytes, 1024) + ' Kb')
                     .appendTo(this.nav);
             } else {
-                this.c("div")
+                f.c("div")
                     .text("Give me something to eat !")
                     .appendTo(this.nav);
             }
+
+            return this;
         };
 
         /**
@@ -664,24 +752,21 @@ forp.DOMElementWrapperCollection = function(elements)
         this.treeList = function(entry, recursive)
         {
 
-            var ul = this
-                        .c("ul")
+            var ul =   f.c("ul")
                         .class("l" + entry.level)
-                , ex = this
-                        .c("div")
+                , ex = f.c("div")
                         .text("&nbsp;")
                         .addClass("left expander")
                 , gd = this
                         .gauge(
                             this.stack[entry.parent] ? this.round((entry.usec * 100) / this.stack[entry.parent].usec) : 100
                             , this.roundDiv(entry.usec, 1000) + 'ms')
-                        .addClass("left gauge")
+                        .addClass("left")
                 , gb = this
                         .gauge(this.stack[entry.parent] ? this.round((entry.bytes * 100) / this.stack[entry.parent].bytes) : 100
                             , this.roundDiv(entry.bytes, 1024) + 'Kb')
-                        .addClass("left gauge")
-                , li = this
-                        .c("li")
+                        .addClass("left")
+                , li = f.c("li")
                         .text(entry.id);
 
             if(entry.groups) {
@@ -689,12 +774,12 @@ forp.DOMElementWrapperCollection = function(elements)
                     li.append(this.getDomTag(entry.groups[g]));
                 }
             }
-            if(entry.caption) li.append(this.c("span").text(entry.caption));
+            if(entry.caption) li.append(f.c("span").text(entry.caption));
 
             li.append(ex)
-            .append(gd)
-            .append(gb)
-            .appendTo(ul);
+              .append(gd)
+              .append(gb)
+              .appendTo(ul);
 
             if(entry.childrenRefs) {
                 //if(parseInt(entry.level) >= 2){
@@ -744,16 +829,18 @@ forp.DOMElementWrapperCollection = function(elements)
         /**
          * Select a tab
          * @param string DOM Element target
+         * @return forp.Manager
          */
         this.tab = function(target)
         {
             self.window.find(".tbtn").each(function(o) {o.class("tbtn");});
-            self.f(target).class("tbtn selected");
+            f.find(target).class("tbtn selected");
             return this;
         };
 
         /**
          * Expand main window
+         * @return forp.Manager
          */
         this.opened = false;
         this.open = function()
@@ -764,71 +851,75 @@ forp.DOMElementWrapperCollection = function(elements)
             this.window.open();
 
             // footer
-            this.c("div")
+            f.c("div")
                 .class("footer")
                 .appendTo(this.window);
 
-            var container = this.c("div").attr("style", "margin-top: -5px");
+            var container = f.c("div").attr("style", "margin-top: -5px");
             container.appendTo(this.nav);
 
-            this.c("a")
-                .text("stack (" + self.aggregate().stack.length + ")")
+            self.aggregate();
+
+            f.c("a")
+                .text("stack (" + self.stack.length + ")")
                 .attr("href", "javascript:void(0);")
                 .class("tbtn")
                 .appendTo(container)
                 .bind(
                     'click',
                     function() {
-                        var tree = self.aggregate().treeList(self.stack[0], true);
+                        var tree = self.treeList(self.stack[0], true);
 
                         self.tab(this)
-                            .clear()
-                            .c("div")
-                            .attr("style", "margin-top: 10px;")
-                            .append(
-                                self.c("div")
-                                    .attr("style", "position: absolute; margin: 5px; right: 20px")
+                            .getConsole()
+                            .empty()
+                            .log(
+                                f.c("div")
+                                    .attr("style", "margin-top: 10px;")
                                     .append(
-                                            self.c("a")
-                                                .text("expand")
-                                                .attr("href", "#")
-                                                .class("btn")
-                                                .bind(
-                                                    "click",
-                                                    function() {
-                                                        self.f("li.collapsed[data-tree]")
-                                                            .each(
-                                                                function(e){
-                                                                    e.attr("class", "expanded");
-                                                                }
-                                                            );
-                                                    })
-                                            )
+                                        f.c("div")
+                                            .attr("style", "position: absolute; margin: 5px; right: 20px")
+                                            .append(
+                                                    f.c("a")
+                                                        .text("expand")
+                                                        .attr("href", "#")
+                                                        .class("btn")
+                                                        .bind(
+                                                            "click",
+                                                            function() {
+                                                                f.find("li.collapsed[data-tree]")
+                                                                    .each(
+                                                                        function(e){
+                                                                            e.attr("class", "expanded");
+                                                                        }
+                                                                    );
+                                                            })
+                                                    )
+                                            .append(
+                                                    f.c("a")
+                                                        .text("collapse")
+                                                        .attr("href", "#")
+                                                        .class("btn")
+                                                        .bind(
+                                                            "click",
+                                                            function() {
+                                                                f.find("li.expanded")
+                                                                    .each(
+                                                                        function(e){
+                                                                            e.attr("class", "collapsed");
+                                                                        }
+                                                                    );
+                                                            })
+                                                    )
+                                    )
                                     .append(
-                                            self.c("a")
-                                                .text("collapse")
-                                                .attr("href", "#")
-                                                .class("btn")
-                                                .bind(
-                                                    "click",
-                                                    function() {
-                                                        self.f("li.expanded")
-                                                            .each(
-                                                                function(e){
-                                                                    e.attr("class", "collapsed");
-                                                                }
-                                                            );
-                                                    })
-                                            )
-                            )
-                            .append(
-                                self.c("div").append(tree)
-                            )
-                            .appendTo(self.getConsole());
+                                        f.c("div").append(tree)
+                                    )
+                                );
                     }
                 );
 
-            this.c("a")
+            f.c("a")
                 .text("top 20 duration")
                 .attr("href", "#")
                 .class("tbtn")
@@ -836,33 +927,32 @@ forp.DOMElementWrapperCollection = function(elements)
                 .bind(
                     'click',
                     function() {
-                        self.clear()
-                            .tab(this)
+                        self.tab(this)
                             .show(
                             self.getTopCpu()
                             , function(datas) {
-                                var t = self.c("table")
-                                    ,tr = self.c("tr", t);
-                                self.c("th", tr, "function");
-                                self.c("th", tr, "avg&nbsp;ms", "w100");
-                                self.c("th", tr, "calls", "w100");
-                                self.c("th", tr, "ms", "w100");
-                                self.c("th", tr, "called from");
+                                var t = f.c("table")
+                                    ,tr = f.c("tr", t);
+                                f.c("th", tr, "function");
+                                f.c("th", tr, "avg&nbsp;ms", "w100");
+                                f.c("th", tr, "calls", "w100");
+                                f.c("th", tr, "ms", "w100");
+                                f.c("th", tr, "called from");
                                 for(var i in datas) {
-                                    tr = self.c("tr", t);
-                                    self.c("td", tr, datas[i].id);
-                                    self.c("td", tr, datas[i].usecavg.toFixed(3), "numeric");
-                                    self.c("td", tr, datas[i].calls, "numeric");
-                                    self.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
-                                    self.c("td", tr, datas[i].filelineno);
+                                    tr = f.c("tr", t);
+                                    f.c("td", tr, datas[i].id);
+                                    f.c("td", tr, datas[i].usecavg.toFixed(3), "numeric");
+                                    f.c("td", tr, datas[i].calls, "numeric");
+                                    f.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
+                                    f.c("td", tr, datas[i].filelineno);
 
                                     for(var j in datas[i].entries) {
-                                        tr = self.c("tr", t).class("sub");
-                                        self.c("td", tr, "");
-                                        self.c("td", tr, (self.round((100 * datas[i].entries[j].usec) / datas[i].entries[j].calls) / 100).toFixed(3), "numeric");
-                                        self.c("td", tr, datas[i].entries[j].calls, "numeric");
-                                        self.c("td", tr, datas[i].entries[j].usec.toFixed(3) + '', "numeric");
-                                        self.c("td", tr, datas[i].entries[j].filelineno);
+                                        tr = f.c("tr", t).class("sub");
+                                        f.c("td", tr, "");
+                                        f.c("td", tr, (self.round((100 * datas[i].entries[j].usec) / datas[i].entries[j].calls) / 100).toFixed(3), "numeric");
+                                        f.c("td", tr, datas[i].entries[j].calls, "numeric");
+                                        f.c("td", tr, datas[i].entries[j].usec.toFixed(3) + '', "numeric");
+                                        f.c("td", tr, datas[i].entries[j].filelineno);
                                     }
                                 }
                                 return t;
@@ -871,7 +961,7 @@ forp.DOMElementWrapperCollection = function(elements)
                     }
                 );
 
-            this.c("a")
+            f.c("a")
                 .text("top 20 memory")
                 .attr("href", "#")
                 .class("tbtn")
@@ -879,33 +969,32 @@ forp.DOMElementWrapperCollection = function(elements)
                 .bind(
                     'click',
                     function() {
-                        self.clear()
-                            .tab(this)
+                        self.tab(this)
                             .show(
                             self.getTopMemory()
                             , function(datas) {
-                                var t = self.c("table")
-                                    ,tr = self.c("tr", t);
-                                self.c("th", tr, "function");
-                                self.c("th", tr, "avg&nbsp;Kb", "w100");
-                                self.c("th", tr, "calls", "w100");
-                                self.c("th", tr, "Kb", "w100");
-                                self.c("th", tr, "called from");
+                                var t = f.c("table")
+                                    ,tr = f.c("tr", t);
+                                f.c("th", tr, "function");
+                                f.c("th", tr, "avg&nbsp;Kb", "w100");
+                                f.c("th", tr, "calls", "w100");
+                                f.c("th", tr, "Kb", "w100");
+                                f.c("th", tr, "called from");
                                 for(var i in datas) {
-                                    tr = self.c("tr", t);
-                                    self.c("td", tr, datas[i].id);
-                                    self.c("td", tr, datas[i].bytesavg.toFixed(3) + '', "numeric");
-                                    self.c("td", tr, datas[i].calls + '', "numeric");
-                                    self.c("td", tr, datas[i].bytes.toFixed(3) + '', "numeric");
-                                    self.c("td", tr, datas[i].filelineno);
+                                    tr = f.c("tr", t);
+                                    f.c("td", tr, datas[i].id);
+                                    f.c("td", tr, datas[i].bytesavg.toFixed(3) + '', "numeric");
+                                    f.c("td", tr, datas[i].calls + '', "numeric");
+                                    f.c("td", tr, datas[i].bytes.toFixed(3) + '', "numeric");
+                                    f.c("td", tr, datas[i].filelineno);
 
                                     for(var j in datas[i].entries) {
-                                        tr = self.c("tr", t).class("sub");
-                                        self.c("td", tr, "");
-                                        self.c("td", tr, (self.round((100 * datas[i].entries[j].bytes) / datas[i].entries[j].calls) / 100).toFixed(3) + '', "numeric");
-                                        self.c("td", tr, datas[i].entries[j].calls + '', "numeric");
-                                        self.c("td", tr, datas[i].entries[j].bytes.toFixed(3) + '', "numeric");
-                                        self.c("td", tr, datas[i].entries[j].filelineno);
+                                        tr = f.c("tr", t).class("sub");
+                                        f.c("td", tr, "");
+                                        f.c("td", tr, (self.round((100 * datas[i].entries[j].bytes) / datas[i].entries[j].calls) / 100).toFixed(3) + '', "numeric");
+                                        f.c("td", tr, datas[i].entries[j].calls + '', "numeric");
+                                        f.c("td", tr, datas[i].entries[j].bytes.toFixed(3) + '', "numeric");
+                                        f.c("td", tr, datas[i].entries[j].filelineno);
                                     }
                                 }
                                 return t;
@@ -914,7 +1003,7 @@ forp.DOMElementWrapperCollection = function(elements)
                     }
                 );
 
-            this.c("a")
+            f.c("a")
                 .text("top 20 calls")
                 .attr("href", "#")
                 .class("tbtn")
@@ -922,33 +1011,32 @@ forp.DOMElementWrapperCollection = function(elements)
                 .bind(
                     'click',
                     function(e) {
-                        self.clear()
-                            .tab(this)
+                        self.tab(this)
                             .show(
                             self.getTopCalls()
                             , function(datas) {
-                                var t = self.c("table")
-                                    ,tr = self.c("tr", t);
-                                self.c("th", tr, "function");
-                                self.c("th", tr, "calls", "w100");
-                                self.c("th", tr, "ms", "w100");
-                                self.c("th", tr, "Kb", "w100");
-                                self.c("th", tr, "called from");
+                                var t = f.c("table")
+                                    ,tr = f.c("tr", t);
+                                f.c("th", tr, "function");
+                                f.c("th", tr, "calls", "w100");
+                                f.c("th", tr, "ms", "w100");
+                                f.c("th", tr, "Kb", "w100");
+                                f.c("th", tr, "called from");
                                 for(var i in datas) {
-                                    tr = self.c("tr", t);
-                                    self.c("td", tr, datas[i].id);
-                                    self.c("td", tr, datas[i].calls, "numeric");
-                                    self.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
-                                    self.c("td", tr, datas[i].bytes.toFixed(3) + '', "numeric");
-                                    self.c("td", tr, '');
+                                    tr = f.c("tr", t);
+                                    f.c("td", tr, datas[i].id);
+                                    f.c("td", tr, datas[i].calls, "numeric");
+                                    f.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
+                                    f.c("td", tr, datas[i].bytes.toFixed(3) + '', "numeric");
+                                    f.c("td", tr, '');
 
                                     for(var j in datas[i].entries) {
-                                        tr = self.c("tr", t).class("sub");
-                                        self.c("td", tr, "");
-                                        self.c("td", tr, datas[i].entries[j].calls, "numeric");
-                                        self.c("td", tr, datas[i].entries[j].usec.toFixed(3) + '', "numeric");
-                                        self.c("td", tr, datas[i].entries[j].bytes.toFixed(3) + '', "numeric");
-                                        self.c("td", tr, datas[i].entries[j].filelineno);
+                                        tr = f.c("tr", t).class("sub");
+                                        f.c("td", tr, "");
+                                        f.c("td", tr, datas[i].entries[j].calls, "numeric");
+                                        f.c("td", tr, datas[i].entries[j].usec.toFixed(3) + '', "numeric");
+                                        f.c("td", tr, datas[i].entries[j].bytes.toFixed(3) + '', "numeric");
+                                        f.c("td", tr, datas[i].entries[j].filelineno);
                                     }
                                 }
                                 return t;
@@ -957,40 +1045,38 @@ forp.DOMElementWrapperCollection = function(elements)
                     }
                 );
 
-            if(self.aggregate().includesCount > 0)
-            this.c("a")
-                .text("files (" + self.aggregate().includesCount + ")")
+            if(self.includesCount > 0)
+            f.c("a")
+                .text("files (" + self.includesCount + ")")
                 .attr("href", "#")
                 .class("tbtn")
                 .appendTo(container)
                 .bind(
                     'click',
                     function() {
-                        self.clear()
-                            .tab(this)
+                        self.tab(this)
                             .show(
                             self.getIncludes()
                             , function(datas) {
-                                var t = self.c("table").addClass("tree")
-                                    ,tr = self.c("tr", t);
+                                var t = f.c("table").addClass("tree")
+                                    ,tr = f.c("tr", t);
 
-                                self.c("th", tr, "file");
-                                self.c("th", tr, "calls from", "w100");
-                                self.c("th", tr, "ms", "w100");
-                                self.c("th", tr, "kb", "w100");
+                                f.c("th", tr, "file");
+                                f.c("th", tr, "calls from", "w100");
+                                f.c("th", tr, "ms", "w100");
+                                f.c("th", tr, "Kb", "w100");
 
                                 for(var i in datas) {
-                                    var tr = self.c("tr", t);
-                                    self.c("td", tr, i);
-                                    self.c("td", tr, "", 'numeric')
+                                    var tr = f.c("tr", t);
+                                    f.c("td", tr, i);
+                                    f.c("td", tr, "", 'numeric')
                                         .append(
                                             self.gauge(
                                                     self.round((datas[i].calls * 100) / self.stack.length),
                                                     datas[i].calls)
-                                                .addClass("gauge")
                                         );
-                                    self.c("td", tr, datas[i].usec.toFixed(3), 'numeric');
-                                    self.c("td", tr, datas[i].bytes.toFixed(3), 'numeric');
+                                    f.c("td", tr, datas[i].usec.toFixed(3), 'numeric');
+                                    f.c("td", tr, datas[i].bytes.toFixed(3), 'numeric');
                                 }
                                 return t;
                             }
@@ -999,70 +1085,66 @@ forp.DOMElementWrapperCollection = function(elements)
                 );
 
 
-            if(self.aggregate().groupsCount > 0)
-            this.c("a")
-                .text("groups (" + self.aggregate().groupsCount + ")")
+            if(self.groupsCount > 0)
+            f.c("a")
+                .text("groups (" + self.groupsCount + ")")
                 .attr("href", "#")
                 .class("tbtn")
                 .appendTo(container)
                 .bind(
                     'click',
                     function() {
-                        self.clear()
-                            .tab(this)
+                        self.tab(this)
                             .show(
                             self.getGroups()
                             , function(datas) {
-                                var t = self.c("table")
-                                    ,tr = self.c("tr", t);
+                                var t = f.c("table")
+                                    ,tr = f.c("tr", t);
 
-                                self.c("th", tr, "group");
-                                self.c("th", tr, "calls", "w100");
-                                self.c("th", tr, "ms", "w100");
-                                self.c("th", tr, "Kb", "w100");
+                                f.c("th", tr, "group");
+                                f.c("th", tr, "calls", "w100");
+                                f.c("th", tr, "ms", "w100");
+                                f.c("th", tr, "Kb", "w100");
 
                                 for(var i in datas) {
-                                    var tr = self.c("tr", t);
-                                    self.c("td", tr)
+                                    var tr = f.c("tr", t);
+                                    f.c("td", tr)
                                         .append(self.getDomTag(i))
-                                        .append(self.c("span").text(datas[i].refs.length + ' ' + (datas[i].refs.length>1 ? 'entries' : 'entry')));
-                                    self.c("td", tr, datas[i].calls, 'numeric');
-                                    self.c("td", tr, datas[i].usec.toFixed(3) + '', 'numeric');
-                                    self.c("td", tr, datas[i].bytes.toFixed(3) + '', 'numeric');
+                                        .append(f.c("span").text(datas[i].refs.length + ' ' + (datas[i].refs.length>1 ? 'entries' : 'entry')));
+                                    f.c("td", tr, datas[i].calls, 'numeric');
+                                    f.c("td", tr, datas[i].usec.toFixed(3) + '', 'numeric');
+                                    f.c("td", tr, datas[i].bytes.toFixed(3) + '', 'numeric');
                                     for(var j in datas[i].refs) {
-                                        var trsub = self.c("tr", t).class("sub");
-                                        self.c("td", trsub, datas[i].refs[j]);
-                                        self.c("td", trsub, "", 'numeric')
+                                        var trsub = f.c("tr", t).class("sub");
+                                        f.c("td", trsub, datas[i].refs[j]);
+                                        f.c("td", trsub, "", 'numeric')
                                             .append(
                                                 self.gauge(
                                                         self.round((self.hstack[datas[i].refs[j]].calls * 100) / datas[i].calls)
                                                         , self.hstack[datas[i].refs[j]].calls)
-                                                    .addClass("gauge")
                                             );
-                                        self.c("td", trsub, "", 'numeric')
+                                        f.c("td", trsub, "", 'numeric')
                                             .append(
                                                 self.gauge(
                                                         self.round((self.hstack[datas[i].refs[j]].usec * 100) / datas[i].usec)
                                                         , self.hstack[datas[i].refs[j]].usec.toFixed(3))
-                                                    .addClass("gauge")
                                             );
-                                        self.c("td", trsub,  "", 'numeric')
+                                        f.c("td", trsub,  "", 'numeric')
                                             .append(
                                                 self.gauge(
                                                         self.round((self.hstack[datas[i].refs[j]].bytes * 100) / datas[i].bytes)
                                                         , self.hstack[datas[i].refs[j]].bytes.toFixed(3))
-                                                    .addClass("gauge")
                                             );
 
                                         for(var entry in self.hstack[datas[i].refs[j]].entries) {
                                             var stackRefs = self.hstack[datas[i].refs[j]].entries[entry].stackRefs;
                                             for(var k = 0; k < stackRefs.length; k++) {
                                                 if(self.stack[stackRefs[k]].caption) {
-                                                    var trsubsub = self.c("tr", t);
-                                                    self.c("td", trsubsub, self.stack[stackRefs[k]].caption, "indent")
+                                                    var trsubsub = f.c("tr", t);
+                                                    f.c("td", trsubsub, self.stack[stackRefs[k]].caption, "indent")
                                                         .attr("colspan","2");
-                                                    self.c("td", trsubsub, self.roundDiv(self.stack[stackRefs[k]].usec, 1000).toFixed(3), 'numeric');
-                                                    self.c("td", trsubsub, self.roundDiv(self.stack[stackRefs[k]].bytes, 1024).toFixed(3), 'numeric');
+                                                    f.c("td", trsubsub, self.roundDiv(self.stack[stackRefs[k]].usec, 1000).toFixed(3), 'numeric');
+                                                    f.c("td", trsubsub, self.roundDiv(self.stack[stackRefs[k]].bytes, 1024).toFixed(3), 'numeric');
                                                 }
                                             }
                                         }
@@ -1074,39 +1156,39 @@ forp.DOMElementWrapperCollection = function(elements)
                     }
                 );
 
-            /*this.c("a")
-                .text("statistics")
+            f.c("a")
+                .text("metrics")
                 .attr("href", "#")
                 .class("tbtn")
                 .appendTo(container)
                 .bind(
                     'click',
                     function() {
-                        self.clear()
-                            .tab(this)
-                            .c("div")
-                            .text("\n\
-                            calls: " + self.stack.length + "<br>\n\
-                            max nested level: " + self.maxNestedLevel + "\n\
-                            \n\
-                            ")
-                            .appendTo(self.getConsole());
-                    }
-                );*/
+                        function Statistic(key, value) {
+                            this.key = key;
+                            this.value = value;
+                        }
 
-            this.c("input")
-                //.class("right")
+                        self.tab(this)
+                            .getConsole()
+                            .empty()
+                            .table([
+                                new Statistic("total calls", self.stack.length),
+                                new Statistic("max nested level", self.maxNestedLevel),
+                                new Statistic("avg nested level", self.avgLevel.toFixed(2)),
+                            ]);
+                    }
+                );
+
+            f.c("input")
                 .attr("type", "text")
-                //.attr("autosave", "unique")
-                //.attr("results", 5)
                 .attr("name", "forpSearch")
                 .attr("placeholder", "Search forp ...")
-                //.attr("style", "margin: -2px 25px 5px 25px")
                 .appendTo(container)
                 .bind(
                     "click",
                     function() {
-                        self.f(this).class("selected");
+                        f.find(this).class("selected");
                         self.tab(this);
                     }
                 )
@@ -1114,52 +1196,51 @@ forp.DOMElementWrapperCollection = function(elements)
                     "keyup",
                     function() {
                         self.window.open();
-                        self.clear()
-                            .show(
-                            self.find(this.value)
+                        self.show(
+                            self.search(this.value)
                             , function(datas) {
-                                var t = self.c("table")
-                                    ,tr = self.c("tr", t);
-                                self.c("th", tr, "function");
-                                self.c("th", tr, "calls", "w100");
-                                self.c("th", tr, "ms", "w100");
-                                self.c("th", tr, "Kb", "w100");
-                                self.c("th", tr, "called from");
+                                var t = f.c("table")
+                                    ,tr = f.c("tr", t);
+                                f.c("th", tr, "function");
+                                f.c("th", tr, "calls", "w100");
+                                f.c("th", tr, "ms", "w100");
+                                f.c("th", tr, "Kb", "w100");
+                                f.c("th", tr, "called from");
                                 for(var i in datas) {
-                                    tr = self.c("tr", t);
-                                    self.c("td", tr, datas[i].id);
-                                    self.c("td", tr, datas[i].calls, "numeric");
-                                    self.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
-                                    self.c("td", tr, datas[i].bytes.toFixed(3) + '', "numeric");
-                                    self.c("td", tr, datas[i].filelineno);
+                                    tr = f.c("tr", t);
+                                    f.c("td", tr, datas[i].id);
+                                    f.c("td", tr, datas[i].calls, "numeric");
+                                    f.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
+                                    f.c("td", tr, datas[i].bytes.toFixed(3) + '', "numeric");
+                                    f.c("td", tr, datas[i].filelineno);
                                     for(var j in datas[i].entries) {
-                                        tr = self.c("tr", t).class("sub");
-                                        self.c("td", tr, "");
-                                        self.c("td", tr, '', "numeric")
+                                        tr = f.c("tr", t).class("sub");
+                                        f.c("td", tr, "");
+                                        f.c("td", tr, '', "numeric")
                                             .append(
                                                 self.gauge(
                                                     self.round((datas[i].entries[j].calls * 100) / datas[i].calls)
                                                     , datas[i].entries[j].calls
-                                                ).addClass("gauge")
+                                                )
                                             );
 
-                                        self.c("td", tr, '', "numeric")
+                                        f.c("td", tr, '', "numeric")
                                             .append(
                                                 self.gauge(
                                                     self.round((datas[i].entries[j].usec * 100) / datas[i].usec)
                                                     , datas[i].entries[j].usec.toFixed(3)
-                                                ).addClass("gauge")
+                                                )
                                             );
 
-                                        self.c("td", tr, '', "numeric")
+                                        f.c("td", tr, '', "numeric")
                                             .append(
                                                 self.gauge(
                                                     self.round((datas[i].entries[j].bytes * 100) / datas[i].bytes)
                                                     , datas[i].entries[j].bytes.toFixed(3)
-                                                ).addClass("gauge")
+                                                )
                                             );
 
-                                        self.c("td", tr, datas[i].entries[j].filelineno);
+                                        f.c("td", tr, datas[i].entries[j].filelineno);
                                     }
                                 }
                                 return t;
@@ -1167,6 +1248,7 @@ forp.DOMElementWrapperCollection = function(elements)
                         );
                     }
                 );
+            return this;
         };
     };
 })(forp);
@@ -1191,7 +1273,7 @@ forp.ready(
     background-color: #eee;\n\
 }\n\
 #forp div.footer {\n\
-    height: 10px; position: absolute;\n\
+    border-bottom: 1px solid #888; height: 10px; position: absolute;\n\
     bottom: 0px; left: 0px; right: 0px;\n\
     -webkit-box-shadow: inset 0 -3px 8px -2px #aaa;\n\
     -moz-box-shadow: inset 0 -3px 8px -2px #aaa;\n\
@@ -1246,7 +1328,11 @@ forp.ready(
     text-decoration: none;\n\
 }\n\
 #forp a.close{\n\
-    position: absolute; bottom: -13px; left: 40%; right: 40%; text-align: center;\n\
+    padding: 10px;\n\
+    position: absolute; \n\
+    bottom: -45px; \n\
+    right: 10px; \n\
+    text-align: center;\n\
 }\n\
 #forp a.selected {\n\
     background-color: #4D90FE;\n\
@@ -1270,15 +1356,27 @@ forp.ready(
 #forp div.console{\n\
     background-color: #fff;\n\
     overflow: auto;\n\
-    padding-bottom: 15px;\n\
-    border-top: 1px solid #aaa;\n\
+    overflow-x: hidden;\n\
+    border-top: 1px solid #888;\n\
+    transition: max-height .1s;\n\
+    -moz-transition: max-height .1s;\n\
+    -webkit-transition: max-height .1s;\n\
+    -o-transition: max-height .1s;\n\
+    transition-timing-function: ease-in;\n\
+    -moz-transition-timing-function: ease-in;\n\
+    -webkit-transition-timing-function: ease-in;\n\
+    -o-transition-timing-function: ease-in;\n\
 }\n\
 #forp th, #forp td{\n\
-    padding: 5px\n\
+    padding: 5px;\n\
+    border: 1px solid #ddd;\n\
 }\n\
 #forp th{\n\
+    text-align: center;\n\
+    font-weight: bold;\n\
     color: #fff;\n\
-    background-color : #888\n\
+    border: 1px solid #bbb;\n\
+    background-color : #ccc;\n\
 }\n\
 #forp .w100{\n\
     width: 120px;\n\
@@ -1288,7 +1386,6 @@ forp.ready(
     text-overflow: ellipsis;\n\
     word-space: nowrap;\n\
     overflow: hidden;\n\
-    border: 1px solid #ddd;\n\
 }\n\
 #forp tr{\n\
     color: #333;\n\
@@ -1339,10 +1436,13 @@ forp.ready(
     line-height: 1.8;\n\
     color: #fff;\n\
     margin: 4px 5px 0px 0px;\n\
-    width: 100px;\n\
+    width: 110px;\n\
     text-align: right;\n\
     font-size: 0.8em;\n\
     padding: 0px 3px;\n\
+}\n\
+#forp td>div.gauge{\n\
+    margin: 0px;\n\
 }\n\
 #forp div.i{\n\
     position: absolute;\n\
