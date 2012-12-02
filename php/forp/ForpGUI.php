@@ -52,6 +52,13 @@ abstract class ForpPrinterAbstract {
 class ForpGUI {
 
     /**
+     * @var array $conf
+     */
+    protected $conf = array(
+        'main' => '{main}' // main key
+    );
+
+    /**
      * @var IForpPrinter $printer
      */
 	protected $printer;
@@ -166,7 +173,12 @@ class ForpHTMLPrinter
             ?>
             <div id="forp">
             <table>
-                    <tr><th>duration(&#181;s)</th><th>memory(o)</th><th>function</th><th>file</th></tr>
+                    <tr>
+                        <th>duration(&#181;s)</th>
+                        <th>memory(o)</th>
+                        <th>function</th>
+                        <th>file</th>
+                    </tr>
             <?php
             foreach($this->getGUIManager()->getStack() as $entry) {
                 printf( $line,
@@ -175,7 +187,7 @@ class ForpHTMLPrinter
                         $entry['level'],
                         empty($entry['class']) ? '' : $entry['class'] . '::',
                         $entry['function'],
-                        $entry['file']
+                        $entry['file'] . (isset($entry['lineno']) ? ':' . $entry['lineno'] : '')
                         );
             }
             ?>
