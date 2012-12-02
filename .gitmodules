@@ -1,0 +1,6 @@
+[submodule "js/ext/cssmin"]
+	path = js/ext/cssmin
+	url = https://github.com/natxet/CssMin.git
+[submodule "js/ext/jsmin"]
+	path = js/ext/jsmin
+	url = https://github.com/rgrove/jsmin-php.git
