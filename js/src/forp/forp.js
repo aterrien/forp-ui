@@ -585,6 +585,10 @@ forp.DOMElementWrapperCollection = function(elements)
             if(!this.found[query]) {
                 this.found[query] = [];
                 for(var entry in this.getHStack()) {
+
+                    // max 100 results
+                    if(this.found[query].length == 100) return this.found[query];
+
                     var r = new RegExp(query, "i");
                     if(r.test(this.hstack[entry].id))
                     this.found[query].push(this.hstack[entry]);
@@ -824,7 +828,7 @@ forp.DOMElementWrapperCollection = function(elements)
                         var h2 = (self.getConsole().height() / 2);
 
                         // scroll to middle
-                        if(ex.top() > h2) self.getConsole().element.scrollTop = ex.top() - h2;
+                        //if(ex.top() > h2) self.getConsole().element.scrollTop = ex.top() - h2;
 
                         if(li.getClass() == "expanded") {
                             li.class("collapsed");
