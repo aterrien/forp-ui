@@ -8,6 +8,28 @@ var forp = function(element)
     return new forp.DOMElementWrapper(element);
 }
 /**
+ * Normalizr
+ */
+forp.Normalizr = {
+    getTransitionEndEvent : function() {
+        var t;
+        var el = document.createElement('fakeelement');
+        var transitions = {
+        'transition':'transitionEnd',
+        'OTransition':'oTransitionEnd',
+        'MSTransition':'msTransitionEnd',
+        'MozTransition':'transitionend',
+        'WebkitTransition':'webkitTransitionEnd'
+        }
+
+        for(t in transitions){
+            if( el.style[t] !== undefined ){
+                return transitions[t];
+            }
+        }
+    }
+}
+/**
  * Shortcut
  */
 forp.c = function(tag, appendTo, inner, css)
@@ -164,11 +186,12 @@ forp.DOMElementWrapper = function(element)
     };
     this.css = function(p, complete)
     {
+        var transitionEnd = forp.Normalizr.getTransitionEndEvent();
         var _c = function() {
             complete();
-            document.removeEventListener("webkitTransitionEnd", _c);
+            document.removeEventListener(transitionEnd, _c);
         };
-        document.addEventListener( "webkitTransitionEnd", _c);
+        document.addEventListener(transitionEnd, _c);
         this.attr("style", p);
     };
 };
@@ -244,16 +267,15 @@ forp.DOMElementWrapperCollection = function(elements)
         var self = this;
         f.DOMElementWrapper.call(this);
 
-        this._height = (window.innerHeight - 100);
         this.element = document.createElement("div");
 
         this.open = function() {
 
-            this.attr("style", "max-height:" + this._height + "px")
+            this.attr("style", "height: " + (window.innerHeight / 2) + "px")
                 .class("console opened");
 
             f.c("a")
-             .text("^")
+             .text("v")
              .attr("href", "javascript:void(0);")
              .appendTo(this)
              .class("btn close")
@@ -275,7 +297,7 @@ forp.DOMElementWrapperCollection = function(elements)
         };
 
         this.close = function() {
-            this.css("max-height: 0px", function() {self.empty();});
+            this.css("height: 0px", function() {self.empty();});
             return this;
         };
 
@@ -390,12 +412,12 @@ forp.DOMElementWrapperCollection = function(elements)
         {
             if(!this.hstack) {
                 // hashing stack
-                var id, filelineno, ms, kb;
+                var id, filelineno, ms, kb, lastEntry;
                 this.hstack = {};
                 this.includes = {};
                 this.groups = {};
 
-                /*this.topCpu = new f.SortedFixedArray(
+                this.topCpu = new f.SortedFixedArray(
                     function(a, b) {
                         return (a.usec > b.usec);
                     },
@@ -406,7 +428,7 @@ forp.DOMElementWrapperCollection = function(elements)
                         return (a.bytes > b.bytes);
                     },
                     20
-                );*/
+                );
 
                 for(var entry in this.stack) {
 
@@ -415,8 +437,11 @@ forp.DOMElementWrapperCollection = function(elements)
                     ms = this.roundDiv(this.stack[entry].usec, 1000);
                     kb = this.roundDiv(this.stack[entry].bytes, 1024);
 
-                    //this.topCpu.put(this.stack[entry]);
-                    //this.topMemory.put(this.stack[entry]);
+                    // unit cost
+                    if(lastEntry && lastEntry.level > this.stack[entry].level) {
+                        this.topCpu.put(lastEntry);
+                        this.topMemory.put(lastEntry);
+                    }
 
                     // max nested level
                     this.maxNestedLevel = (this.stack[entry].level > this.maxNestedLevel)
@@ -509,7 +534,13 @@ forp.DOMElementWrapperCollection = function(elements)
                         this.includes[this.stack[entry].file].bytes += kb;
                         this.includes[this.stack[entry].file].calls++;
                     }
-                }
+
+                    lastEntry = this.stack[entry];
+                } // end foreach stack
+
+                // unit cost / last entry
+                this.topCpu.put(lastEntry);
+                this.topMemory.put(lastEntry);
 
                 // Finalize groups
                 for(var group in this.groups) {
@@ -587,7 +618,7 @@ forp.DOMElementWrapperCollection = function(elements)
          */
         this.getTopCpu = function()
         {
-            if(!this.topCpu) {
+            /*if(!this.topCpu) {
                 this.topCpu = new f.SortedFixedArray(
                     function(a, b) {
                         a.usecavg = self.round((a.usec / a.calls) * 100) / 100;
@@ -600,8 +631,8 @@ forp.DOMElementWrapperCollection = function(elements)
                 for(var entry in this.getHStack()) {
                     this.topCpu.put(this.hstack[entry]);
                 }
-            }
-            return this.topCpu.stack;
+            }*/
+            return this.aggregate().topCpu.stack;
         };
 
         /**
@@ -610,7 +641,7 @@ forp.DOMElementWrapperCollection = function(elements)
          */
         this.getTopMemory = function()
         {
-            if(!this.topMemory) {
+            /*if(!this.topMemory) {
                 this.topMemory = new f.SortedFixedArray(
                     function(a, b) {
                         a.bytesavg = self.round((a.bytes / a.calls) * 100) / 100;
@@ -623,8 +654,8 @@ forp.DOMElementWrapperCollection = function(elements)
                 for(var entry in this.getHStack()) {
                     this.topMemory.put(this.hstack[entry]);
                 }
-            }
-            return this.topMemory.stack;
+            }*/
+            return this.aggregate().topMemory.stack;
         };
 
         /**
@@ -719,7 +750,7 @@ forp.DOMElementWrapperCollection = function(elements)
 
                 this.window.bind(
                     "click",
-                    function() { self.open(); }
+                    function() {self.open();}
                 );
 
                 //this.nav.append(f.c("span").text('User : 0000ms<br>System : 0000ms '));
@@ -855,7 +886,7 @@ forp.DOMElementWrapperCollection = function(elements)
                 .class("footer")
                 .appendTo(this.window);
 
-            var container = f.c("div").attr("style", "margin-top: -5px");
+            var container = f.c("div").attr("style", "margin-top: -2px");
             container.appendTo(this.nav);
 
             self.aggregate();
@@ -934,26 +965,26 @@ forp.DOMElementWrapperCollection = function(elements)
                                 var t = f.c("table")
                                     ,tr = f.c("tr", t);
                                 f.c("th", tr, "function");
-                                f.c("th", tr, "avg&nbsp;ms", "w100");
-                                f.c("th", tr, "calls", "w100");
+                                //f.c("th", tr, "avg&nbsp;ms", "w100");
+                                //f.c("th", tr, "calls", "w100");
                                 f.c("th", tr, "ms", "w100");
                                 f.c("th", tr, "called from");
                                 for(var i in datas) {
                                     tr = f.c("tr", t);
                                     f.c("td", tr, datas[i].id);
-                                    f.c("td", tr, datas[i].usecavg.toFixed(3), "numeric");
-                                    f.c("td", tr, datas[i].calls, "numeric");
-                                    f.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
-                                    f.c("td", tr, datas[i].filelineno);
+                                    //f.c("td", tr, datas[i].usecavg.toFixed(3), "numeric");
+                                    //f.c("td", tr, datas[i].calls, "numeric");
+                                    f.c("td", tr, self.roundDiv(datas[i].usec,1000).toFixed(3) + '', "numeric");
+                                    f.c("td", tr, datas[i].file + ":" + datas[i].lineno);
 
-                                    for(var j in datas[i].entries) {
+                                    /*for(var j in datas[i].entries) {
                                         tr = f.c("tr", t).class("sub");
                                         f.c("td", tr, "");
                                         f.c("td", tr, (self.round((100 * datas[i].entries[j].usec) / datas[i].entries[j].calls) / 100).toFixed(3), "numeric");
                                         f.c("td", tr, datas[i].entries[j].calls, "numeric");
                                         f.c("td", tr, datas[i].entries[j].usec.toFixed(3) + '', "numeric");
                                         f.c("td", tr, datas[i].entries[j].filelineno);
-                                    }
+                                    }*/
                                 }
                                 return t;
                             }
@@ -976,26 +1007,26 @@ forp.DOMElementWrapperCollection = function(elements)
                                 var t = f.c("table")
                                     ,tr = f.c("tr", t);
                                 f.c("th", tr, "function");
-                                f.c("th", tr, "avg&nbsp;Kb", "w100");
-                                f.c("th", tr, "calls", "w100");
+                                //f.c("th", tr, "avg&nbsp;Kb", "w100");
+                                //f.c("th", tr, "calls", "w100");
                                 f.c("th", tr, "Kb", "w100");
                                 f.c("th", tr, "called from");
                                 for(var i in datas) {
                                     tr = f.c("tr", t);
                                     f.c("td", tr, datas[i].id);
-                                    f.c("td", tr, datas[i].bytesavg.toFixed(3) + '', "numeric");
-                                    f.c("td", tr, datas[i].calls + '', "numeric");
-                                    f.c("td", tr, datas[i].bytes.toFixed(3) + '', "numeric");
-                                    f.c("td", tr, datas[i].filelineno);
+                                    //f.c("td", tr, datas[i].bytesavg.toFixed(3) + '', "numeric");
+                                    //f.c("td", tr, datas[i].calls + '', "numeric");
+                                    f.c("td", tr, self.roundDiv(datas[i].bytes, 1024).toFixed(3) + '', "numeric");
+                                    f.c("td", tr, datas[i].file + ":" + datas[i].lineno);
 
-                                    for(var j in datas[i].entries) {
+                                    /*for(var j in datas[i].entries) {
                                         tr = f.c("tr", t).class("sub");
                                         f.c("td", tr, "");
                                         f.c("td", tr, (self.round((100 * datas[i].entries[j].bytes) / datas[i].entries[j].calls) / 100).toFixed(3) + '', "numeric");
                                         f.c("td", tr, datas[i].entries[j].calls + '', "numeric");
                                         f.c("td", tr, datas[i].entries[j].bytes.toFixed(3) + '', "numeric");
                                         f.c("td", tr, datas[i].entries[j].filelineno);
-                                    }
+                                    }*/
                                 }
                                 return t;
                             }
@@ -1063,8 +1094,8 @@ forp.DOMElementWrapperCollection = function(elements)
 
                                 f.c("th", tr, "file");
                                 f.c("th", tr, "calls from", "w100");
-                                f.c("th", tr, "ms", "w100");
-                                f.c("th", tr, "Kb", "w100");
+                                //f.c("th", tr, "ms", "w100");
+                                //f.c("th", tr, "Kb", "w100");
 
                                 for(var i in datas) {
                                     var tr = f.c("tr", t);
@@ -1075,8 +1106,8 @@ forp.DOMElementWrapperCollection = function(elements)
                                                     self.round((datas[i].calls * 100) / self.stack.length),
                                                     datas[i].calls)
                                         );
-                                    f.c("td", tr, datas[i].usec.toFixed(3), 'numeric');
-                                    f.c("td", tr, datas[i].bytes.toFixed(3), 'numeric');
+                                    //f.c("td", tr, datas[i].usec.toFixed(3), 'numeric');
+                                    //f.c("td", tr, datas[i].bytes.toFixed(3), 'numeric');
                                 }
                                 return t;
                             }
@@ -1261,7 +1292,9 @@ forp.ready(
         var s = document.createElement('style'),
             t = document.createTextNode('\n\
 #forp {\n\
-    position: relative;\n\
+    position: fixed;\n\
+    bottom: 0px;\n\
+    right: 0px;\n\
     color: #222;\n\
     z-index: 2147483647;\n\
     text-decoration: none;\n\
@@ -1270,31 +1303,32 @@ forp.ready(
     text-rendering: optimizelegibility;\n\
     max-width: 300px;\n\
     font-size : 13px;\n\
-    background-color: #eee;\n\
+    background-color: #fff;\n\
 }\n\
 #forp div.footer {\n\
-    border-bottom: 1px solid #888; height: 10px; position: absolute;\n\
-    bottom: 0px; left: 0px; right: 0px;\n\
-    -webkit-box-shadow: inset 0 -3px 8px -2px #aaa;\n\
-    -moz-box-shadow: inset 0 -3px 8px -2px #aaa;\n\
-    box-shadow: inset 0 -3px 8px -2px #aaa;\n\
+    //border-top: 1px solid #888; \n\
+    height: 10px; position: absolute;\n\
+    top: 0px; left: 0px; right: 0px;\n\
+    -webkit-box-shadow: inset 0 3px 8px -2px #aaa;\n\
+    -moz-box-shadow: inset 0 3px 8px -2px #aaa;\n\
+    box-shadow: inset 0 3px 8px -2px #aaa;\n\
 }\n\
 #forp.closed {\n\
     margin: 15px;\n\
     border-radius: 8px;\n\
-    position:fixed; \n\
-    top:0px; \n\
-    right:0px; \n\
     width: 200px;\n\
     opacity: .6;\n\
     cursor: pointer;\n\
+   -moz-box-shadow: 0 0 8px #aaa;\n\
+   -webkit-box-shadow: 0 0 8px #aaa;\n\
+   box-shadow: 0 0 8px #aaa;\n\
 }\n\
 #forp.closed:hover {\n\
     opacity: 1;\n\
 }\n\
 #forp.opened{\n\
     max-width: 100%;\n\
-    left:0px\n\
+    left: 0px;\n\
 }\n\
 #forp.opened a{\n\
     display: inline;\n\
@@ -1328,10 +1362,12 @@ forp.ready(
     text-decoration: none;\n\
 }\n\
 #forp a.close{\n\
-    padding: 10px;\n\
+    border-bottom-left-radius: 0px;\n\
+    border-bottom-right-radius: 0px;\n\
+    padding: 5px 10px;\n\
     position: absolute; \n\
-    bottom: -45px; \n\
-    right: 10px; \n\
+    top: 21px; \n\
+    right: 30px; \n\
     text-align: center;\n\
 }\n\
 #forp a.selected {\n\
@@ -1358,10 +1394,10 @@ forp.ready(
     overflow: auto;\n\
     overflow-x: hidden;\n\
     border-top: 1px solid #888;\n\
-    transition: max-height .1s;\n\
-    -moz-transition: max-height .1s;\n\
-    -webkit-transition: max-height .1s;\n\
-    -o-transition: max-height .1s;\n\
+    transition: height .1s;\n\
+    -moz-transition: height .1s;\n\
+    -webkit-transition: height .1s;\n\
+    -o-transition: height .1s;\n\
     transition-timing-function: ease-in;\n\
     -moz-transition-timing-function: ease-in;\n\
     -webkit-transition-timing-function: ease-in;\n\
@@ -1446,8 +1482,8 @@ forp.ready(
 }\n\
 #forp div.i{\n\
     position: absolute;\n\
-    top: 3px;\n\
-    right: 3px;\n\
+    top: 5px;\n\
+    right: 5px;\n\
     font-weight: 900;\n\
     text-align: center;\n\
     background-color: #ccc;\n\
