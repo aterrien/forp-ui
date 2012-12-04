@@ -11,7 +11,7 @@ var forp = function(element)
  * Normalizr
  */
 forp.Normalizr = {
-    getTransitionEndEvent : function() {
+    getEventTransitionEnd : function() {
         var t;
         var el = document.createElement('fakeelement');
         var transitions = {
@@ -186,7 +186,7 @@ forp.DOMElementWrapper = function(element)
     };
     this.css = function(p, complete)
     {
-        var transitionEnd = forp.Normalizr.getTransitionEndEvent();
+        var transitionEnd = forp.Normalizr.getEventTransitionEnd();
         var _c = function() {
             complete();
             document.removeEventListener(transitionEnd, _c);
@@ -438,7 +438,7 @@ forp.DOMElementWrapperCollection = function(elements)
                     kb = this.roundDiv(this.stack[entry].bytes, 1024);
 
                     // unit cost
-                    if(lastEntry && lastEntry.level > this.stack[entry].level) {
+                    if(lastEntry && (lastEntry.level >= this.stack[entry].level)) {
                         this.topCpu.put(lastEntry);
                         this.topMemory.put(lastEntry);
                     }
@@ -970,25 +970,31 @@ forp.DOMElementWrapperCollection = function(elements)
                                     ,tr = f.c("tr", t);
                                 f.c("th", tr, "function");
                                 //f.c("th", tr, "avg&nbsp;ms", "w100");
-                                //f.c("th", tr, "calls", "w100");
-                                f.c("th", tr, "ms", "w100");
+                                f.c("th", tr, "self cost ms", "w100");
+                                f.c("th", tr, "total cost ms", "w100");
+                                f.c("th", tr, "calls", "w100");
                                 f.c("th", tr, "called from");
                                 for(var i in datas) {
+
+                                    var hstackId = self.getEntryId(datas[i]);
+
                                     tr = f.c("tr", t);
                                     f.c("td", tr, datas[i].id);
                                     //f.c("td", tr, datas[i].usecavg.toFixed(3), "numeric");
-                                    //f.c("td", tr, datas[i].calls, "numeric");
                                     f.c("td", tr, self.roundDiv(datas[i].usec,1000).toFixed(3) + '', "numeric");
-                                    f.c("td", tr, datas[i].file + ":" + datas[i].lineno);
+                                    f.c("td", tr, self.hstack[hstackId].usec.toFixed(3) + '', "numeric");
+                                    f.c("td", tr, self.hstack[hstackId].calls, "numeric");
+                                    f.c("td", tr, "");
 
-                                    /*for(var j in datas[i].entries) {
+                                    for(var j in self.hstack[hstackId].entries) {
                                         tr = f.c("tr", t).class("sub");
                                         f.c("td", tr, "");
-                                        f.c("td", tr, (self.round((100 * datas[i].entries[j].usec) / datas[i].entries[j].calls) / 100).toFixed(3), "numeric");
-                                        f.c("td", tr, datas[i].entries[j].calls, "numeric");
-                                        f.c("td", tr, datas[i].entries[j].usec.toFixed(3) + '', "numeric");
-                                        f.c("td", tr, datas[i].entries[j].filelineno);
-                                    }*/
+                                        f.c("td", tr, "");
+                                        //f.c("td", tr, (self.round((100 * datas[i].entries[j].usec) / datas[i].entries[j].calls) / 100).toFixed(3), "numeric");
+                                        f.c("td", tr, self.hstack[hstackId].entries[j].usec.toFixed(3) + '', "numeric");
+                                        f.c("td", tr, self.hstack[hstackId].entries[j].calls, "numeric");
+                                        f.c("td", tr, self.hstack[hstackId].entries[j].filelineno);
+                                    }
                                 }
                                 return t;
                             }

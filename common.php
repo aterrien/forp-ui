@@ -75,6 +75,7 @@ for($i=0;$i<5;$i++){ test1(); }
 $lambda();
 $lambda();
 $foo = new Foo();
+//sleep(1);
 $foo->bar();
 $foo->bar2();
 // fibo
