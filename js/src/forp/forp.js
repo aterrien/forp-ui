@@ -1308,6 +1308,9 @@ forp.ready(
     list-style: none;\n\
     padding-left: 20px;\n\
 }\n\
+#forp li{\n\
+    line-height: 1.8;\n\
+}\n\
 #forp ul.l0{\n\
     padding-left: 10px;\n\
 }\n\
