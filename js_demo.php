@@ -1,6 +1,6 @@
 <?php
 // first thing to do = enable forp profiler
-forp_enable();
+forp_start();
 
 // our PHP script to profile
 include('common.php');

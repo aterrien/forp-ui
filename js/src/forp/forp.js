@@ -1,174 +1,275 @@
+'use strict';
+
 /**
  * DOM Element wrapper creator
  * @param DOM Element
  * @return forp.DOMElementWrapper
  */
-var forp = function(element)
-{
-    return new forp.DOMElementWrapper(element);
-}
-/**
- * DOM Ready function
- * @param callback
- */
-forp.ready = function(callback) {
-    /* Internet Explorer */
-    /*@cc_on
-    @if (@_win32 || @_win64)
-        document.write('<script id="ieScriptLoad" defer src="//:"><\/script>');
-        document.getElementById('ieScriptLoad').onreadystatechange = function() {
-            if (this.readyState == 'complete') {
-                callback();
+var forp = {
+    /**
+     * Wrap function
+     */
+    wrap : function(element)
+    {
+        return new forp.DOMElementWrapper(element);
+    },
+    /**
+     * Shortcut function
+     */
+    create : function(tag, appendTo, inner, css)
+    {
+        var e = document.createElement(tag);
+        if(inner) e.innerHTML = inner;
+        if(appendTo) appendTo.append(forp.wrap(e));
+        if(css) {
+            var classAttr = document.createAttribute("class");
+            classAttr.nodeValue = css;
+            e.setAttributeNode(classAttr);
+        }
+        return forp.wrap(e);
+    },
+    /**
+     * Find a DOM Element
+     * @param mixed
+     * @return forp.DOMElementWrapper|forp.DOMElementWrapperCollection
+     */
+    find : function(mixed)
+    {
+        if(typeof(mixed) == 'object') {
+            return forp.wrap(mixed);
+        } else {
+            return new forp.DOMElementWrapperCollection(document.querySelectorAll(mixed));
+        }
+    },
+    /**
+     * DOM Ready function
+     * @param callback
+     */
+    ready : function(callback) {
+        /* Internet Explorer */
+        /*@cc_on
+        @if (@_win32 || @_win64)
+            document.write('<script id="ieScriptLoad" defer src="//:"><\/script>');
+            document.getElementById('ieScriptLoad').onreadystatechange = function() {
+                if (this.readyState == 'complete') {
+                    callback();
+                }
+            };
+        @end @*/
+        if (document.addEventListener) {
+            /* Mozilla, Chrome, Opera */
+            document.addEventListener('DOMContentLoaded', callback, false);
+        } else if (/KHTML|WebKit|iCab/i.test(navigator.userAgent)) {
+            /* Safari, iCab, Konqueror */
+            var DOMLoadTimer = setInterval(function () {
+                if (/loaded|complete/i.test(document.readyState)) {
+                    callback();
+                    clearInterval(DOMLoadTimer);
+                }
+            }, 10);
+        } else {
+            /* Other web browsers */
+            window.onload = callback;
+        }
+    },
+    /**
+     * @param string v
+     * @param int d
+     * @return int
+     */
+    round : function(v)
+    {
+        return (~~ (0.5 + (v * 1000))) / 1000;
+    },
+    /**
+     * @param string v
+     * @param int d
+     * @return int
+     */
+    roundDiv : function(v, d)
+    {
+        return this.round(v / d);
+    },
+    /**
+     * DOM Element wrapper, makes it fluent
+     * @param DOM Element
+     */
+    DOMElementWrapper : function(element)
+    {
+        var self = this;
+        this.element = element;
+
+        this.bind = function(evType, fn) {
+            if (this.element.addEventListener) {
+                this.element.addEventListener(evType, fn, false);
+            } else if (this.element.attachEvent) {
+                var r = this.element.attachEvent("on"+evType, fn);
+                return r;
             }
+            return this;
         };
-    @end @*/
-    if (document.addEventListener) {
-        /* Mozilla, Chrome, Opera */
-        document.addEventListener('DOMContentLoaded', callback, false);
-    } else if (/KHTML|WebKit|iCab/i.test(navigator.userAgent)) {
-        /* Safari, iCab, Konqueror */
-        var DOMLoadTimer = setInterval(function () {
-            if (/loaded|complete/i.test(document.readyState)) {
-                callback();
-                clearInterval(DOMLoadTimer);
+        this.unbind = function(evType, fn) {
+            if (this.element.removeEventListener) {
+                this.element.removeEventListener(evType, fn, false);
+            } else if (this.element.detachEvent) {
+                var r = this.element.detachEvent("on"+evType, fn);
+                return r;
             }
-        }, 10);
-    } else {
-        /* Other web browsers */
-        window.onload = callback;
-    }
-};
-/**
- * DOM Element wrapper, makes it fluent
- * @param DOM Element
- */
-forp.DOMElementWrapper = function(element)
-{
-    var self = this;
-    this.element = element;
-    this.bind = function(evType, fn) {
-        if (this.element.addEventListener) {
-            this.element.addEventListener(evType, fn, false);
-        } else if (this.element.attachEvent) {
-            var r = this.element.attachEvent("on"+evType, fn);
-            return r;
+            return this;
+        };
+        this.find = function(s) {
+            return new forp.DOMElementWrapperCollection(this.element.querySelectorAll(s));
+        };
+        this.append = function(o) {
+            this.element.appendChild(o.element);
+            return this;
+        };
+        this.appendTo = function(o) {
+            o.append(this);
+            return this;
+        };
+        this.addClass = function(c) {
+            return this.attr("class", this.getAttr("class") + " " + c);
+        };
+        this.class = function(c) {
+            return this.attr("class", c);
+        };
+        this.getClass = function(c) {
+            return this.getAttr("class");
+        };
+        this.text = function(t) {
+            this.element.innerHTML = t;
+            return this;
+        };
+        this.getAttr = function(attr) {
+            return this.element.getAttribute(attr);
+        };
+        this.attr = function(attr, val) {
+            var attr = document.createAttribute(attr);
+            attr.nodeValue = val;
+            this.element.setAttributeNode(attr);
+            return this;
+        };
+        this.remove = function() {
+            this.element.parentNode.removeChild(this.element);
+        };
+        this.empty = function() {
+            this.element.innerHTML = '';
+            return this;
+        };
+        this.top = function() {
+            return this.getPosition().y;
+        };
+        this.getPosition = function() {
+            var x = 0, y = 0, e = this.element;
+            while(e){
+                x += e.offsetLeft;
+                y += e.offsetTop;
+                e = e.offsetParent;
+            }
+            return {x: x, y: y};
+        };
+        this.height = function() {
+            return this.element.offsetHeight;
+        };
+        this.width = function() {
+            return this.element.offsetWidth;
+        };
+        this.open = function()
+        {
+            self.class('opened')
+                .unbind('click', self.open);
+            return self;
+        };
+        this.close = function()
+        {
+            self.class('closed')
+                .unbind('click', self.close);
+            return self;
+        };
+        this.css = function(p, complete)
+        {
+            var transitionEnd = forp.Normalizr.getEventTransitionEnd();
+            var _c = function() {
+                complete();
+                document.removeEventListener(transitionEnd, _c);
+            };
+            document.addEventListener(transitionEnd, _c);
+            this.attr("style", p);
+        };
+        this.table = function(headers) {
+            return (new forp.Table(headers)).appendTo(this);
+        };
+        this.insertAfter = function(element) {
+            this.element.parentNode.insertBefore( element.element, this.element.nextSibling );
         }
-        return this;
-    };
-    this.unbind = function(evType, fn) {
-        if (this.element.removeEventListener) {
-            this.element.removeEventListener(evType, fn, false);
-        } else if (this.element.detachEvent) {
-            var r = this.element.detachEvent("on"+evType, fn);
-            return r;
+        this.nextSibling = function() {
+            return forp.wrap(this.element.nextSibling);
         }
-        return this;
-    };
-    this.find = function(s) {
-        return new forp.DOMElementWrapperCollection(this.element.querySelectorAll(s));
-    };
-    this.append = function(o) {
-        this.element.appendChild(o.element);
-        return this;
-    };
-    this.appendTo = function(o) {
-        o.append(this);
-        return this;
-    };
-    this.addClass = function(c) {
-        return this.attr("class", c);
-    };
-    this.class = function(c) {
-        return this.attr("class", c);
-    };
-    this.getClass = function(c) {
-        return this.getAttr("class");
-    };
-    this.text = function(t) {
-        this.element.innerHTML = t;
-        return this;
-    };
-    this.getAttr = function(attr) {
-        return this.element.getAttribute(attr);
-    };
-    this.attr = function(attr, val) {
-        var attr = document.createAttribute(attr);
-        attr.nodeValue = val;
-        this.element.setAttributeNode(attr);
-        return this;
-    };
-    this.remove = function() {
-        this.element.parentNode.removeChild(this.element);
-    };
-    this.top = function() {
-        return this.getPosition().y;
-    };
-    this.getPosition = function() {
-        var x = 0, y = 0, e = this.element;
-        while(e){
-            x += e.offsetLeft;
-            y += e.offsetTop;
-            e = e.offsetParent;
-        }
-        return {x: x, y: y};
-    };
-    this.height = function() {
-        return this.element.offsetHeight;
-    };
-    this.width = function() {
-        return this.element.offsetWidth;
-    };
-    this.open = function()
+    },
+    /**
+     * DOM Element Collection Class
+     * @param DOM Element
+     */
+    DOMElementWrapperCollection : function(elements)
     {
-        self.class('opened')
-            .unbind('click', self.open);
-        return self;
-    };
-    this.close = function()
-    {
-        self.class('closed')
-            .unbind('click', self.close);
-        return self;
-    };
-};
-/**
- * DOM Element Collection
- * @param DOM Element
- */
-forp.DOMElementWrapperCollection = function(elements)
-{
-    this.elements = elements;
-    this.each = function(fn)
-    {
-        for(var i=0; i<this.elements.length; i++) {
-            fn(new forp.DOMElementWrapper(this.elements[i]));
+        this.elements = elements;
+        this.each = function(fn)
+        {
+            for(var i=0; i<this.elements.length; i++) {
+                fn(new forp.DOMElementWrapper(this.elements[i]));
+            }
         }
-    }
-};
-/**
- * forp IIFE
- * @param forp f
- */
-(function(f) {
-    'use strict';
+    },
+    /**
+     * Normalizr Class
+     */
+    Normalizr : {
+        getEventTransitionEnd : function() {
+            var t;
+            var el = document.createElement('fakeelement');
+            var transitions = {
+            'transition':'transitionEnd',
+            'OTransition':'oTransitionEnd',
+            'MSTransition':'msTransitionEnd',
+            'MozTransition':'transitionend',
+            'WebkitTransition':'webkitTransitionEnd'
+            }
+
+            for(t in transitions){
+                if( el.style[t] !== undefined ){
+                    return transitions[t];
+                }
+            }
+        }
+    },
     /**
      * Sorted Fixed Array Class
-     * @param callback filter
+     * @param callback compare
      * @param int size
      */
-    f.SortedFixedArray = function(filter, size) {
+    SortedFixedArray : function(compare, size) {
         this.stack = [];
         this.size = size;
+        /**
+         * Internal method insert
+         * @param mixed entry
+         * @param int i
+         */
         this.insert = function(entry, i) {
             for(var j = Math.min(this.size - 1, this.stack.length); j > i; j--) {
                 this.stack[j] = this.stack[j - 1];
             }
             this.stack[i] = entry;
         }
+        /**
+         * Evaluate and put a new entry in the stack
+         * @param mixed entry
+         */
         this.put = function(entry) {
             if(this.stack.length) {
                 for(var i = 0; i < this.stack.length; i++) {
-                    if(filter(entry, this.stack[i])) {
+                    if(compare(entry, this.stack[i])) {
                         this.insert(entry, i);
                         break;
                     }
@@ -183,135 +284,381 @@ forp.DOMElementWrapperCollection = function(elements)
                 this.insert(entry, 0);
             }
         };
-    };
+    },
+    /**
+     * Console Class
+     */
+    Console : function()
+    {
+        var self = this;
+        forp.DOMElementWrapper.call(this);
+        this.element = document.createElement("div");
+
+        this.open = function() {
+
+            this.attr("style", "height: " + (window.innerHeight / 1.5) + "px")
+                .class("console opened");
+
+            forp.create("a")
+                .text("v")
+                .attr("href", "javascript:void(0);")
+                .appendTo(this)
+                .class("btn close")
+                .bind(
+                    'click',
+                    function(e) {
+                        self.close();
+                    }
+                );
+
+            return this;
+        };
+
+        this.log = function(content) {
+            this.open()
+                .append(content);
+
+            return this;
+        };
+
+        this.close = function() {
+            this.css("height: 0px", function() {self.empty();});
+            return this;
+        };
+
+        this.open();
+    },
+    /**
+     * @param Object headers
+     */
+    Table : function(headers)
+    {
+        forp.DOMElementWrapper.call(this);
+        this.element = document.createElement("table");
+
+        if(headers) {
+            var header = forp.create("tr", this);
+            for(var i in headers) {
+                forp.create("th", header, headers[i]);
+            }
+        }
+
+        this.line = function(cols) {
+            return (new forp.Line(cols)).appendTo(this);
+        }
+    },
+    /**
+     * @param Object cols
+     */
+    Line : function(cols)
+    {
+        forp.DOMElementWrapper.call(this);
+        this.element = document.createElement("tr");
+
+        for(var i in cols) {
+            if(typeof cols[i] === "object") {
+                forp.create("td", this, "", "numeric w100").append(cols[i]);
+            } else if(isNaN(cols[i])) {
+                forp.create("td", this, cols[i]);
+            } else {
+                forp.create("td", this, cols[i], "numeric w100");
+            }
+        }
+    },
+    /**
+     * Stack Tree Class
+     */
+    Tree : function(stack)
+    {
+        var self = this;
+        forp.DOMElementWrapper.call(this);
+        this.element = document.createElement("div");
+
+        /**
+         * Generates a tree representation (UL) of the stack
+         *
+         * @param array entry Root entry
+         * @param boolean recursive Says if we have to fetch it recursively
+         * @return Object Wrapped UL
+         */
+        this.treeList = function(entry, recursive)
+        {
+            var ul = forp.create("ul").class("l" + entry.level)
+                , ex = forp.create("div")
+                           .text("&nbsp;")
+                           .addClass("left expander")
+                , gd = new forp.Gauge(
+                            stack[entry.parent] ? forp.round(
+                                (entry.usec * 100) / stack[entry.parent].usec
+                            ) : 100
+                            , forp.roundDiv(entry.usec, 1000) + 'ms'
+                       ).addClass("left")
+                , gb = new forp.Gauge(
+                            stack[entry.parent] ? forp.round(
+                                (entry.bytes * 100) / stack[entry.parent].bytes
+                            ) : 100
+                            , forp.roundDiv(entry.bytes, 1024) + 'Kb'
+                       ).addClass("left")
+                , li = forp.create("li").text(entry.id);
+
+
+            if(entry.groups) {
+                for(var g in entry.groups) {
+                    li.append(forp.TagRandColor.provideFor(entry.groups[g]));
+                }
+            }
+            if(entry.caption) li.append(forp.create("span").text(entry.caption));
+
+            li.append(ex)
+              .append(gd)
+              .append(gb)
+              .appendTo(ul);
+
+            if(entry.childrenRefs) {
+                //if(parseInt(entry.level) >= 2){
+                    li.addClass("collapsed");
+                //} else {
+                //    li.addClass("expanded");
+                //}
+                ex.bind(
+                    'click'
+                    , function() {
+                        //var h2 = (self.getConsole().height() / 2);
+                        // scroll to middle
+                        //if(ex.top() > h2) self.getConsole().element.scrollTop = ex.top() - h2;
+
+                        if(li.getClass() == "expanded") {
+                            li.class("collapsed");
+                        } else {
+                            li.class("expanded");
+                            if(!li.getAttr("data-tree")) {
+                                for(var i in entry.childrenRefs) {
+                                    self.treeList(stack[entry.childrenRefs[i]], true)
+                                        .appendTo(li);
+                                }
+                                li.attr("data-tree", 1);
+                            }
+                        }
+                    }
+                );
+
+                if(parseInt(entry.level) < 2) {
+                    li.class("expanded");
+                    if(!li.getAttr("data-tree")) {
+                        for(var i in entry.childrenRefs) {
+                            this.treeList(stack[entry.childrenRefs[i]])
+                                .appendTo(li);
+                        }
+                        li.attr("data-tree", 1);
+                    }
+                } else {
+                    li.addClass("collapsed");
+                }
+            }
+
+            return ul;
+        };
+
+        this.append(this.treeList(stack[0], true));
+    },
+    /**
+     * Gauge Class
+     */
+    Gauge : function(percent, text, hcolor)
+    {
+        forp.DOMElementWrapper.call(this);
+        this.element = document.createElement("div");
+
+        var bcolor = "#bbb";
+        hcolor = hcolor ? hcolor : "#4D90FE";
+
+        this.class("gauge")
+            .text(text)
+            .attr(
+                "style",
+                "background: -moz-linear-gradient(left, " +
+                    hcolor + " 0%, " + hcolor + " " + percent + "%, " +
+                    bcolor + " " + percent + "%, " + bcolor +
+                    " 100%);background: -webkit-gradient(linear, left top, right top, color-stop(0%," + hcolor + "), color-stop(" + percent + "%," + hcolor + "), color-stop(" + percent + "%,#BBB), color-stop(100%," + bcolor + "));background: -webkit-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);background: -o-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);background: linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);");
+    },
+    /**
+     * Tag Class
+     */
+    TagRandColor : {
+        tagsColor : {},
+        provideFor : function(name)
+        {
+            if(!this.tagsColor[name]) {
+                this.tagsColor[name] = 'rgb(' +
+                    Math.round(Math.random() * 100 + 155) + ',' +
+                    Math.round(Math.random() * 100 + 155) + ',' +
+                    Math.round(Math.random() * 100 + 155)
+                    + ')';
+            }
+
+            return forp.create("a")
+                    .class("tag")
+                    .attr(
+                        'style',
+                        'background-color: ' + this.tagsColor[name]
+                    )
+                    .text(name)
+                    .bind(
+                        "click",
+                        function(){
+                            //alert('to groups view');
+                        }
+                    );
+        }
+    }
+};
+/**
+ * forp IIFE
+ * @param forp f
+ */
+(function(f) {
 
     /**
      * forp window manager
      * @param array forp stack
      */
-    f.Manager = function(stack) {
+    f.Manager = function(stack)
+    {
         var self = this;
 
         this.window = null;
         this.stack = stack; // RAW stack
-        this.hstack = null; // indexed stack
+        this.functions = null; // indexed stack
         this.includes = null; // included files
         this.includesCount = 0;
         this.groups = null; // groups
         this.groupsCount = 0;
+        this.leaves = null;
         this.topCpu = null;
         this.topCalls = null;
         this.topMemory = null;
         this.console = null;
         this.found = {};
         this.maxNestedLevel = 0;
-
-        this.f = function(mixed)
-        {
-            if(typeof(mixed) == 'object') {
-                return f(mixed);
-            } else {
-                return new f.DOMElementWrapperCollection(document.querySelectorAll(mixed));
-            }
-        };
-
-        this.c = function(tag, appendTo, inner, css)
-        {
-            var e = document.createElement(tag);
-            if(inner) e.innerHTML = inner;
-            if(appendTo) appendTo.append(f(e));
-            if(css) {
-                var classAttr = document.createAttribute("class");
-                classAttr.nodeValue = css;
-                e.setAttributeNode(classAttr);
-            }
-            return f(e);
-        };
-
-        this.gauge = function(percent, text, hcolor)
-        {
-            var bcolor = "#ccc";
-            hcolor = hcolor ? hcolor : "#4D90FE";
-            return self.c("div")
-                .text(text)
-                .attr(
-                    "style",
-                    "background: -moz-linear-gradient(left, " + hcolor + " 0%, " + hcolor + " " + percent + "%, " + bcolor + " " + percent + "%, " + bcolor + " 100%);background: -webkit-gradient(linear, left top, right top, color-stop(0%," + hcolor + "), color-stop(" + percent + "%," + hcolor + "), color-stop(" + percent + "%,#BBB), color-stop(100%," + bcolor + "));background: -webkit-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);background: -o-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);background: linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);");
-        };
+        this.avgLevel = 0;
+        this.opened = false;
+        this.tree = null;
 
         /**
-         * @param string v
-         * @param int d
-         * @return int
-         */
-        this.round = function(v)
-        {
-            return (~~ (0.5 + (v * 1000))) / 1000;
-        }
-
-        /**
-         * @param string v
-         * @param int d
-         * @return int
-         */
-        this.roundDiv = function(v, d)
-        {
-            return this.round(v / d);
-        }
-
-        /**
-         * @param string id
+         * @param Object stack entry
          * @return bool
          */
-        this.isRecursive = function(id)
+        this.isRecursive = function(entry)
         {
-            var child = this.stack[id].id;
-            while(this.stack[id].parent > 0) {
-                id = this.stack[id].parent;
-                if(this.stack[id].id == child) return true
+            var i = entry.i;
+            while(this.stack[i].parent > 0) {
+                i = this.stack[i].parent;
+                if(this.stack[i].id == entry.id) return true;
             }
             return false;
-        }
+        };
+
+        /**
+         * Sum duration of an array of entries
+         * @return int Sum
+         */
+        this.sumDuration = function(entries)
+        {
+            var sum = 0;
+            for(var i in entries) {
+                if(this.isRecursive(entries[i])) continue;
+                sum += entries[i].usec;
+            }
+            return sum;
+        };
+
+        /**
+         * Sum memory of an array of entries
+         * @return int Sum
+         */
+        this.sumMemory = function(entries)
+        {
+            var sum = 0;
+            for(var i in entries) {
+                if(this.isRecursive(entries[i])) continue;
+                sum += entries[i].bytes;
+            }
+            return sum;
+        };
+
+        /**
+         * Refines ancestors metrics
+         * @param object Descendant stack entry
+         * @return forp
+         */
+        this.refineParents = function(descendant)
+        {
+            if(descendant.parent > 0 && descendant.pusec) {
+                this.stack[descendant.parent].usec -= descendant.pusec;
+                this.refineParents(this.stack[descendant.parent]);
+            }
+            return this;
+        };
 
         /**
          * Aggregates stack entries
-         * This is the main function
-         * @return this
+         * This is the core function
+         *
+         * One loop to :
+         * - compute top duration
+         * - compute top memory
+         * - groups
+         * - included files
+         *
+         * @return forp.Manager
          */
         this.aggregate = function()
         {
-            if(!this.hstack) {
+            if(!this.functions) {
                 // hashing stack
-                var id, filelineno, ms, kb;
-                this.hstack = {};
+                var id, filelineno, ms, kb, lastEntry;
+                this.functions = {};
                 this.includes = {};
                 this.groups = {};
+                this.leaves = [];
 
-                /*this.topCpu = new f.SortedFixedArray(
+                this.topCpu = new f.SortedFixedArray(
                     function(a, b) {
                         return (a.usec > b.usec);
                     },
                     20
                 );
+
                 this.topMemory = new f.SortedFixedArray(
                     function(a, b) {
                         return (a.bytes > b.bytes);
                     },
                     20
-                );*/
+                );
 
                 for(var entry in this.stack) {
 
                     id = this.getEntryId(this.stack[entry]);
                     filelineno = this.stack[entry].file + (this.stack[entry].lineno ? ':' + this.stack[entry].lineno : '');
-                    ms = this.roundDiv(this.stack[entry].usec, 1000);
-                    kb = this.roundDiv(this.stack[entry].bytes, 1024);
+                    ms = f.roundDiv(this.stack[entry].usec, 1000);
+                    kb = f.roundDiv(this.stack[entry].bytes, 1024);
 
-                    //this.topCpu.put(this.stack[entry]);
-                    //this.topMemory.put(this.stack[entry]);
+                    // entry
+                    this.stack[entry].i = entry;
+                    this.stack[entry].filelineno = filelineno;
 
+                    // unit cost
+                    if(lastEntry && (lastEntry.level >= this.stack[entry].level)) {
+                        this.leaves.push(lastEntry);
+                        this.topCpu.put(lastEntry);
+                        this.topMemory.put(lastEntry);
+                    }
+
+                    // max nested level
                     this.maxNestedLevel = (this.stack[entry].level > this.maxNestedLevel)
                         ? this.stack[entry].level : this.maxNestedLevel ;
+
+                    this.avgLevel += this.stack[entry].level;
 
                     this.stack[entry].id = id;
 
@@ -323,95 +670,97 @@ forp.DOMElementWrapperCollection = function(elements)
                         this.stack[this.stack[entry].parent].childrenRefs.push(entry);
                     }
 
-                    // Constructs hstack
-                    if(this.hstack[id]) {
-                        this.hstack[id].calls ++;
+                    // Constructs functions
+                    if(this.functions[id]) {
+                        this.functions[id].calls ++;
 
-                        var makeSum = !this.isRecursive(entry);
-                        if(makeSum) {
-                            this.hstack[id].usec += ms;
-                            this.hstack[id].bytes += kb;
-                        }
-
-                        //var el = this.hstack[id].entries.length;
-
-                        if(this.hstack[id].entries[filelineno]) {
-                            this.hstack[id].entries[filelineno].calls++;
-                            if(makeSum) {
-                                this.hstack[id].entries[filelineno].usec += ms;
-                                this.hstack[id].entries[filelineno].bytes += kb;
-                            }
+                        // Linking between functions and stack entries
+                        if(this.functions[id].entries[filelineno]) {
+                            this.functions[id].entries[filelineno].calls++;
                         } else {
-                            this.hstack[id].entries[filelineno] = {};
-                            this.hstack[id].entries[filelineno].calls = 1;
-                            this.hstack[id].entries[filelineno].usec = ms;
-                            this.hstack[id].entries[filelineno].bytes = kb;
-                            this.hstack[id].entries[filelineno].file = this.stack[entry].file;
-                            this.hstack[id].entries[filelineno].filelineno = filelineno;
-                            this.hstack[id].entries[filelineno].stackRefs = [];
-                        //    this.hstack[id].entries[filelineno].caption = this.stack[entry].caption ? this.stack[entry].caption : '';
+                            this.functions[id].entries[filelineno] = {
+                                  calls : 1
+                                , file : this.stack[entry].file
+                                , filelineno : filelineno
+                                , refs : []
+                            };
                         }
-                        this.hstack[id].entries[filelineno].stackRefs.push(entry);
-                    } else {
-                        this.hstack[id] = {};
-                        this.hstack[id].id = id;
-                        this.stack[entry].class && (this.hstack[id].class = this.stack[entry].class);
-                        this.hstack[id].function = this.stack[entry].function;
-                        this.hstack[id].level = this.stack[entry].level;
-                        this.hstack[id].calls = 1;
-                        this.hstack[id].usec = ms;
-                        this.hstack[id].bytes = kb;
 
-                        var filelineno = this.stack[entry].file
-                            + (this.stack[entry].lineno ? ':' + this.stack[entry].lineno : '');
-                        this.hstack[id].entries = [];
-                        this.hstack[id].entries[filelineno] = {}
-                        this.hstack[id].entries[filelineno].calls = 1;
-                        this.hstack[id].entries[filelineno].usec = this.hstack[id].usec;
-                        this.hstack[id].entries[filelineno].bytes = this.hstack[id].bytes;
-                        this.hstack[id].entries[filelineno].file = this.stack[entry].file;
-                        this.hstack[id].entries[filelineno].filelineno = filelineno;
-                        this.hstack[id].entries[filelineno].stackRefs = [];
-                        this.hstack[id].entries[filelineno].stackRefs.push(entry);
+                    } else {
+
+                        // indexing by function id
+                        this.functions[id] = {
+                              id : id
+                            , level : this.stack[entry].level
+                            , calls : 1
+                            , class : this.stack[entry].class ? this.stack[entry].class : null
+                            , function : this.stack[entry].function
+                            , refs : []
+                        };
+                        this.functions[id].entries = [];
+                        this.functions[id].entries[filelineno] = {
+                              calls : 1
+                            , file : this.stack[entry].file
+                            , filelineno : filelineno
+                            , refs : []
+                        };
 
                         // Groups
                         if(this.stack[entry].groups) {
                             for(var g in this.stack[entry].groups) {
                                 if(!this.groups[this.stack[entry].groups[g]]) {
-                                    this.groups[this.stack[entry].groups[g]] = {};
-                                    this.groups[this.stack[entry].groups[g]].calls = 0;
-                                    this.groups[this.stack[entry].groups[g]].usec = 0;
-                                    this.groups[this.stack[entry].groups[g]].bytes = 0;
-                                    this.groups[this.stack[entry].groups[g]].refs = [];
+                                    this.groups[this.stack[entry].groups[g]] = {
+                                        calls : 0
+                                        , usec : 0
+                                        , bytes : 0
+                                        , refs : []
+                                    };
                                 }
-                                this.groups[this.stack[entry].groups[g]].refs.push(id);
+                                this.groups[this.stack[entry].groups[g]].refs.push(this.stack[entry]);
                             }
                         }
                     }
 
+                    // Linking between functions and stack entries
+                    this.functions[id].refs.push(this.stack[entry]);
+                    this.functions[id].entries[filelineno].refs.push(this.stack[entry]);
+
+                    // Refines ancestors
+                    //this.refineParents(this.stack[entry]);
+
                     // Files
                     if(!this.includes[this.stack[entry].file]) {
-                        this.includes[this.stack[entry].file] = {};
-                        this.includes[this.stack[entry].file].usec = ms;
-                        this.includes[this.stack[entry].file].bytes = kb;
-                        this.includes[this.stack[entry].file].calls = 1;
+                        this.includes[this.stack[entry].file] = {
+                              usec : ms
+                            , bytes : kb
+                            , calls : 1
+                        };
                         this.includesCount++;
                     } else {
                         this.includes[this.stack[entry].file].usec += ms;
                         this.includes[this.stack[entry].file].bytes += kb;
                         this.includes[this.stack[entry].file].calls++;
                     }
-                }
+
+                    lastEntry = this.stack[entry];
+                } // end foreach stack
+
+                // unit cost / last entry
+                this.leaves.push(lastEntry);
+                this.topCpu.put(lastEntry);
+                this.topMemory.put(lastEntry);
 
                 // Finalize groups
                 for(var group in this.groups) {
                     this.groupsCount++;
                     for(var i in this.groups[group].refs) {
-                        this.groups[group].calls += this.hstack[this.groups[group].refs[i]].calls;
-                        this.groups[group].usec += this.hstack[this.groups[group].refs[i]].usec;
-                        this.groups[group].bytes += this.hstack[this.groups[group].refs[i]].bytes;
+                        this.groups[group].calls += this.functions[this.groups[group].refs[i].id].calls;
+                        this.groups[group].usec += self.sumDuration(this.functions[this.groups[group].refs[i].id].refs);
+                        this.groups[group].bytes += self.sumMemory(this.functions[this.groups[group].refs[i].id].refs);
                     }
                 }
+
+                this.avgLevel = this.avgLevel / this.stack.length;
             }
 
             return this;
@@ -429,9 +778,9 @@ forp.DOMElementWrapperCollection = function(elements)
         /**
          * @return array
          */
-        this.getHStack = function()
+        this.getFunctions = function()
         {
-            return this.aggregate().hstack;
+            return this.aggregate().functions;
         }
 
         /**
@@ -439,14 +788,18 @@ forp.DOMElementWrapperCollection = function(elements)
          * @param string query
          * @return array founds
          */
-        this.find = function(query)
+        this.search = function(query)
         {
             if(!this.found[query]) {
                 this.found[query] = [];
-                for(var entry in this.getHStack()) {
+                for(var entry in this.getFunctions()) {
+
+                    // max 100 results
+                    if(this.found[query].length == 100) return this.found[query];
+
                     var r = new RegExp(query, "i");
-                    if(r.test(this.hstack[entry].id))
-                    this.found[query].push(this.hstack[entry]);
+                    if(r.test(this.functions[entry].id))
+                    this.found[query].push(this.functions[entry]);
                 }
             }
             return this.found[query];
@@ -464,8 +817,8 @@ forp.DOMElementWrapperCollection = function(elements)
                     20
                 );
 
-                for(var entry in this.getHStack()) {
-                    this.topCalls.put(this.hstack[entry]);
+                for(var entry in this.getFunctions()) {
+                    this.topCalls.put(this.functions[entry]);
                 }
             }
             return this.topCalls.stack;
@@ -477,21 +830,21 @@ forp.DOMElementWrapperCollection = function(elements)
          */
         this.getTopCpu = function()
         {
-            if(!this.topCpu) {
+            /*if(!this.topCpu) {
                 this.topCpu = new f.SortedFixedArray(
                     function(a, b) {
-                        a.usecavg = self.round((a.usec / a.calls) * 100) / 100;
-                        b.usecavg = self.round((b.usec / b.calls) * 100) / 100;
+                        a.usecavg = f.round((a.usec / a.calls) * 100) / 100;
+                        b.usecavg = f.round((b.usec / b.calls) * 100) / 100;
                         return (a.usecavg > b.usecavg);
                     },
                     20
                 );
 
-                for(var entry in this.getHStack()) {
-                    this.topCpu.put(this.hstack[entry]);
+                for(var entry in this.getFunctions()) {
+                    this.topCpu.put(this.functions[entry]);
                 }
-            }
-            return this.topCpu.stack;
+            }*/
+            return this.aggregate().topCpu.stack;
         };
 
         /**
@@ -500,21 +853,21 @@ forp.DOMElementWrapperCollection = function(elements)
          */
         this.getTopMemory = function()
         {
-            if(!this.topMemory) {
+            /*if(!this.topMemory) {
                 this.topMemory = new f.SortedFixedArray(
                     function(a, b) {
-                        a.bytesavg = self.round((a.bytes / a.calls) * 100) / 100;
-                        b.bytesavg = self.round((b.bytes / b.calls) * 100) / 100;
+                        a.bytesavg = f.round((a.bytes / a.calls) * 100) / 100;
+                        b.bytesavg = f.round((b.bytes / b.calls) * 100) / 100;
                         return (a.bytesavg > b.bytesavg);
                     },
                     20
                 );
 
-                for(var entry in this.getHStack()) {
-                    this.topMemory.put(this.hstack[entry]);
+                for(var entry in this.getFunctions()) {
+                    this.topMemory.put(this.functions[entry]);
                 }
-            }
-            return this.topMemory.stack;
+            }*/
+            return this.aggregate().topMemory.stack;
         };
 
         /**
@@ -536,226 +889,157 @@ forp.DOMElementWrapperCollection = function(elements)
         };
 
         /**
-         * Clear UI
-         * @return this
-         */
-        this.clear = function()
-        {
-            if(this.console) this.console.text("");
-            return this;
-        };
-
-        /**
          * @return Object Console
          */
         this.getConsole = function()
         {
             if(!this.console) {
-
-                this.console = this.c("div")
-                                   .addClass("console")
-                                   .appendTo(this.window)
-                                   .attr("style", "max-height:" + (window.innerHeight - 100) + "px");
-
-                //this.window.append(this.console);
-
-                var aCollapse = this.c("a")
-                    .text("^")
-                    .attr("href", "javascript:void(0);")
-                    .appendTo(this.window)
-                    .class("btn close")
-                    .bind(
-                        'click',
-                        function(e) {
-                            self.console.remove();
-                            self.console = null;
-                            aCollapse.remove();
-                        }
-                    );
+                this.console = (new f.Console()).appendTo(this.window);
+                this.console.appendTo(this.window);
             }
             return this.console;
         };
 
         /**
-        * Display datas
-        *
-        * @param array datas
-        * @return Object
-        */
+         * Display datas
+         *
+         * @param array datas
+         * @return Object
+         */
         this.show = function(datas, func)
         {
-            this.getConsole().append(func(datas));
-        };
-
-        this.getDomTag = function(name)
-        {
-            return this.c("a")
-                    .class("tag")
-                    .text(name)
-                    .bind(
-                            "click",
-                            function(){
-                                //alert('yo');
-                            }
-                    );
+            this.getConsole()
+                .empty()
+                .log(func(datas));
         };
 
         /**
          * Run window manager
+         * @return forp.Manager
          */
         this.run = function()
         {
             // init
-            this.window = this
-                .c("div")
-                .attr("id", "forp")
-                .close();
+            this.window = f.create("div")
+                           .attr("id", "forp")
+                           .close();
 
-            //document.body.appendChild(this.window.element);
             document.body.insertBefore(this.window.element, document.body.firstChild);
 
-            this.nav = this.c("nav")
-                            .appendTo(this.window);
+            this.nav = f.create("nav")
+                        .appendTo(this.window);
 
             // infos button
-            this.c("div")
-                .class("i")
-                .append(
-                    this.c("a")
-                        .attr("href", "https://github.com/aterrien/forpgui")
-                        .attr("target", "_blank")
-                        .text("i")
-                        )
-                .appendTo(this.window);
+            f.create("div")
+             .class("i")
+             .append(
+                f.create("a")
+                 .attr("href", "https://github.com/aterrien/forp")
+                 .attr("target", "_blank")
+                 .attr("alt", "forp documentation")
+                 .attr("title", "forp documentation")
+                 .text("i")
+             )
+             .appendTo(this.window);
 
 
             if(this.stack) {
 
                 this.window.bind(
                     "click",
-                    function() { self.open(); }
+                    function() {self.open();}
                 );
 
-                //this.nav.append(this.c("span").text('User : 0000ms<br>System : 0000ms '));
-
-                this.c("div")
+                f.create("div")
                     .attr("style", "margin-right: 10px")
-                    .text(self.roundDiv(this.stack[0].usec, 1000) + ' ms ')
+                    .text(f.roundDiv(this.stack[0].usec, 1000) + ' ms ')
                     .appendTo(this.nav);
 
-                this.c("div")
+                f.create("div")
                     .attr("style", "margin-right: 10px")
-                    .text(self.roundDiv(this.stack[0].bytes, 1024) + ' Kb')
+                    .text(f.roundDiv(this.stack[0].bytes, 1024) + ' Kb')
                     .appendTo(this.nav);
             } else {
-                this.c("div")
+                f.create("div")
                     .text("Give me something to eat !")
                     .appendTo(this.nav);
             }
-        };
 
-        /**
-         * Generates a tree representation (UL) of the stack
-         *
-         * @param array entry Root entry
-         * @param boolean recursive Says if we have to fetch it recursively
-         * @return Object Wrapped UL
-         */
-        this.treeList = function(entry, recursive)
-        {
-
-            var ul = this
-                        .c("ul")
-                        .class("l" + entry.level)
-                , ex = this
-                        .c("div")
-                        .text("&nbsp;")
-                        .addClass("left expander")
-                , gd = this
-                        .gauge(
-                            this.stack[entry.parent] ? this.round((entry.usec * 100) / this.stack[entry.parent].usec) : 100
-                            , this.roundDiv(entry.usec, 1000) + 'ms')
-                        .addClass("left gauge")
-                , gb = this
-                        .gauge(this.stack[entry.parent] ? this.round((entry.bytes * 100) / this.stack[entry.parent].bytes) : 100
-                            , this.roundDiv(entry.bytes, 1024) + 'Kb')
-                        .addClass("left gauge")
-                , li = this
-                        .c("li")
-                        .text(entry.id);
-
-            if(entry.groups) {
-                for(var g in entry.groups) {
-                    li.append(this.getDomTag(entry.groups[g]));
-                }
-            }
-            if(entry.caption) li.append(this.c("span").addClass("dbg-text").text(entry.caption));
-
-            li.append(ex)
-            .append(gd)
-            .append(gb)
-            .appendTo(ul);
-
-            if(entry.childrenRefs) {
-                //if(parseInt(entry.level) >= 2){
-                    li.addClass("collapsed");
-                //} else {
-                //    li.addClass("expanded");
-                //}
-                ex.bind(
-                    'click'
-                    , function() {
-                        var h2 = (self.getConsole().height() / 2);
-
-                        // scroll to middle
-                        if(ex.top() > h2) self.getConsole().element.scrollTop = ex.top() - h2;
-
-                        if(li.getClass() == "expanded") {
-                            li.class("collapsed");
-                        } else {
-                            li.class("expanded");
-                            if(!li.getAttr("data-tree")) {
-                                for(var i in entry.childrenRefs) {
-                                    self.treeList(self.stack[entry.childrenRefs[i]], true)
-                                        .appendTo(li);
-                                }
-                                li.attr("data-tree", 1);
-                            }
-                        }
-                    }
-                );
-
-                if(parseInt(entry.level) < 2) {
-                    li.class("expanded");
-                    if(!li.getAttr("data-tree")) {
-                        for(var i in entry.childrenRefs) {
-                            this.treeList(this.stack[entry.childrenRefs[i]])
-                                .appendTo(li);
-                        }
-                        li.attr("data-tree", 1);
-                    }
-                } else {
-                    li.addClass("collapsed");
-                }
-            }
-            return ul;
+            return this;
         };
 
         /**
          * Select a tab
          * @param string DOM Element target
+         * @return forp.Manager
          */
-        this.tab = function(target)
+        this.selectTab = function(target)
         {
             self.window.find(".tbtn").each(function(o) {o.class("tbtn");});
-            self.f(target).class("tbtn selected");
+            f.find(target).class("tbtn selected");
             return this;
         };
 
         /**
-         * Expand main window
+         * Show details table in a new line
          */
-        this.opened = false;
+        this.toggleDetails = function()
+        {
+            var target = f.find(this);
+            if(target.getAttr("data-details") == 1) {
+                target.nextSibling().remove();
+                target.attr("data-details", 0);
+                return;
+            }
+
+            target.attr("data-details", 1);
+
+            var id = target.getAttr("data-ref"),
+                line = f.create("tr"),
+                td = f.create("td")
+                      .attr("colspan", 4)
+                      .appendTo(line);
+
+            var table = td.table(["called from", " ms", "Kb"]); //"calls",
+            for(var i in self.functions[id].entries) {
+                for(var j in self.functions[id].entries[i].refs) {
+                    if(!self.functions[id].entries[i].refs[j]) continue;
+                    table.line([
+                        self.functions[id].entries[i].refs[j].filelineno +
+                        (self.functions[id].entries[i].refs[j].caption ? "<br>" + self.functions[id].entries[i].refs[j].caption : ""),
+                        new f.Gauge(
+                            f.round((self.functions[id].entries[i].refs[j].usec * 100) / self.sumDuration(self.functions[id].refs))
+                            , f.roundDiv(self.functions[id].entries[i].refs[j].usec, 1000).toFixed(3)
+                        ),
+                        new f.Gauge(
+                            f.round((self.functions[id].entries[i].refs[j].bytes * 100) / self.sumMemory(self.functions[id].refs))
+                            , f.roundDiv(self.functions[id].entries[i].refs[j].bytes, 1000).toFixed(3)
+                        ),
+                    ]);
+                }
+                /*table.line([
+                    self.functions[id].entries[i].filelineno,
+                    self.gauge(
+                        f.round((self.functions[id].entries[i].calls * 100) / self.functions[id].calls)
+                        , self.functions[id].entries[i].calls
+                    ),
+                    self.gauge(
+                        f.round((self.sumDuration(self.functions[id].entries[i].refs) * 100) / self.sumDuration(self.functions[id].refs))
+                        , f.roundDiv(self.sumDuration(self.functions[id].entries[i].refs), 1000).toFixed(3)
+                    ),
+                    self.gauge(
+                            f.round((self.sumMemory(self.functions[id].entries[i].refs) * 100) / self.sumMemory(self.functions[id].refs))
+                            , f.roundDiv(self.sumMemory(self.functions[id].entries[i].refs), 1024).toFixed(3)
+                        )
+                ]);*/
+            }
+            target.insertAfter(line);
+        };
+
+        /**
+         * Expand main window
+         * @return forp.Manager
+         */
         this.open = function()
         {
             if(this.opened) return; // TODO unbind
@@ -764,71 +1048,76 @@ forp.DOMElementWrapperCollection = function(elements)
             this.window.open();
 
             // footer
-            this.c("div")
+            f.create("div")
                 .class("footer")
                 .appendTo(this.window);
 
-            var container = this.c("div").attr("style", "margin-top: -5px");
+            var container = f.create("div").attr("style", "margin-top: -2px");
             container.appendTo(this.nav);
 
-            this.c("a")
-                .text("stack (" + self.aggregate().stack.length + ")")
+            self.aggregate();
+
+            f.create("a")
+                .text("stack (" + self.stack.length + ")")
                 .attr("href", "javascript:void(0);")
                 .class("tbtn")
                 .appendTo(container)
                 .bind(
                     'click',
                     function() {
-                        var tree = self.aggregate().treeList(self.stack[0], true);
 
-                        self.tab(this)
-                            .clear()
-                            .c("div")
-                            .attr("style", "margin-top: 10px;")
-                            .append(
-                                self.c("div")
-                                    .attr("style", "position: absolute; margin: 5px; right: 20px")
-                                    .append(
-                                            self.c("a")
-                                                .text("expand")
-                                                .attr("href", "#")
-                                                .class("btn")
-                                                .bind(
-                                                    "click",
-                                                    function() {
-                                                        self.f("li.collapsed[data-tree]")
-                                                            .each(
-                                                                function(e){
-                                                                    e.attr("class", "expanded");
-                                                                }
-                                                            );
-                                                    })
-                                            )
-                                    .append(
-                                            self.c("a")
-                                                .text("collapse")
-                                                .attr("href", "#")
-                                                .class("btn")
-                                                .bind(
-                                                    "click",
-                                                    function() {
-                                                        self.f("li.expanded")
-                                                            .each(
-                                                                function(e){
-                                                                    e.attr("class", "collapsed");
-                                                                }
-                                                            );
-                                                    })
-                                            )
-                            )
-                            .append(
-                                self.c("div").append(tree)
-                            )
-                            .appendTo(self.getConsole());
-                    }
-                );
+                        if(!self.tree) self.tree = new f.Tree(self.stack);
 
-            this.c("a")
+                        self.selectTab(this)
+                            .getConsole()
+                            .empty()
+                            .log(
+                                f.create("div")
+                                    .attr("style", "margin-top: 10px;")
+                                    .append(
+                                        f.create("div")
+                                            .attr("style", "position: absolute; margin: 5px; right: 20px")
+                                            .append(
+                                                f.create("a")
+                                                    .text("expand")
+                                                    .attr("href", "#")
+                                                    .class("btn")
+                                                    .bind(
+                                                        "click",
+                                                        function() {
+                                                            f.find("li.collapsed[data-tree]")
+                                                                .each(
+                                                                    function(e){
+                                                                        e.attr("class", "expanded");
+                                                                    }
+                                                                );
+                                                        })
+                                                )
+                                            .append(
+                                                f.create("a")
+                                                    .text("collapse")
+                                                    .attr("href", "#")
+                                                    .class("btn")
+                                                    .bind(
+                                                        "click",
+                                                        function() {
+                                                            f.find("li.expanded")
+                                                                .each(
+                                                                    function(e){
+                                                                        e.attr("class", "collapsed");
+                                                                    }
+                                                                );
+                                                        })
+                                                )
+                                    )
+                                    .append(
+                                        f.create("div").append(self.tree)
+                                    )
+                                );
+                            }
+                        );
+
+            f.create("a")
                 .text("top 20 duration")
                 .attr("href", "#")
                 .class("tbtn")
@@ -836,42 +1125,39 @@ forp.DOMElementWrapperCollection = function(elements)
                 .bind(
                     'click',
                     function() {
-                        self.clear()
-                            .tab(this)
-                            .show(
-                            self.getTopCpu()
-                            , function(datas) {
-                                var t = self.c("table")
-                                    ,tr = self.c("tr", t);
-                                self.c("th", tr, "function");
-                                self.c("th", tr, "avg&nbsp;ms", "w100");
-                                self.c("th", tr, "calls", "w100");
-                                self.c("th", tr, "ms", "w100");
-                                self.c("th", tr, "called from");
-                                for(var i in datas) {
-                                    tr = self.c("tr", t);
-                                    self.c("td", tr, datas[i].id);
-                                    self.c("td", tr, datas[i].usecavg.toFixed(3), "numeric");
-                                    self.c("td", tr, datas[i].calls, "numeric");
-                                    self.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
-                                    self.c("td", tr, datas[i].filelineno);
+                        var lines = [],
+                            datas = self.getTopCpu();
 
-                                    for(var j in datas[i].entries) {
-                                        tr = self.c("tr", t).class("sub");
-                                        self.c("td", tr, "");
-                                        self.c("td", tr, (self.round((100 * datas[i].entries[j].usec) / datas[i].entries[j].calls) / 100).toFixed(3), "numeric");
-                                        self.c("td", tr, datas[i].entries[j].calls, "numeric");
-                                        self.c("td", tr, datas[i].entries[j].usec.toFixed(3) + '', "numeric");
-                                        self.c("td", tr, datas[i].entries[j].filelineno);
-                                    }
-                                }
-                                return t;
-                            }
-                        );
+                        self.selectTab(this);
+
+                        /*for(var i = 0; i < self.leaves.length; i++) {
+                            var h = (self.leaves[i].usec * 50) / datas[0].usec;
+                            f.create("div")
+                                .attr("style", "height: 50px;")
+                                .class("left")
+                                .attr("style", "margin: 1px; width: 1px; height: " + h + "px; background-color: #4D90FE;")
+                                .appendTo(d);
+                        }*/
+
+                        var table = self.getConsole()
+                                        .empty()
+                                        .open()
+                                        .table(["function", "self cost ms", "total cost ms", "calls"]);
+
+                        for(var i in datas) {
+                            var id = self.getEntryId(datas[i]);
+                            table.line([
+                                    "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
+                                    + (datas[i].caption ? "<br>" + datas[i].caption : ""),
+                                    f.roundDiv(datas[i].usec, 1000).toFixed(3) + '',
+                                    f.roundDiv(self.sumDuration(self.functions[id].refs), 1000).toFixed(3) + '',
+                                    self.functions[id].calls
+                                ]);
+                        }
                     }
                 );
 
-            this.c("a")
+            f.create("a")
                 .text("top 20 memory")
                 .attr("href", "#")
                 .class("tbtn")
@@ -879,42 +1165,29 @@ forp.DOMElementWrapperCollection = function(elements)
                 .bind(
                     'click',
                     function() {
-                        self.clear()
-                            .tab(this)
-                            .show(
-                            self.getTopMemory()
-                            , function(datas) {
-                                var t = self.c("table")
-                                    ,tr = self.c("tr", t);
-                                self.c("th", tr, "function");
-                                self.c("th", tr, "avg&nbsp;Kb", "w100");
-                                self.c("th", tr, "calls", "w100");
-                                self.c("th", tr, "Kb", "w100");
-                                self.c("th", tr, "called from");
-                                for(var i in datas) {
-                                    tr = self.c("tr", t);
-                                    self.c("td", tr, datas[i].id);
-                                    self.c("td", tr, datas[i].bytesavg.toFixed(3) + '', "numeric");
-                                    self.c("td", tr, datas[i].calls + '', "numeric");
-                                    self.c("td", tr, datas[i].bytes.toFixed(3) + '', "numeric");
-                                    self.c("td", tr, datas[i].filelineno);
+                        var lines = [],
+                            datas = self.getTopMemory();
 
-                                    for(var j in datas[i].entries) {
-                                        tr = self.c("tr", t).class("sub");
-                                        self.c("td", tr, "");
-                                        self.c("td", tr, (self.round((100 * datas[i].entries[j].bytes) / datas[i].entries[j].calls) / 100).toFixed(3) + '', "numeric");
-                                        self.c("td", tr, datas[i].entries[j].calls + '', "numeric");
-                                        self.c("td", tr, datas[i].entries[j].bytes.toFixed(3) + '', "numeric");
-                                        self.c("td", tr, datas[i].entries[j].filelineno);
-                                    }
-                                }
-                                return t;
-                            }
-                        );
+                        self.selectTab(this);
+
+                        var table = self.getConsole()
+                                        .empty()
+                                        .open()
+                                        .table(["function", "self cost Kb", "total cost Kb", "calls"]);
+                        for(var i in datas) {
+                            var id = self.getEntryId(datas[i]);
+                            table.line([
+                                "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
+                                + (datas[i].caption ? "<br>" + datas[i].caption : ""),
+                                f.roundDiv(datas[i].bytes, 1024).toFixed(3) + '',
+                                f.roundDiv(self.sumMemory(self.functions[id].refs), 1024).toFixed(3) + '',
+                                self.functions[id].calls
+                            ]);
+                        }
                     }
                 );
 
-            this.c("a")
+            f.create("a")
                 .text("top 20 calls")
                 .attr("href", "#")
                 .class("tbtn")
@@ -922,150 +1195,127 @@ forp.DOMElementWrapperCollection = function(elements)
                 .bind(
                     'click',
                     function(e) {
-                        self.clear()
-                            .tab(this)
-                            .show(
-                            self.getTopCalls()
-                            , function(datas) {
-                                var t = self.c("table")
-                                    ,tr = self.c("tr", t);
-                                self.c("th", tr, "function");
-                                self.c("th", tr, "calls", "w100");
-                                self.c("th", tr, "ms", "w100");
-                                self.c("th", tr, "Kb", "w100");
-                                self.c("th", tr, "called from");
-                                for(var i in datas) {
-                                    tr = self.c("tr", t);
-                                    self.c("td", tr, datas[i].id);
-                                    self.c("td", tr, datas[i].calls, "numeric");
-                                    self.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
-                                    self.c("td", tr, datas[i].bytes.toFixed(3) + '', "numeric");
-                                    self.c("td", tr, '');
+                        var lines = [],
+                            datas = self.getTopCalls();
 
-                                    for(var j in datas[i].entries) {
-                                        tr = self.c("tr", t).class("sub");
-                                        self.c("td", tr, "");
-                                        self.c("td", tr, datas[i].entries[j].calls, "numeric");
-                                        self.c("td", tr, datas[i].entries[j].usec.toFixed(3) + '', "numeric");
-                                        self.c("td", tr, datas[i].entries[j].bytes.toFixed(3) + '', "numeric");
-                                        self.c("td", tr, datas[i].entries[j].filelineno);
-                                    }
-                                }
-                                return t;
-                            }
-                        );
+                        self.selectTab(this);
+
+                        var table = self.getConsole()
+                                        .empty()
+                                        .open()
+                                        .table(["function", "calls", "ms", "Kb"]);
+                        for(var i in datas) {
+                            table.line([
+                                    datas[i].id,
+                                    datas[i].calls,
+                                    f.roundDiv(self.sumDuration(datas[i].refs), 1000).toFixed(3) + '',
+                                    f.roundDiv(self.sumMemory(datas[i].refs), 1000).toFixed(3) + ''
+                                ])
+                                .attr("data-ref", datas[i].id)
+                                .bind(
+                                    "click",
+                                    self.toggleDetails
+                                );
+                        }
                     }
                 );
 
-            if(self.aggregate().includesCount > 0)
-            this.c("a")
-                .text("files (" + self.aggregate().includesCount + ")")
+            if(self.includesCount > 0)
+            f.create("a")
+                .text("files (" + self.includesCount + ")")
                 .attr("href", "#")
                 .class("tbtn")
                 .appendTo(container)
                 .bind(
                     'click',
                     function() {
-                        self.clear()
-                            .tab(this)
-                            .show(
-                            self.getIncludes()
-                            , function(datas) {
-                                var t = self.c("table").addClass("tree")
-                                    ,tr = self.c("tr", t);
+                        var lines = [],
+                            datas = self.getIncludes();
 
-                                self.c("th", tr, "file");
-                                self.c("th", tr, "calls from", "w100");
-                                self.c("th", tr, "ms", "w100");
-                                self.c("th", tr, "kb", "w100");
+                        self.selectTab(this);
 
-                                for(var i in datas) {
-                                    var tr = self.c("tr", t);
-                                    self.c("td", tr, i);
-                                    self.c("td", tr, "", 'numeric')
-                                        .append(
-                                            self.gauge(
-                                                    self.round((datas[i].calls * 100) / self.stack.length),
-                                                    datas[i].calls)
-                                                .addClass("gauge")
-                                        );
-                                    self.c("td", tr, datas[i].usec.toFixed(3), 'numeric');
-                                    self.c("td", tr, datas[i].bytes.toFixed(3), 'numeric');
+                        /*for(var i in datas) {
+                            lines.push(
+                                {
+                                    "file" : i,
+                                    "calls from" : self.gauge(
+                                        f.round((datas[i].calls * 100) / self.stack.length),
+                                        datas[i].calls
+                                    )
                                 }
-                                return t;
-                            }
-                        );
+                            );
+                        }*/
+                        var table = self.getConsole()
+                                        .empty()
+                                        .open()
+                                        .table(["file", "calls from"]);
+                        for(var i in datas) {
+                            table.line([
+                                i,
+                                new f.Gauge(
+                                    f.round((datas[i].calls * 100) / self.stack.length),
+                                    datas[i].calls
+                                )
+                            ]);
+                        }
                     }
                 );
 
-
-            if(self.aggregate().groupsCount > 0)
-            this.c("a")
-                .text("groups (" + self.aggregate().groupsCount + ")")
+            if(self.groupsCount > 0)
+            f.create("a")
+                .text("groups (" + self.groupsCount + ")")
                 .attr("href", "#")
                 .class("tbtn")
                 .appendTo(container)
                 .bind(
                     'click',
                     function() {
-                        self.clear()
-                            .tab(this)
+                        self.selectTab(this)
                             .show(
                             self.getGroups()
                             , function(datas) {
-                                var t = self.c("table")
-                                    ,tr = self.c("tr", t);
+                                var t = f.create("table")
+                                    ,tr = f.create("tr", t);
 
-                                self.c("th", tr, "group");
-                                self.c("th", tr, "calls", "w100");
-                                self.c("th", tr, "ms", "w100");
-                                self.c("th", tr, "Kb", "w100");
+                                f.create("th", tr, "group");
+                                f.create("th", tr, "calls", "w100");
+                                f.create("th", tr, "ms", "w100");
+                                f.create("th", tr, "Kb", "w100");
 
                                 for(var i in datas) {
-                                    var tr = self.c("tr", t);
-                                    self.c("td", tr)
-                                        .append(self.getDomTag(i))
-                                        .append(self.c("span").text(datas[i].refs.length + ' ' + (datas[i].refs.length>1 ? 'entries' : 'entry')));
-                                    self.c("td", tr, datas[i].calls, 'numeric');
-                                    self.c("td", tr, datas[i].usec.toFixed(3) + '', 'numeric');
-                                    self.c("td", tr, datas[i].bytes.toFixed(3) + '', 'numeric');
+                                    var tr = f.create("tr", t);
+                                    f.create("td", tr)
+                                        .append(f.TagRandColor.provideFor(i))
+                                        .append(f.create("span").text(datas[i].refs.length + ' ' + (datas[i].refs.length>1 ? 'entries' : 'entry')));
+                                    f.create("td", tr, datas[i].calls, 'numeric');
+                                    f.create("td", tr, f.roundDiv(datas[i].usec, 1000).toFixed(3) + '', 'numeric');
+                                    f.create("td", tr, f.roundDiv(datas[i].bytes, 1024).toFixed(3) + '', 'numeric');
                                     for(var j in datas[i].refs) {
-                                        var trsub = self.c("tr", t).class("sub");
-                                        self.c("td", trsub, datas[i].refs[j]);
-                                        self.c("td", trsub, "", 'numeric')
+                                        var trsub = f.create("tr", t);
+                                        trsub.attr("data-ref", datas[i].refs[j].id);
+                                        trsub.bind("click", self.toggleDetails);
+                                        f.create("td", trsub, datas[i].refs[j].id);
+                                        f.create("td", trsub, "", 'numeric')
                                             .append(
-                                                self.gauge(
-                                                        self.round((self.hstack[datas[i].refs[j]].calls * 100) / datas[i].calls)
-                                                        , self.hstack[datas[i].refs[j]].calls)
-                                                    .addClass("gauge")
+                                                new f.Gauge(
+                                                    f.round((self.functions[datas[i].refs[j].id].calls * 100) / datas[i].calls)
+                                                    , self.functions[datas[i].refs[j].id].calls
+                                                )
                                             );
-                                        self.c("td", trsub, "", 'numeric')
+                                        f.create("td", trsub, "", 'numeric')
                                             .append(
-                                                self.gauge(
-                                                        self.round((self.hstack[datas[i].refs[j]].usec * 100) / datas[i].usec)
-                                                        , self.hstack[datas[i].refs[j]].usec.toFixed(3))
-                                                    .addClass("gauge")
+                                                new f.Gauge(
+                                                    f.round(self.sumDuration(self.functions[datas[i].refs[j].id].refs) * 100) / self.sumDuration(datas[i].refs)
+                                                    , f.roundDiv(self.sumDuration(self.functions[datas[i].refs[j].id].refs), 1000).toFixed(3)
+                                                )
                                             );
-                                        self.c("td", trsub,  "", 'numeric')
+                                        f.create("td", trsub, "", 'numeric')
                                             .append(
-                                                self.gauge(
-                                                        self.round((self.hstack[datas[i].refs[j]].bytes * 100) / datas[i].bytes)
-                                                        , self.hstack[datas[i].refs[j]].bytes.toFixed(3))
-                                                    .addClass("gauge")
+                                                new f.Gauge(
+                                                    f.round(self.sumMemory(self.functions[datas[i].refs[j].id].refs) * 100) / self.sumDuration(datas[i].refs)
+                                                    , f.roundDiv(self.sumMemory(self.functions[datas[i].refs[j].id].refs), 1024).toFixed(3)
+                                                )
                                             );
-
-                                        for(var entry in self.hstack[datas[i].refs[j]].entries) {
-                                            var stackRefs = self.hstack[datas[i].refs[j]].entries[entry].stackRefs;
-                                            for(var k = 0; k < stackRefs.length; k++) {
-                                                if(self.stack[stackRefs[k]].caption) {
-                                                    var trsubsub = self.c("tr", t);
-                                                    self.c("td", trsubsub, self.stack[stackRefs[k]].caption, "indent")
-                                                        .attr("colspan","2");
-                                                    self.c("td", trsubsub, self.roundDiv(self.stack[stackRefs[k]].usec, 1000).toFixed(3), 'numeric');
-                                                    self.c("td", trsubsub, self.roundDiv(self.stack[stackRefs[k]].bytes, 1024).toFixed(3), 'numeric');
-                                                }
-                                            }
-                                        }
                                     }
                                 }
                                 return t;
@@ -1074,99 +1324,67 @@ forp.DOMElementWrapperCollection = function(elements)
                     }
                 );
 
-            /*this.c("a")
-                .text("statistics")
+            f.create("a")
+                .text("metrics")
                 .attr("href", "#")
                 .class("tbtn")
                 .appendTo(container)
                 .bind(
                     'click',
                     function() {
-                        self.clear()
-                            .tab(this)
-                            .c("div")
-                            .text("\n\
-                            calls: " + self.stack.length + "<br>\n\
-                            max nested level: " + self.maxNestedLevel + "\n\
-                            \n\
-                            ")
-                            .appendTo(self.getConsole());
-                    }
-                );*/
+                        var table = self.selectTab(this)
+                            .getConsole()
+                            .empty()
+                            .open()
+                            .table(["key", "value"]);
 
-            this.c("input")
-                //.class("right")
+                        table.line(["total calls", self.stack.length]);
+                        table.line(["max nested level", self.maxNestedLevel]);
+                        table.line(["avg nested level", self.avgLevel.toFixed(2)]);
+                    }
+                );
+
+            f.create("input")
                 .attr("type", "text")
-                //.attr("autosave", "unique")
-                //.attr("results", 5)
                 .attr("name", "forpSearch")
                 .attr("placeholder", "Search forp ...")
-                //.attr("style", "margin: -2px 25px 5px 25px")
                 .appendTo(container)
                 .bind(
                     "click",
                     function() {
-                        self.f(this).class("selected");
-                        self.tab(this);
+                        f.find(this).class("selected");
+                        self.selectTab(this);
                     }
                 )
                 .bind(
                     "keyup",
                     function() {
                         self.window.open();
-                        self.clear()
-                            .show(
-                            self.find(this.value)
+                        self.show(
+                            self.search(this.value)
                             , function(datas) {
-                                var t = self.c("table")
-                                    ,tr = self.c("tr", t);
-                                self.c("th", tr, "function");
-                                self.c("th", tr, "calls", "w100");
-                                self.c("th", tr, "ms", "w100");
-                                self.c("th", tr, "Kb", "w100");
-                                self.c("th", tr, "called from");
+                                var t = f.create("table")
+                                    ,tr = f.create("tr", t);
+                                f.create("th", tr, "function");
+                                f.create("th", tr, "calls", "w100");
+                                f.create("th", tr, "ms", "w100");
+                                f.create("th", tr, "Kb", "w100");
+                                //f.create("th", tr, "called from");
                                 for(var i in datas) {
-                                    tr = self.c("tr", t);
-                                    self.c("td", tr, datas[i].id);
-                                    self.c("td", tr, datas[i].calls, "numeric");
-                                    self.c("td", tr, datas[i].usec.toFixed(3) + '', "numeric");
-                                    self.c("td", tr, datas[i].bytes.toFixed(3) + '', "numeric");
-                                    self.c("td", tr, datas[i].filelineno);
-                                    for(var j in datas[i].entries) {
-                                        tr = self.c("tr", t).class("sub");
-                                        self.c("td", tr, "");
-                                        self.c("td", tr, '', "numeric")
-                                            .append(
-                                                self.gauge(
-                                                    self.round((datas[i].entries[j].calls * 100) / datas[i].calls)
-                                                    , datas[i].entries[j].calls
-                                                ).addClass("gauge")
-                                            );
-
-                                        self.c("td", tr, '', "numeric")
-                                            .append(
-                                                self.gauge(
-                                                    self.round((datas[i].entries[j].usec * 100) / datas[i].usec)
-                                                    , datas[i].entries[j].usec.toFixed(3)
-                                                ).addClass("gauge")
-                                            );
-
-                                        self.c("td", tr, '', "numeric")
-                                            .append(
-                                                self.gauge(
-                                                    self.round((datas[i].entries[j].bytes * 100) / datas[i].bytes)
-                                                    , datas[i].entries[j].bytes.toFixed(3)
-                                                ).addClass("gauge")
-                                            );
-
-                                        self.c("td", tr, datas[i].entries[j].filelineno);
-                                    }
+                                    tr = f.create("tr", t);
+                                    tr.attr("data-ref", datas[i].id);
+                                    tr.bind("click", self.toggleDetails);
+                                    f.create("td", tr, datas[i].id);
+                                    f.create("td", tr, datas[i].calls, "numeric");
+                                    f.create("td", tr, f.roundDiv(self.sumDuration(datas[i].refs), 1000).toFixed(3) + '', "numeric");
+                                    f.create("td", tr, f.roundDiv(self.sumMemory(datas[i].refs), 1024).toFixed(3) + '', "numeric");
                                 }
                                 return t;
                             }
                         );
                     }
                 );
+            return this;
         };
     };
 })(forp);

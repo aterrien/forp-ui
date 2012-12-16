@@ -1,7 +1,7 @@
 !under development!
 
 
-A simple GUI lib for forp.
+A simple GUI lib for forp extension https://github.com/aterrien/forp.
 
 # JS GUI #
 
