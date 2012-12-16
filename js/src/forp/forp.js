@@ -689,7 +689,7 @@ forp.DOMElementWrapperCollection = function(elements)
                     li.append(this.getDomTag(entry.groups[g]));
                 }
             }
-            if(entry.caption) li.append(this.c("span").text(entry.caption));
+            if(entry.caption) li.append(this.c("span").addClass("dbg-text").text(entry.caption));
 
             li.append(ex)
             .append(gd)
