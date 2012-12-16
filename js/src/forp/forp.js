@@ -388,13 +388,15 @@ var forp = {
                            .text("&nbsp;")
                            .addClass("left expander")
                 , gd = new forp.Gauge(
-                            stack[entry.parent] ? forp.round((entry.usec * 100)
-                                / stack[entry.parent].usec) : 100
+                            stack[entry.parent] ? forp.round(
+                                (entry.usec * 100) / stack[entry.parent].usec
+                            ) : 100
                             , forp.roundDiv(entry.usec, 1000) + 'ms'
                        ).addClass("left")
                 , gb = new forp.Gauge(
-                            stack[entry.parent] ? forp.round((entry.bytes * 100)
-                                / stack[entry.parent].bytes) : 100
+                            stack[entry.parent] ? forp.round(
+                                (entry.bytes * 100) / stack[entry.parent].bytes
+                            ) : 100
                             , forp.roundDiv(entry.bytes, 1024) + 'Kb'
                        ).addClass("left")
                 , li = forp.create("li").text(entry.id);

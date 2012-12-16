@@ -4,12 +4,18 @@
     require 'ext/cssmin/src/CssMin.php';
     
     $target = fopen('forp.min.js', 'w+');
-    fwrite(
-        $target,
-        str_replace(
-            '%forp.css%', 
-            CssMin::minify(file_get_contents('src/forp/forp.css')), 
-            JSMin::minify(file_get_contents('src/forp/forp.js'))
-        )
-    );
+    try {
+        fwrite(
+            $target,
+            str_replace(
+                '%forp.css%', 
+                CssMin::minify(file_get_contents('src/forp/forp.css')), 
+                JSMin::minify(file_get_contents('src/forp/forp.js'))
+            )
+        );
+    } catch(Exception $ex ) {
+        echo "Fatal error : " . $ex->getMessage() . "\n\n";
+        echo $ex->getTraceAsString();
+        
+    }
     fclose($target);
