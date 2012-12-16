@@ -618,7 +618,9 @@ var forp = {
                     .class("backtrace-item " + (highlight ? "highlight" : ""))
                     .text(
                         "<strong>" + entry.id + "</strong><br>" +
-                        entry.filelineno
+                        entry.filelineno + "<br>" +
+                        forp.roundDiv(entry.usec, 1000).toFixed(3) + "ms " +
+                        forp.roundDiv(entry.bytes, 1024).toFixed(3) + "Kb"
                     )
             );
         };
