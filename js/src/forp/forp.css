@@ -1,0 +1,197 @@
+#forp {
+    position: relative;
+    color: #222;
+    z-index: 2147483647;
+    text-decoration: none;
+    font-family: "Helvetica Neue", Helvetica, Nimbus, Arial, sans-serif;
+    font-weight: 300;
+    text-rendering: optimizelegibility;
+    max-width: 300px;
+    font-size : 13px;
+    background-color: #eee;
+}
+#forp div.footer {
+    height: 10px; position: absolute;
+    bottom: 0px; left: 0px; right: 0px;
+    -webkit-box-shadow: inset 0 -3px 8px -2px #aaa;
+    -moz-box-shadow: inset 0 -3px 8px -2px #aaa;
+    box-shadow: inset 0 -3px 8px -2px #aaa;
+}
+#forp.closed {
+    margin: 15px;
+    border-radius: 8px;
+    position:fixed; 
+    top:0px; 
+    right:0px; 
+    width: 200px;
+    opacity: .6;
+    cursor: pointer;
+}
+#forp.closed:hover {
+    opacity: 1;
+}
+#forp.opened{
+    max-width: 100%;
+    left:0px
+}
+#forp.opened a{
+    display: inline;
+}
+#forp nav{
+    border-radius: 8px;
+    padding: 14px 10px 10px 10px;
+}
+#forp.closed nav{
+    height: auto;
+}
+#forp.closed nav>div{
+    margin: 3px 0px;
+}
+#forp.opened nav{
+    height: 22px;
+}
+#forp.opened nav>div{
+    float: left;
+}
+#forp a{
+    white-space:nowrap;
+    text-decoration: none;
+    color: #FFF;
+}
+#forp a.btn, a.tbtn{
+    color: #FFF;
+    margin: 0px 5px;
+    padding: 4px 5px 5px 5px;
+    background-color: #555;
+    text-decoration: none;
+}
+#forp a.close{
+    position: absolute; bottom: -13px; left: 40%; right: 40%; text-align: center;
+}
+#forp a.selected {
+    background-color: #4D90FE;
+}
+#forp a.tag{
+    background-color: #EE0;
+    color : #222;
+    font-size : 10px;
+    padding: 2px 5px;
+    margin: 0px 5px;
+}
+#forp a.tag, #forp a{
+    border-radius: 3px;
+}
+#forp table{
+    font-weight: 300;
+    font-size : 13px;
+    width: 100%;
+    border-collapse: collapse;
+}
+#forp div.console{
+    background-color: #fff;
+    overflow: auto;
+    padding-bottom: 15px;
+    border-top: 1px solid #aaa;
+}
+#forp th, #forp td{
+    padding: 5px
+}
+#forp th{
+    color: #fff;
+    background-color : #888
+}
+#forp .w100{
+    width: 120px;
+}
+#forp td{
+    text-align: left;
+    text-overflow: ellipsis;
+    word-space: nowrap;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
+#forp tr{
+    color: #333;
+    background-color: #fff;
+}
+#forp tr.sub{
+    background-color: #eee;
+}
+#forp tr:hover{ 
+    background-color: #eeb; 
+}
+#forp .numeric{
+    text-align: right;
+}
+#forp ul{
+    line-height: 1.8;
+    list-style: none;
+    padding-left: 20px;
+}
+#forp li{
+    line-height: 1.8;
+}
+#forp ul.l0{
+    padding-left: 10px;
+}
+#forp li > div.numeric{
+    min-width: 60px;
+    margin: 0px 10px
+}
+#forp div.expander{
+    text-align:center;
+    width: 20px;
+    cursor: pointer;
+}
+#forp li.expanded > div.expander:before{
+    content: "-";
+}
+#forp li.collapsed > div.expander:before {
+    content: "+";
+}
+#forp li.collapsed > ul{
+    display: none;
+}
+#forp .left{
+    float: left;
+}
+#forp .right{
+    float: right;
+}
+#forp div.gauge{
+    line-height: 1.8;
+    color: #fff;
+    margin: 4px 5px 0px 0px;
+    width: 100px;
+    text-align: right;
+    font-size: 0.8em;
+    padding: 0px 3px;
+}
+#forp div.i{
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    font-weight: 900;
+    text-align: center;
+    background-color: #ccc;
+    width: 15px;
+    height: 15px;
+    border-radius: 10px;
+}
+#forp div.i>a{
+    font-family: Georgia;
+    color: #FFF;
+}
+#forp input[type=text]{
+    font-size: 11px;
+    padding: 5px;
+    border: 1px solid #777;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    background-color: #fff;
+    margin: 0px 5px
+}
+#forp .indent {
+    padding-left: 30px
+}
