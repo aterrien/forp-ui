@@ -91,6 +91,18 @@ var forp = {
         return this.round(v / d);
     },
     /**
+     * inArray
+     * @param needle
+     * @param haystack
+     */
+    inArray : function(needle, haystack) {
+        var length = haystack.length;
+        for(var i = 0; i < length; i++) {
+            if(haystack[i] == needle) return true;
+        }
+        return false;
+    },
+    /**
      * DOM Element wrapper, makes it fluent
      * @param DOM Element
      */
@@ -98,6 +110,7 @@ var forp = {
     {
         var self = this;
         this.element = element;
+        this.classes = [];
 
         this.bind = function(evType, fn) {
             if (this.element.addEventListener) {
@@ -120,6 +133,11 @@ var forp = {
         this.find = function(s) {
             return new forp.DOMElementWrapperCollection(this.element.querySelectorAll(s));
         };
+
+        this.prepend = function(o) {
+            this.element.insertBefore(o.element, this.element.firstChild);
+            return this;
+        };
         this.append = function(o) {
             this.element.appendChild(o.element);
             return this;
@@ -128,14 +146,28 @@ var forp = {
             o.append(this);
             return this;
         };
-        this.addClass = function(c) {
-            return this.attr("class", this.getAttr("class") + " " + c);
-        };
         this.class = function(c) {
-            return this.attr("class", c);
+            this.classes = [];
+            return this.addClass(c);
         };
         this.getClass = function(c) {
             return this.getAttr("class");
+        };
+        this.addClass = function(c) {
+            var cArr = c.split(" ");
+            for (var i=0; i<cArr.length; i++) {
+                if(forp.inArray(cArr[i], this.classes)) return this;
+                this.classes.push(cArr[i]);
+            }
+            return this.attr("class", this.classes.join(" "));
+        };
+        this.removeClass = function(c) {
+            for (var k in this.classes) {
+                if (this.classes[k] == c) {
+                    this.classes.splice(k, 1);
+                }
+            }
+            return this.attr("class", this.classes.join(" "));
         };
         this.text = function(t) {
             this.element.innerHTML = t;
@@ -202,9 +234,13 @@ var forp = {
         };
         this.insertAfter = function(element) {
             this.element.parentNode.insertBefore( element.element, this.element.nextSibling );
-        }
+        };
         this.nextSibling = function() {
             return forp.wrap(this.element.nextSibling);
+        };
+        this.addEventListener = function(listener) {
+            listener.target = this;
+            listener.init();
         }
     },
     /**
@@ -286,30 +322,124 @@ var forp = {
         };
     },
     /**
-     * Console Class
+     * forp Layout
+     *
+     * - Layout #forp
+     *  - Navbar nav
+     *  - MainPanel .mainpanel
+     *   - Console .console
+     *   - Sidebar .sidebar
      */
-    Console : function()
+    Layout : function()
     {
         var self = this;
         forp.DOMElementWrapper.call(this);
         this.element = document.createElement("div");
+        this.attr("id", "forp");
+
+        this.mainpanel = null;
+
+        this.getMainPanel = function()
+        {
+            if(!this.mainpanel) {
+                this.mainpanel = (new forp.MainPanel(this)).appendTo(this);
+            }
+            return this.mainpanel;
+        };
+
+        this.getConsole = function()
+        {
+            return this.getMainPanel()
+                       .getConsole();
+        };
+
+        document.body.insertBefore(this.element, document.body.firstChild);
+    },
+    /**
+     * Panel
+     */
+    Panel : function(id)
+    {
+        var self = this;
+        forp.DOMElementWrapper.call(this);
+        this.element = document.createElement("div");
+        this.class(id + " panel");
+
+        this.id = id;
+    },
+    /**
+     * Panel
+     */
+    MainPanel : function(id)
+    {
+        var self = this;
+        forp.Panel.call(this, "mainpanel");
+
+        this.console = null;
+        this.closeButton = null;
+
+        this.getConsole = function()
+        {
+            if(!this.console) {
+                this.console = (new forp.Console(this)).appendTo(this);
+            }
+            return this.console;
+        };
+
+        this.open = function() {
+            this.attr("style", "height: " + (window.innerHeight / 1.5) + "px");
+            this.closeButton = forp.create("a")
+                                .text("v")
+                                .attr("href", "javascript:void(0);")
+                                .appendTo(this)
+                                .class("btn close")
+                                .bind(
+                                    'click',
+                                    function(e) {
+                                        self.close();
+                                    }
+                                );
+            return this;
+        };
+
+        this.close = function() {
+            this.css(
+                "height: 0px",
+                function() {
+                    self.closeButton.remove();
+                    //self.empty();
+                }
+            );
+            return this;
+        };
+    },
+    /**
+     * Sidebar Class
+     */
+    Sidebar : function()
+    {
+        var self = this;
+        forp.Panel.call(this, "sidebar");
+        this.addClass("w1of3");
+        this.attr("style", "height: " + (window.innerHeight / 1.5) + "px");
+    },
+    /**
+     * Console Class
+     * @param Window w
+     */
+    Console : function(parent)
+    {
+        var self = this;
+        forp.Panel.call(this, "console");
+
+        this.parent = parent;
 
         this.open = function() {
 
-            this.attr("style", "height: " + (window.innerHeight / 1.5) + "px")
-                .class("console opened");
-
-            forp.create("a")
-                .text("v")
-                .attr("href", "javascript:void(0);")
-                .appendTo(this)
-                .class("btn close")
-                .bind(
-                    'click',
-                    function(e) {
-                        self.close();
-                    }
-                );
+            this.closeSidebar();
+            this.parent.open();
+            this.attr("style", "float:left; height: " + (window.innerHeight / 1.5) + "px")
+                .addClass("opened");
 
             return this;
         };
@@ -321,12 +451,26 @@ var forp = {
             return this;
         };
 
-        this.close = function() {
-            this.css("height: 0px", function() {self.empty();});
+        this.getSidebar = function() {
+            if(!this.sidebar) {
+                this.addClass("w2of3");
+                this.sidebar = new forp.Sidebar();
+                this.parent
+                    .append(this.sidebar);
+            }
+            return this.sidebar;
+        };
+
+        this.closeSidebar = function() {
+            if(this.sidebar) {
+                this.removeClass("w2of3");
+                this.sidebar.remove();
+                this.sidebar = null;
+            }
             return this;
         };
 
-        this.open();
+        //this.open();
     },
     /**
      * @param Object headers
@@ -460,6 +604,70 @@ var forp = {
         this.append(this.treeList(stack[0], true));
     },
     /**
+     * Backtrace Class
+     */
+    Backtrace : function(i, stack)
+    {
+        forp.DOMElementWrapper.call(this);
+        this.element = document.createElement("div");
+        this.attr("style", "text-align: center");
+
+        this.prependItem = function(entry, highlight) {
+            return this.prepend(
+                forp.create("div")
+                    .class("backtrace-item " + (highlight ? "highlight" : ""))
+                    .text(
+                        "<strong>" + entry.id + "</strong><br>" +
+                        entry.filelineno
+                    )
+            );
+        };
+
+        var child = i;
+        while(i != null) {
+            this.prependItem(stack[i], child == i);
+            i = stack[i].parent;
+            if(i != null) {
+                this.prepend(forp.create("div").text("\\/"));
+            }
+        }
+
+        this.prepend(forp.create("br"))
+            .prepend(forp.create("br"));
+    },
+    /**
+     * LineEventListenerBacktrace Class
+     *
+     * @param i Stack index
+     * @param context
+     */
+    LineEventListenerBacktrace : function(i, context)
+    {
+        this.target = null;
+        this.init = function()
+        {
+            this.target.attr("data-ref", i)
+                .bind(
+                    "click",
+                    function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        var line = forp.wrap(this);
+                        context.getConsole()
+                               .getSidebar()
+                               .empty()
+                               .append(
+                                   new forp.Backtrace(
+                                    line.getAttr("data-ref"),
+                                    context.stack
+                                   )
+                               );
+                    }
+                );
+        }
+    },
+    /**
      * Gauge Class
      */
     Gauge : function(percent, text, hcolor)
@@ -470,7 +678,7 @@ var forp = {
         var bcolor = "#bbb";
         hcolor = hcolor ? hcolor : "#4D90FE";
 
-        this.class("gauge")
+        this.addClass("gauge")
             .text(text)
             .attr(
                 "style",
@@ -517,14 +725,14 @@ var forp = {
 (function(f) {
 
     /**
-     * forp window manager
+     * forp layout manager
      * @param array forp stack
      */
     f.Manager = function(stack)
     {
         var self = this;
 
-        this.window = null;
+        this.layout = null;
         this.stack = stack; // RAW stack
         this.functions = null; // indexed stack
         this.includes = null; // included files
@@ -891,11 +1099,7 @@ var forp = {
          */
         this.getConsole = function()
         {
-            if(!this.console) {
-                this.console = (new f.Console()).appendTo(this.window);
-                this.console.appendTo(this.window);
-            }
-            return this.console;
+            return this.layout.getConsole();
         };
 
         /**
@@ -912,20 +1116,17 @@ var forp = {
         };
 
         /**
-         * Run window manager
+         * Run layout manager
          * @return forp.Manager
          */
         this.run = function()
         {
-            // init
-            this.window = f.create("div")
-                           .attr("id", "forp")
-                           .close();
+            // layout
+            this.layout = (new f.Layout()).close();
 
-            document.body.insertBefore(this.window.element, document.body.firstChild);
-
+            // toolbar
             this.nav = f.create("nav")
-                        .appendTo(this.window);
+                        .appendTo(this.layout);
 
             // infos button
             f.create("div")
@@ -938,12 +1139,11 @@ var forp = {
                  .attr("title", "forp documentation")
                  .text("i")
              )
-             .appendTo(this.window);
-
+             .appendTo(this.layout);
 
             if(this.stack) {
 
-                this.window.bind(
+                this.layout.bind(
                     "click",
                     function() {self.open();}
                 );
@@ -973,8 +1173,8 @@ var forp = {
          */
         this.selectTab = function(target)
         {
-            self.window.find(".tbtn").each(function(o) {o.class("tbtn");});
-            f.find(target).class("tbtn selected");
+            self.layout.find(".tbtn").each(function(o) {o.class("tbtn");});
+            f.find(target).class("tbtn highlight");
             return this;
         };
 
@@ -1002,6 +1202,7 @@ var forp = {
             for(var i in self.functions[id].entries) {
                 for(var j in self.functions[id].entries[i].refs) {
                     if(!self.functions[id].entries[i].refs[j]) continue;
+
                     table.line([
                         self.functions[id].entries[i].refs[j].filelineno +
                         (self.functions[id].entries[i].refs[j].caption ? "<br>" + self.functions[id].entries[i].refs[j].caption : ""),
@@ -1013,29 +1214,36 @@ var forp = {
                             f.round((self.functions[id].entries[i].refs[j].bytes * 100) / self.sumMemory(self.functions[id].refs))
                             , f.roundDiv(self.functions[id].entries[i].refs[j].bytes, 1000).toFixed(3)
                         ),
-                    ]);
-                }
-                /*table.line([
-                    self.functions[id].entries[i].filelineno,
-                    self.gauge(
-                        f.round((self.functions[id].entries[i].calls * 100) / self.functions[id].calls)
-                        , self.functions[id].entries[i].calls
-                    ),
-                    self.gauge(
-                        f.round((self.sumDuration(self.functions[id].entries[i].refs) * 100) / self.sumDuration(self.functions[id].refs))
-                        , f.roundDiv(self.sumDuration(self.functions[id].entries[i].refs), 1000).toFixed(3)
-                    ),
-                    self.gauge(
-                            f.round((self.sumMemory(self.functions[id].entries[i].refs) * 100) / self.sumMemory(self.functions[id].refs))
-                            , f.roundDiv(self.sumMemory(self.functions[id].entries[i].refs), 1024).toFixed(3)
+                    ]).addEventListener(
+                        new forp.LineEventListenerBacktrace(
+                            self.functions[id].entries[i].refs[j].i,
+                            self
                         )
-                ]);*/
+                    );
+
+                    /*.attr("data-ref", self.functions[id].entries[i].refs[j].i)
+                    .bind(
+                        "mouseover",
+                        function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            var line = forp.wrap(this);
+                            self.getConsole()
+                                .getSidebar()
+                                .empty()
+                                .append(
+                                    new f.Backtrace(line.getAttr("data-ref"), self.stack)
+                                );
+                        }
+                    );*/
+                }
             }
             target.insertAfter(line);
         };
 
         /**
-         * Expand main window
+         * Expand main layout
          * @return forp.Manager
          */
         this.open = function()
@@ -1043,12 +1251,12 @@ var forp = {
             if(this.opened) return; // TODO unbind
             this.opened = true;
 
-            this.window.open();
+            this.layout.open();
 
             // footer
             f.create("div")
                 .class("footer")
-                .appendTo(this.window);
+                .appendTo(this.layout);
 
             var container = f.create("div").attr("style", "margin-top: -2px");
             container.appendTo(this.nav);
@@ -1150,7 +1358,13 @@ var forp = {
                                     f.roundDiv(datas[i].usec, 1000).toFixed(3) + '',
                                     f.roundDiv(self.sumDuration(self.functions[id].refs), 1000).toFixed(3) + '',
                                     self.functions[id].calls
-                                ]);
+                                ])
+                                .addEventListener(
+                                    new forp.LineEventListenerBacktrace(
+                                        datas[i].i,
+                                        self
+                                    )
+                                );
                         }
                     }
                 );
@@ -1175,12 +1389,18 @@ var forp = {
                         for(var i in datas) {
                             var id = self.getEntryId(datas[i]);
                             table.line([
-                                "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
-                                + (datas[i].caption ? "<br>" + datas[i].caption : ""),
-                                f.roundDiv(datas[i].bytes, 1024).toFixed(3) + '',
-                                f.roundDiv(self.sumMemory(self.functions[id].refs), 1024).toFixed(3) + '',
-                                self.functions[id].calls
-                            ]);
+                                    "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
+                                    + (datas[i].caption ? "<br>" + datas[i].caption : ""),
+                                    f.roundDiv(datas[i].bytes, 1024).toFixed(3) + '',
+                                    f.roundDiv(self.sumMemory(self.functions[id].refs), 1024).toFixed(3) + '',
+                                    self.functions[id].calls
+                                ])
+                                .addEventListener(
+                                    new forp.LineEventListenerBacktrace(
+                                        datas[i].i,
+                                        self
+                                    )
+                                );
                         }
                     }
                 );
@@ -1272,6 +1492,7 @@ var forp = {
                             .show(
                             self.getGroups()
                             , function(datas) {
+
                                 var t = f.create("table")
                                     ,tr = f.create("tr", t);
 
@@ -1350,14 +1571,14 @@ var forp = {
                 .bind(
                     "click",
                     function() {
-                        f.find(this).class("selected");
+                        f.find(this).class("highlight");
                         self.selectTab(this);
                     }
                 )
                 .bind(
                     "keyup",
                     function() {
-                        self.window.open();
+                        self.layout.open();
                         self.show(
                             self.search(this.value)
                             , function(datas) {
@@ -1455,7 +1676,7 @@ forp.ready(
 }\n\
 #forp a{\n\
     white-space:nowrap;\n\
-    text-decoration: none;\n\\n\
+    text-decoration: none;\n\
     color: #FFF;\n\
 }\n\
 #forp a.btn, a.tbtn{\n\
@@ -1473,8 +1694,9 @@ forp.ready(
     text-align: center;\n\
     //background-color: #DD4B39;\n\
 }\n\
-#forp a.selected {\n\
-    background-color: #4D90FE;\n\
+#forp .highlight {\n\
+    background-color: #4D90FE !important;\n\
+    color: #FFF;\n\
 }\n\
 #forp a.tag{\n\
     background-color: #EE0;\n\
@@ -1486,17 +1708,25 @@ forp.ready(
 #forp a.tag, #forp a{\n\
     border-radius: 3px;\n\
 }\n\
+#forp .backtrace-item{\n\
+    color: #FFF;\n\
+    margin: 0px 5px;\n\
+    padding: 4px 5px 5px 5px;\n\
+    background-color: #555;\n\
+    text-decoration: none;\n\
+    border-radius: 8px;\n\
+    padding: 5px;\n\
+    display: inline-block;\n\
+}\n\
 #forp table{\n\
     font-weight: 300;\n\
     font-size : 13px;\n\
     width: 100%;\n\
     border-collapse: collapse;\n\
 }\n\
-#forp div.console{\n\
-    background-color: #fff;\n\
+#forp div.panel {\n\
     overflow: auto;\n\
     overflow-x: hidden;\n\
-    border-top: 1px solid #888;\n\
     transition: height .1s;\n\
     -moz-transition: height .1s;\n\
     -webkit-transition: height .1s;\n\
@@ -1505,6 +1735,18 @@ forp.ready(
     -moz-transition-timing-function: ease-in;\n\
     -webkit-transition-timing-function: ease-in;\n\
     -o-transition-timing-function: ease-in;\n\
+}\n\
+#forp div.mainpanel {\n\
+    border-top: 1px solid #BBB;\n\
+}\n\
+#forp div.console{\n\
+    background-color: #fff;\n\
+    width: 100%;\n\
+    float: left;\n\
+    //border-top: 1px solid #888;\n\
+}\n\
+#forp div.sidebar{\n\
+    float: right;\n\
 }\n\
 #forp th, #forp td{\n\
     padding: 5px;\n\
@@ -1535,7 +1777,7 @@ forp.ready(
     background-color: #eee;\n\
 }\n\
 #forp tr:hover{ \n\
-    background-color: #eeb; \n\
+    background-color: #EDF4FF; \n\
 }\n\
 #forp tr[data-ref]{\n\
     cursor: pointer;\n\
@@ -1606,14 +1848,18 @@ forp.ready(
     font-size: 11px;\n\
     padding: 5px;\n\
     border: 1px solid #777;\n\
-    -moz-border-radius: 3px;\n\
-    -webkit-border-radius: 3px;\n\
     border-radius: 3px;\n\
     background-color: #fff;\n\
     margin: 0px 5px\n\
 }\n\
 #forp .indent {\n\
     padding-left: 30px\n\
+}\n\
+#forp div.w2of3 {\n\
+    width: 66% !important;\n\
+}\n\
+#forp div.w1of3 {\n\
+    width: 33% !important;\n\
 }\n\
 ');
         s.appendChild(t);
