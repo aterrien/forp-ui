@@ -241,7 +241,10 @@ var forp = {
         this.addEventListener = function(listener) {
             listener.target = this;
             listener.init();
-        }
+        };
+        this.scrollBottom = function() {
+            this.element.scrollTop = this.height();
+        };
     },
     /**
      * DOM Element Collection Class
@@ -376,7 +379,7 @@ var forp = {
         forp.Panel.call(this, "mainpanel");
 
         this.console = null;
-        this.closeButton = null;
+        //this.closeButton = null;
 
         this.getConsole = function()
         {
@@ -388,30 +391,59 @@ var forp = {
 
         this.open = function() {
             this.attr("style", "height: " + (window.innerHeight / 1.5) + "px");
-            this.closeButton = forp.create("a")
-                                .text("v")
-                                .attr("href", "javascript:void(0);")
-                                .appendTo(this)
-                                .class("btn close")
-                                .bind(
-                                    'click',
-                                    function(e) {
-                                        self.close();
-                                    }
-                                );
+            /*if(this.closeButton) {
+                this.closeButton = forp.create("a")
+                                    .text("x")
+                                    .attr("href", "javascript:void(0);")
+                                    .appendTo(this)
+                                    .class("btn close")
+                                    .bind(
+                                        'click',
+                                        function(e) {
+                                            self.close();
+                                        }
+                                    );
+            }*/
             return this;
         };
 
         this.close = function() {
-            this.css(
+            self.css(
                 "height: 0px",
                 function() {
-                    self.closeButton.remove();
-                    //self.empty();
+                    //self.closeButton.remove();
                 }
             );
             return this;
         };
+    },
+    /**
+     * ToggleButton Class
+     */
+    ToggleButton : function(label, on, off)
+    {
+        var self = this;
+        forp.DOMElementWrapper.call(this);
+        this.element = document.createElement("a");
+
+        this.text(label)
+            .attr("href", "#")
+            .class("tbtn")
+            .bind(
+                'click',
+                function(e) {
+                    if(self.getAttr("data-state") == "on") {
+                        console.log(self.getAttr("data-state"),off);
+                        off && off(e);
+                        self.removeClass("highlight")
+                            .attr("data-state", "off");
+                    } else {
+                        on && on(e);
+                        self.addClass("highlight")
+                            .attr("data-state", "on");
+                    }
+                }
+            );
     },
     /**
      * Sidebar Class
@@ -615,7 +647,7 @@ var forp = {
         this.prependItem = function(entry, highlight) {
             return this.prepend(
                 forp.create("div")
-                    .class("backtrace-item " + (highlight ? "highlight" : ""))
+                    .class("backtrace-item shadow" + (highlight ? " highlight" : ""))
                     .text(
                         "<strong>" + entry.id + "</strong><br>" +
                         entry.filelineno + "<br>" +
@@ -635,7 +667,9 @@ var forp = {
         }
 
         this.prepend(forp.create("br"))
-            .prepend(forp.create("br"));
+            .prepend(forp.create("br"))
+            .append(forp.create("br"))
+            .append(forp.create("br"));
     },
     /**
      * LineEventListenerBacktrace Class
@@ -664,7 +698,8 @@ var forp = {
                                     line.getAttr("data-ref"),
                                     context.stack
                                    )
-                               );
+                               )
+                               .scrollBottom();
                     }
                 );
         }
@@ -1124,7 +1159,9 @@ var forp = {
         this.run = function()
         {
             // layout
-            this.layout = (new f.Layout()).close();
+            this.layout = (new f.Layout())
+                            .close()
+                            .addClass("shadow");
 
             // toolbar
             this.nav = f.create("nav")
@@ -1168,6 +1205,20 @@ var forp = {
             return this;
         };
 
+        this.clearTabs = function()
+        {
+            self.layout
+                .find(".tbtn")
+                .each(
+                    function(o) {
+                        o.class("tbtn");
+                        o.attr("data-state", "off")
+                    }
+                );
+            return this;
+        };
+
+
         /**
          * Select a tab
          * @param string DOM Element target
@@ -1175,7 +1226,7 @@ var forp = {
          */
         this.selectTab = function(target)
         {
-            self.layout.find(".tbtn").each(function(o) {o.class("tbtn");});
+            this.clearTabs();
             f.find(target).class("tbtn highlight");
             return this;
         };
@@ -1265,18 +1316,14 @@ var forp = {
 
             self.aggregate();
 
-            f.create("a")
-                .text("stack (" + self.stack.length + ")")
-                .attr("href", "javascript:void(0);")
-                .class("tbtn")
-                .appendTo(container)
-                .bind(
-                    'click',
-                    function() {
+
+            container.append(
+                new f.ToggleButton(
+                    "stack (" + self.stack.length + ")",
+                    function(e) {
 
                         if(!self.tree) self.tree = new f.Tree(self.stack);
-
-                        self.selectTab(this)
+                        self.selectTab(e.target)
                             .getConsole()
                             .empty()
                             .log(
@@ -1322,21 +1369,19 @@ var forp = {
                                         f.create("div").append(self.tree)
                                     )
                                 );
-                            }
-                        );
+                    },
+                    self.layout.getMainPanel().close
+                )
+            );
 
-            f.create("a")
-                .text("top 20 duration")
-                .attr("href", "#")
-                .class("tbtn")
-                .appendTo(container)
-                .bind(
-                    'click',
-                    function() {
+            container.append(
+                new f.ToggleButton(
+                    "top 20 duration",
+                    function(e) {
                         var lines = [],
                             datas = self.getTopCpu();
 
-                        self.selectTab(this);
+                        self.selectTab(e.target);
 
                         /*for(var i = 0; i < self.leaves.length; i++) {
                             var h = (self.leaves[i].usec * 50) / datas[0].usec;
@@ -1368,21 +1413,19 @@ var forp = {
                                     )
                                 );
                         }
-                    }
-                );
+                    },
+                    self.layout.getMainPanel().close
+                )
+            );
 
-            f.create("a")
-                .text("top 20 memory")
-                .attr("href", "#")
-                .class("tbtn")
-                .appendTo(container)
-                .bind(
-                    'click',
-                    function() {
+            container.append(
+                new f.ToggleButton(
+                    "top 20 memory",
+                    function(e) {
                         var lines = [],
                             datas = self.getTopMemory();
 
-                        self.selectTab(this);
+                        self.selectTab(e.target);
 
                         var table = self.getConsole()
                                         .empty()
@@ -1404,21 +1447,20 @@ var forp = {
                                     )
                                 );
                         }
-                    }
-                );
+                    },
+                    self.layout.getMainPanel().close
+                )
+            );
 
-            f.create("a")
-                .text("top 20 calls")
-                .attr("href", "#")
-                .class("tbtn")
-                .appendTo(container)
-                .bind(
-                    'click',
+
+            container.append(
+                new f.ToggleButton(
+                    "top 20 calls",
                     function(e) {
                         var lines = [],
                             datas = self.getTopCalls();
 
-                        self.selectTab(this);
+                        self.selectTab(e.target);
 
                         var table = self.getConsole()
                                         .empty()
@@ -1437,34 +1479,21 @@ var forp = {
                                     self.toggleDetails
                                 );
                         }
-                    }
-                );
+                    },
+                    self.layout.getMainPanel().close
+                )
+            );
 
             if(self.includesCount > 0)
-            f.create("a")
-                .text("files (" + self.includesCount + ")")
-                .attr("href", "#")
-                .class("tbtn")
-                .appendTo(container)
-                .bind(
-                    'click',
-                    function() {
+            container.append(
+                new f.ToggleButton(
+                    "files (" + self.includesCount + ")",
+                    function(e) {
                         var lines = [],
                             datas = self.getIncludes();
 
-                        self.selectTab(this);
+                        self.selectTab(e.target);
 
-                        /*for(var i in datas) {
-                            lines.push(
-                                {
-                                    "file" : i,
-                                    "calls from" : self.gauge(
-                                        f.round((datas[i].calls * 100) / self.stack.length),
-                                        datas[i].calls
-                                    )
-                                }
-                            );
-                        }*/
                         var table = self.getConsole()
                                         .empty()
                                         .open()
@@ -1478,19 +1507,17 @@ var forp = {
                                 )
                             ]);
                         }
-                    }
-                );
+                    },
+                    self.layout.getMainPanel().close
+                )
+            );
 
             if(self.groupsCount > 0)
-            f.create("a")
-                .text("groups (" + self.groupsCount + ")")
-                .attr("href", "#")
-                .class("tbtn")
-                .appendTo(container)
-                .bind(
-                    'click',
-                    function() {
-                        self.selectTab(this)
+            container.append(
+                new f.ToggleButton(
+                    "groups (" + self.groupsCount + ")",
+                    function(e) {
+                        self.selectTab(e.target)
                             .show(
                             self.getGroups()
                             , function(datas) {
@@ -1542,18 +1569,16 @@ var forp = {
                                 return t;
                             }
                         );
-                    }
-                );
+                    },
+                    self.layout.getMainPanel().close
+                )
+            );
 
-            f.create("a")
-                .text("metrics")
-                .attr("href", "#")
-                .class("tbtn")
-                .appendTo(container)
-                .bind(
-                    'click',
-                    function() {
-                        var table = self.selectTab(this)
+            container.append(
+                new f.ToggleButton(
+                    "metrics",
+                    function(e) {
+                        var table = self.selectTab(e.target)
                             .getConsole()
                             .empty()
                             .open()
@@ -1562,8 +1587,10 @@ var forp = {
                         table.line(["total calls", self.stack.length]);
                         table.line(["max nested level", self.maxNestedLevel]);
                         table.line(["avg nested level", self.avgLevel.toFixed(2)]);
-                    }
-                );
+                    },
+                    self.layout.getMainPanel().close
+                )
+            );
 
             f.create("input")
                 .attr("type", "text")
@@ -1646,9 +1673,6 @@ forp.ready(
     width: 200px;\n\
     opacity: .6;\n\
     cursor: pointer;\n\
-   -moz-box-shadow: 0 0 8px #aaa;\n\
-   -webkit-box-shadow: 0 0 8px #aaa;\n\
-   box-shadow: 0 0 8px #aaa;\n\
 }\n\
 #forp.closed:hover {\n\
     opacity: 1;\n\
@@ -1698,7 +1722,7 @@ forp.ready(
 }\n\
 #forp .highlight {\n\
     background-color: #4D90FE !important;\n\
-    color: #FFF;\n\
+    color: #FFF !important;\n\
 }\n\
 #forp a.tag{\n\
     background-color: #EE0;\n\
@@ -1711,14 +1735,19 @@ forp.ready(
     border-radius: 3px;\n\
 }\n\
 #forp .backtrace-item{\n\
-    color: #FFF;\n\
+    color: #333;\n\
     margin: 0px 5px;\n\
     padding: 4px 5px 5px 5px;\n\
-    background-color: #555;\n\
+    background-color: #eee;\n\
     text-decoration: none;\n\
     border-radius: 8px;\n\
     padding: 5px;\n\
     display: inline-block;\n\
+}\n\
+#forp.shadow{\n\
+   -moz-box-shadow: 0 0 8px #ccc;\n\
+   -webkit-box-shadow: 0 0 8px #ccc;\n\
+   box-shadow: 0 0 8px #ccc;\n\
 }\n\
 #forp table{\n\
     font-weight: 300;\n\
