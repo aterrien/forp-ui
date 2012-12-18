@@ -243,7 +243,7 @@ var forp = {
             listener.init();
         };
         this.scrollBottom = function() {
-            this.element.scrollTop = this.height();
+            this.element.scrollTop = forp.wrap(this.element.firstChild).height();
         };
     },
     /**
@@ -1823,6 +1823,9 @@ forp.ready(
 }\n\
 #forp ul.l0{\n\
     padding-left: 10px;\n\
+}\n\
+#forp li{\n\
+    line-height: 1.8;\n\
 }\n\
 #forp li > div.numeric{\n\
     min-width: 60px;\n\
