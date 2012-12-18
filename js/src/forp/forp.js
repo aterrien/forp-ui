@@ -1577,6 +1577,12 @@ var forp = {
                 new f.ToggleButton(
                     "metrics",
                     function(e) {
+                        //   Cyclomatic complexity
+                        //   Excessive class complexity
+                        //   N-path complexity
+                        //   Too many fields
+                        //   Too many methods
+                        // x Ease of change
                         var table = self.getConsole()
                                         .empty()
                                         .open()
@@ -1584,9 +1590,9 @@ var forp = {
 
                         self.selectTab(e.target);
 
-                        table.line(["total calls", self.stack.length]);
-                        table.line(["max nested level", self.maxNestedLevel]);
-                        table.line(["avg nested level", self.avgLevel.toFixed(2)]);
+                        table.line(["Total calls", self.stack.length]);
+                        table.line(["<strong>Ease of change</strong> Max nested level", self.maxNestedLevel]);
+                        table.line(["<strong>Ease of change</strong> Avg nested level", self.avgLevel.toFixed(2)]);
                     },
                     self.layout.getMainPanel().close
                 )
