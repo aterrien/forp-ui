@@ -2,7 +2,7 @@
     "name": "forp",
     "version": "1",
     "manifest_version" : 2,
-    "description": "Shows instantly your public ip adress",
+    "description": "forp PHP profiler",
     "permissions": [
         "notifications"
     ],

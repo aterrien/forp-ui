@@ -1,5 +1,4 @@
-'use strict';
-
+"use strict";
 /**
  * DOM Element wrapper creator
  * @param DOM Element
@@ -390,7 +389,7 @@ var forp = {
         };
 
         this.open = function() {
-            this.attr("style", "height: " + (window.innerHeight / 1.5) + "px");
+            this.attr("style", "height: " + forp.round(window.innerHeight / 1.5) + "px");
             /*if(this.closeButton) {
                 this.closeButton = forp.create("a")
                                     .text("x")
@@ -453,7 +452,7 @@ var forp = {
         var self = this;
         forp.Panel.call(this, "sidebar");
         this.addClass("w1of3");
-        this.attr("style", "height: " + (window.innerHeight / 1.5) + "px");
+        this.attr("style", "height: " + forp.round(window.innerHeight / 1.5) + "px");
     },
     /**
      * Console Class
@@ -470,7 +469,7 @@ var forp = {
 
             this.closeSidebar();
             this.parent.open();
-            this.attr("style", "float:left; height: " + (window.innerHeight / 1.5) + "px")
+            this.attr("style", "height: " + forp.round(window.innerHeight / 1.5) + "px")
                 .addClass("opened");
 
             return this;
@@ -1578,11 +1577,12 @@ var forp = {
                 new f.ToggleButton(
                     "metrics",
                     function(e) {
-                        var table = self.selectTab(e.target)
-                            .getConsole()
-                            .empty()
-                            .open()
-                            .table(["key", "value"]);
+                        var table = self.getConsole()
+                                        .empty()
+                                        .open()
+                                        .table(["key", "value"]);
+
+                        self.selectTab(e.target);
 
                         table.line(["total calls", self.stack.length]);
                         table.line(["max nested level", self.maxNestedLevel]);
@@ -1600,8 +1600,8 @@ var forp = {
                 .bind(
                     "click",
                     function() {
-                        f.find(this).class("highlight");
-                        self.selectTab(this);
+                        f.find(this);
+                        self.clearTabs();
                     }
                 )
                 .bind(
@@ -1643,6 +1643,7 @@ var forp = {
 forp.ready(
     function(){
         var s = document.createElement('style'),
+//            t = document.createTextNode('%forp.css%');
             t = document.createTextNode('\n\
 #forp {\n\
     position: fixed;\n\
@@ -1660,12 +1661,11 @@ forp.ready(
     line-height: 1.3;\n\
 }\n\
 #forp div.footer {\n\
-    //border-top: 1px solid #888; \n\
     height: 10px; position: absolute;\n\
     top: 0px; left: 0px; right: 0px;\n\
-    -webkit-box-shadow: inset 0 3px 8px -2px #aaa;\n\
-    -moz-box-shadow: inset 0 3px 8px -2px #aaa;\n\
-    box-shadow: inset 0 3px 8px -2px #aaa;\n\
+    -webkit-box-shadow: inset 0 3px 5px -2px #aaa;\n\
+    -moz-box-shadow: inset 0 3px 5px -2px #aaa;\n\
+    box-shadow: inset 0 3px 5px -2px #aaa;\n\
 }\n\
 #forp.closed {\n\
     margin: 15px;\n\
@@ -1771,9 +1771,9 @@ forp.ready(
     border-top: 1px solid #BBB;\n\
 }\n\
 #forp div.console{\n\
+    float: left;\n\
     background-color: #fff;\n\
     width: 100%;\n\
-    float: left;\n\
     //border-top: 1px solid #888;\n\
 }\n\
 #forp div.sidebar{\n\
