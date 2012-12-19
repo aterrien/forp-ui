@@ -695,7 +695,7 @@ var forp = {
                                .append(
                                    new forp.Backtrace(
                                     line.getAttr("data-ref"),
-                                    context.stack
+                                    context.getStack().stack
                                    )
                                )
                                .scrollBottom();
@@ -752,23 +752,14 @@ var forp = {
                         }
                     );
         }
-    }
-};
-/**
- * forp IIFE
- * @param forp f
- */
-(function(f) {
-
+    },
     /**
-     * forp layout manager
-     * @param array forp stack
+     * Stack Class
      */
-    f.Manager = function(stack)
+    Stack : function(stack)
     {
         var self = this;
 
-        this.layout = null;
         this.stack = stack; // RAW stack
         this.functions = null; // indexed stack
         this.includes = null; // included files
@@ -779,12 +770,9 @@ var forp = {
         this.topCpu = null;
         this.topCalls = null;
         this.topMemory = null;
-        this.console = null;
         this.found = {};
         this.maxNestedLevel = 0;
         this.avgLevel = 0;
-        this.opened = false;
-        this.tree = null;
 
         /**
          * @param Object stack entry
@@ -864,14 +852,14 @@ var forp = {
                 this.groups = {};
                 this.leaves = [];
 
-                this.topCpu = new f.SortedFixedArray(
+                this.topCpu = new forp.SortedFixedArray(
                     function(a, b) {
                         return (a.usec > b.usec);
                     },
                     20
                 );
 
-                this.topMemory = new f.SortedFixedArray(
+                this.topMemory = new forp.SortedFixedArray(
                     function(a, b) {
                         return (a.bytes > b.bytes);
                     },
@@ -882,8 +870,8 @@ var forp = {
 
                     id = this.getEntryId(this.stack[entry]);
                     filelineno = this.stack[entry].file + (this.stack[entry].lineno ? ':' + this.stack[entry].lineno : '');
-                    ms = f.roundDiv(this.stack[entry].usec, 1000);
-                    kb = f.roundDiv(this.stack[entry].bytes, 1024);
+                    ms = forp.roundDiv(this.stack[entry].usec, 1000);
+                    kb = forp.roundDiv(this.stack[entry].bytes, 1024);
 
                     // entry
                     this.stack[entry].i = entry;
@@ -1015,7 +1003,7 @@ var forp = {
         this.getEntryId = function(entry)
         {
             return ((entry.class) ? entry.class + '::' : '') + entry.function;
-        }
+        };
 
         /**
          * @return array
@@ -1023,7 +1011,7 @@ var forp = {
         this.getFunctions = function()
         {
             return this.aggregate().functions;
-        }
+        };
 
         /**
          * Regexp search in stack functions
@@ -1054,7 +1042,7 @@ var forp = {
         this.getTopCalls = function()
         {
             if(!this.topCalls) {
-                this.topCalls = new f.SortedFixedArray(
+                this.topCalls = new forp.SortedFixedArray(
                     function(a, b) {return (a.calls > b.calls);},
                     20
                 );
@@ -1129,6 +1117,47 @@ var forp = {
         {
             return this.aggregate().groups;
         };
+    }
+};
+/**
+ * forp IIFE
+ * @param forp f
+ */
+(function(f) {
+
+    /**
+     * forp stack manager
+     * @param array forp stack
+     */
+    f.Manager = function(stack)
+    {
+        var self = this;
+
+        this.layout = null;
+        this.console = null;
+        this.opened = false;
+        this.tree = null;
+
+        this.stack = null;
+        this.functions = null;
+        this.groups = null;
+
+        /**
+         *
+         */
+        this.setStack = function(stack)
+        {
+            this.stack = new f.Stack(stack);
+            return this;
+        };
+
+        /**
+         *
+         */
+        this.getStack = function()
+        {
+            return this.stack;
+        };
 
         /**
          * @return Object Console
@@ -1179,7 +1208,7 @@ var forp = {
              )
              .appendTo(this.layout);
 
-            if(this.stack) {
+            if(this.getStack()) {
 
                 this.layout.bind(
                     "click",
@@ -1188,12 +1217,12 @@ var forp = {
 
                 f.create("div")
                     .attr("style", "margin-right: 10px")
-                    .text(f.roundDiv(this.stack[0].usec, 1000) + ' ms ')
+                    .text(f.roundDiv(this.getStack().stack[0].usec, 1000) + ' ms ')
                     .appendTo(this.nav);
 
                 f.create("div")
                     .attr("style", "margin-right: 10px")
-                    .text(f.roundDiv(this.stack[0].bytes, 1024) + ' Kb')
+                    .text(f.roundDiv(this.getStack().stack[0].bytes, 1024) + ' Kb')
                     .appendTo(this.nav);
             } else {
                 f.create("div")
@@ -1216,7 +1245,6 @@ var forp = {
                 );
             return this;
         };
-
 
         /**
          * Select a tab
@@ -1259,12 +1287,12 @@ var forp = {
                         self.functions[id].entries[i].refs[j].filelineno +
                         (self.functions[id].entries[i].refs[j].caption ? "<br>" + self.functions[id].entries[i].refs[j].caption : ""),
                         new f.Gauge(
-                            f.round((self.functions[id].entries[i].refs[j].usec * 100) / self.sumDuration(self.functions[id].refs))
+                            f.round((self.functions[id].entries[i].refs[j].usec * 100) / self.getStack().sumDuration(self.functions[id].refs))
                             , f.roundDiv(self.functions[id].entries[i].refs[j].usec, 1000).toFixed(3)
                         ),
                         new f.Gauge(
-                            f.round((self.functions[id].entries[i].refs[j].bytes * 100) / self.sumMemory(self.functions[id].refs))
-                            , f.roundDiv(self.functions[id].entries[i].refs[j].bytes, 1000).toFixed(3)
+                            f.round((self.functions[id].entries[i].refs[j].bytes * 100) / self.getStack().sumMemory(self.functions[id].refs))
+                            , f.roundDiv(self.functions[id].entries[i].refs[j].bytes, 1024).toFixed(3)
                         ),
                     ]).addEventListener(
                         new forp.LineEventListenerBacktrace(
@@ -1272,23 +1300,6 @@ var forp = {
                             self
                         )
                     );
-
-                    /*.attr("data-ref", self.functions[id].entries[i].refs[j].i)
-                    .bind(
-                        "mouseover",
-                        function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-
-                            var line = forp.wrap(this);
-                            self.getConsole()
-                                .getSidebar()
-                                .empty()
-                                .append(
-                                    new f.Backtrace(line.getAttr("data-ref"), self.stack)
-                                );
-                        }
-                    );*/
                 }
             }
             target.insertAfter(line);
@@ -1313,15 +1324,17 @@ var forp = {
             var container = f.create("div").attr("style", "margin-top: -2px");
             container.appendTo(this.nav);
 
-            self.aggregate();
-
+            self.getStack().aggregate();
+            //this.stack = self.getStack().stack;
+            self.functions = self.getStack().functions;
+            self    .groups = self.getStack().groups;
 
             container.append(
                 new f.ToggleButton(
-                    "stack (" + self.stack.length + ")",
+                    "stack (" + self.getStack().stack.length + ")",
                     function(e) {
 
-                        if(!self.tree) self.tree = new f.Tree(self.stack);
+                        if(!self.tree) self.tree = new f.Tree(self.getStack().stack);
                         self.selectTab(e.target)
                             .getConsole()
                             .empty()
@@ -1378,7 +1391,7 @@ var forp = {
                     "top 20 duration",
                     function(e) {
                         var lines = [],
-                            datas = self.getTopCpu();
+                            datas = self.getStack().getTopCpu();
 
                         self.selectTab(e.target);
 
@@ -1397,12 +1410,12 @@ var forp = {
                                         .table(["function", "self cost ms", "total cost ms", "calls"]);
 
                         for(var i in datas) {
-                            var id = self.getEntryId(datas[i]);
+                            var id = self.getStack().getEntryId(datas[i]);
                             table.line([
                                     "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
                                     + (datas[i].caption ? "<br>" + datas[i].caption : ""),
                                     f.roundDiv(datas[i].usec, 1000).toFixed(3) + '',
-                                    f.roundDiv(self.sumDuration(self.functions[id].refs), 1000).toFixed(3) + '',
+                                    f.roundDiv(self.getStack().sumDuration(self.functions[id].refs), 1000).toFixed(3) + '',
                                     self.functions[id].calls
                                 ])
                                 .addEventListener(
@@ -1422,7 +1435,8 @@ var forp = {
                     "top 20 memory",
                     function(e) {
                         var lines = [],
-                            datas = self.getTopMemory();
+                            datas = self.getStack()
+                                        .getTopMemory();
 
                         self.selectTab(e.target);
 
@@ -1431,12 +1445,12 @@ var forp = {
                                         .open()
                                         .table(["function", "self cost Kb", "total cost Kb", "calls"]);
                         for(var i in datas) {
-                            var id = self.getEntryId(datas[i]);
+                            var id = self.getStack().getEntryId(datas[i]);
                             table.line([
                                     "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
                                     + (datas[i].caption ? "<br>" + datas[i].caption : ""),
                                     f.roundDiv(datas[i].bytes, 1024).toFixed(3) + '',
-                                    f.roundDiv(self.sumMemory(self.functions[id].refs), 1024).toFixed(3) + '',
+                                    f.roundDiv(self.getStack().sumMemory(self.functions[id].refs), 1024).toFixed(3) + '',
                                     self.functions[id].calls
                                 ])
                                 .addEventListener(
@@ -1457,7 +1471,8 @@ var forp = {
                     "top 20 calls",
                     function(e) {
                         var lines = [],
-                            datas = self.getTopCalls();
+                            datas = self.getStack()
+                                        .getTopCalls();
 
                         self.selectTab(e.target);
 
@@ -1469,8 +1484,8 @@ var forp = {
                             table.line([
                                     datas[i].id,
                                     datas[i].calls,
-                                    f.roundDiv(self.sumDuration(datas[i].refs), 1000).toFixed(3) + '',
-                                    f.roundDiv(self.sumMemory(datas[i].refs), 1000).toFixed(3) + ''
+                                    f.roundDiv(self.getStack().sumDuration(datas[i].refs), 1000).toFixed(3) + '',
+                                    f.roundDiv(self.getStack().sumMemory(datas[i].refs), 1000).toFixed(3) + ''
                                 ])
                                 .attr("data-ref", datas[i].id)
                                 .bind(
@@ -1483,13 +1498,14 @@ var forp = {
                 )
             );
 
-            if(self.includesCount > 0)
+            if(self.getStack().includesCount > 0)
             container.append(
                 new f.ToggleButton(
-                    "files (" + self.includesCount + ")",
+                    "files (" + self.getStack().includesCount + ")",
                     function(e) {
                         var lines = [],
-                            datas = self.getIncludes();
+                            datas = self.getStack()
+                                        .getIncludes();
 
                         self.selectTab(e.target);
 
@@ -1511,14 +1527,14 @@ var forp = {
                 )
             );
 
-            if(self.groupsCount > 0)
+            if(self.getStack().groupsCount > 0)
             container.append(
                 new f.ToggleButton(
-                    "groups (" + self.groupsCount + ")",
+                    "groups (" + self.getStack().groupsCount + ")",
                     function(e) {
                         self.selectTab(e.target)
                             .show(
-                            self.getGroups()
+                            self.getStack().getGroups()
                             , function(datas) {
 
                                 var t = f.create("table")
@@ -1552,15 +1568,15 @@ var forp = {
                                         f.create("td", trsub, "", 'numeric')
                                             .append(
                                                 new f.Gauge(
-                                                    f.round(self.sumDuration(self.functions[datas[i].refs[j].id].refs) * 100) / self.sumDuration(datas[i].refs)
-                                                    , f.roundDiv(self.sumDuration(self.functions[datas[i].refs[j].id].refs), 1000).toFixed(3)
+                                                    f.round(self.getStack().sumDuration(self.functions[datas[i].refs[j].id].refs) * 100) / self.getStack().sumDuration(datas[i].refs)
+                                                    , f.roundDiv(self.getStack().sumDuration(self.functions[datas[i].refs[j].id].refs), 1000).toFixed(3)
                                                 )
                                             );
                                         f.create("td", trsub, "", 'numeric')
                                             .append(
                                                 new f.Gauge(
-                                                    f.round(self.sumMemory(self.functions[datas[i].refs[j].id].refs) * 100) / self.sumDuration(datas[i].refs)
-                                                    , f.roundDiv(self.sumMemory(self.functions[datas[i].refs[j].id].refs), 1024).toFixed(3)
+                                                    f.round(self.getStack().sumMemory(self.functions[datas[i].refs[j].id].refs) * 100) / self.getStack().sumDuration(datas[i].refs)
+                                                    , f.roundDiv(self.getStack().sumMemory(self.functions[datas[i].refs[j].id].refs), 1024).toFixed(3)
                                                 )
                                             );
                                     }
@@ -1577,6 +1593,9 @@ var forp = {
                 new f.ToggleButton(
                     "metrics",
                     function(e) {
+
+                        // TODO Metrics API
+
                         //   Cyclomatic complexity
                         //   Excessive class complexity
                         //   N-path complexity
@@ -1586,13 +1605,14 @@ var forp = {
                         var table = self.getConsole()
                                         .empty()
                                         .open()
-                                        .table(["key", "value"]);
+                                        .table(["type", "metric", "value", "tip"]);
 
                         self.selectTab(e.target);
 
-                        table.line(["Total calls", self.stack.length]);
-                        table.line(["<strong>Ease of change</strong> Max nested level", self.maxNestedLevel]);
-                        table.line(["<strong>Ease of change</strong> Avg nested level", self.avgLevel.toFixed(2)]);
+                        table.line(["<strong>Performance</strong>", "Total includes", self.getStack().includesCount, ""]);
+                        table.line(["<strong>Performance</strong>", "Total calls", self.getStack().stack.length, ""]);
+                        table.line(["<strong>Ease of change</strong>", "Max nested level", self.getStack().maxNestedLevel, ""]);
+                        table.line(["<strong>Ease of change</strong>", "Avg nested level", self.getStack().avgLevel.toFixed(2), ""]);
                     },
                     self.layout.getMainPanel().close
                 )
@@ -1615,7 +1635,7 @@ var forp = {
                     function() {
                         self.layout.open();
                         self.show(
-                            self.search(this.value)
+                            self.getStack().search(this.value)
                             , function(datas) {
                                 var t = f.create("table")
                                     ,tr = f.create("tr", t);
@@ -1630,8 +1650,8 @@ var forp = {
                                     tr.bind("click", self.toggleDetails);
                                     f.create("td", tr, datas[i].id);
                                     f.create("td", tr, datas[i].calls, "numeric");
-                                    f.create("td", tr, f.roundDiv(self.sumDuration(datas[i].refs), 1000).toFixed(3) + '', "numeric");
-                                    f.create("td", tr, f.roundDiv(self.sumMemory(datas[i].refs), 1024).toFixed(3) + '', "numeric");
+                                    f.create("td", tr, f.roundDiv(self.getStack().sumDuration(datas[i].refs), 1000).toFixed(3) + '', "numeric");
+                                    f.create("td", tr, f.roundDiv(self.getStack().sumMemory(datas[i].refs), 1024).toFixed(3) + '', "numeric");
                                 }
                                 return t;
                             }
@@ -1908,7 +1928,8 @@ forp.ready(
 
         // Runs forp
         var f = new forp.Manager();
-        f.stack = forp.stack;
-        f.run();
+        (new forp.Manager())
+            .setStack(forp.stack)
+            .run();
     }
 );
