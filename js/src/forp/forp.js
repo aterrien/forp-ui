@@ -378,7 +378,6 @@ var forp = {
         forp.Panel.call(this, "mainpanel");
 
         this.console = null;
-        //this.closeButton = null;
 
         this.getConsole = function()
         {
@@ -389,20 +388,7 @@ var forp = {
         };
 
         this.open = function() {
-            this.attr("style", "height: " + forp.round(window.innerHeight / 1.5) + "px");
-            /*if(this.closeButton) {
-                this.closeButton = forp.create("a")
-                                    .text("x")
-                                    .attr("href", "javascript:void(0);")
-                                    .appendTo(this)
-                                    .class("btn close")
-                                    .bind(
-                                        'click',
-                                        function(e) {
-                                            self.close();
-                                        }
-                                    );
-            }*/
+            this.attr("style", "height: " + Math.round(window.innerHeight / 1.5) + "px");
             return this;
         };
 
@@ -432,7 +418,6 @@ var forp = {
                 'click',
                 function(e) {
                     if(self.getAttr("data-state") == "on") {
-                        console.log(self.getAttr("data-state"),off);
                         off && off(e);
                         self.removeClass("highlight")
                             .attr("data-state", "off");
@@ -452,7 +437,7 @@ var forp = {
         var self = this;
         forp.Panel.call(this, "sidebar");
         this.addClass("w1of3");
-        this.attr("style", "height: " + forp.round(window.innerHeight / 1.5) + "px");
+        this.attr("style", "height: " + Math.round(window.innerHeight / 1.5) + "px");
     },
     /**
      * Console Class
@@ -469,15 +454,8 @@ var forp = {
 
             this.closeSidebar();
             this.parent.open();
-            this.attr("style", "height: " + forp.round(window.innerHeight / 1.5) + "px")
+            this.attr("style", "height: " + Math.round(window.innerHeight / 1.5) + "px")
                 .addClass("opened");
-
-            return this;
-        };
-
-        this.log = function(content) {
-            this.open()
-                .append(content);
 
             return this;
         };
@@ -577,7 +555,7 @@ var forp = {
 
             if(entry.groups) {
                 for(var g in entry.groups) {
-                    li.append(forp.TagRandColor.provideFor(entry.groups[g]));
+                    li.append(forp.TagRandColor.provideElementFor(entry.groups[g]));
                 }
             }
             if(entry.caption) li.append(forp.create("span").text(entry.caption));
@@ -727,22 +705,35 @@ var forp = {
      * Tag Class
      */
     TagRandColor : {
+        i : 0,
+        pocket : ["#ea5", "#e5a", "#5ae", "#5ea", "#ae6", "#a5e",
+                  "#e55", "#ee6", "#e6e", "#5e5", "#5ee", "#55e"],
+        //pocket : ["#ffa0ff", "#ffa000", "#c0a0ff", "#c0e000", "#e06040",
+        //          "#80a0ff", "#80e000", "#6080ff", "#a060c0", "#00a060"],
         tagsColor : {},
         provideFor : function(name)
         {
             if(!this.tagsColor[name]) {
-                this.tagsColor[name] = 'rgb(' +
-                    Math.round(Math.random() * 100 + 155) + ',' +
-                    Math.round(Math.random() * 100 + 155) + ',' +
-                    Math.round(Math.random() * 100 + 155)
-                    + ')';
+                if(this.i < this.pocket.length) {
+                    this.tagsColor[name] = this.pocket[this.i];
+                    this.i++;
+                } else {
+                    this.tagsColor[name] = 'rgb(' +
+                        Math.round(Math.random() * 100 + 155) + ',' +
+                        Math.round(Math.random() * 100 + 155) + ',' +
+                        Math.round(Math.random() * 100 + 155)
+                        + ')';
+                }
             }
-
+            return this.tagsColor[name];
+        },
+        provideElementFor : function(name)
+        {
             return forp.create("a")
                     .class("tag")
                     .attr(
                         'style',
-                        'background-color: ' + this.tagsColor[name]
+                        'color: #fff; background-color: ' + this.provideFor(name)
                     )
                     .text(name)
                     .bind(
@@ -956,7 +947,7 @@ var forp = {
                     this.functions[id].entries[filelineno].refs.push(this.stack[entry]);
 
                     // Refines ancestors
-                    //this.refineParents(this.stack[entry]);
+//this.refineParents(this.stack[entry]);
 
                     // Files
                     if(!this.includes[this.stack[entry].file]) {
@@ -994,6 +985,14 @@ var forp = {
             }
 
             return this;
+        };
+
+        /**
+         * @return array Main entry
+         */
+        this.getMainEntry = function()
+        {
+            return this.stack[0];
         };
 
         /**
@@ -1129,7 +1128,7 @@ var forp = {
      * forp stack manager
      * @param array forp stack
      */
-    f.Manager = function(stack)
+    f.Controller = function(stack)
     {
         var self = this;
 
@@ -1168,21 +1167,8 @@ var forp = {
         };
 
         /**
-         * Display datas
-         *
-         * @param array datas
-         * @return Object
-         */
-        this.show = function(datas, func)
-        {
-            this.getConsole()
-                .empty()
-                .log(func(datas));
-        };
-
-        /**
          * Run layout manager
-         * @return forp.Manager
+         * @return forp.Controller
          */
         this.run = function()
         {
@@ -1217,12 +1203,12 @@ var forp = {
 
                 f.create("div")
                     .attr("style", "margin-right: 10px")
-                    .text(f.roundDiv(this.getStack().stack[0].usec, 1000) + ' ms ')
+                    .text(f.roundDiv(this.getStack().getMainEntry().usec, 1000) + ' ms ')
                     .appendTo(this.nav);
 
                 f.create("div")
                     .attr("style", "margin-right: 10px")
-                    .text(f.roundDiv(this.getStack().stack[0].bytes, 1024) + ' Kb')
+                    .text(f.roundDiv(this.getStack().getMainEntry().bytes, 1024) + ' Kb')
                     .appendTo(this.nav);
             } else {
                 f.create("div")
@@ -1249,7 +1235,7 @@ var forp = {
         /**
          * Select a tab
          * @param string DOM Element target
-         * @return forp.Manager
+         * @return forp.Controller
          */
         this.selectTab = function(target)
         {
@@ -1307,7 +1293,7 @@ var forp = {
 
         /**
          * Expand main layout
-         * @return forp.Manager
+         * @return forp.Controller
          */
         this.open = function()
         {
@@ -1338,7 +1324,8 @@ var forp = {
                         self.selectTab(e.target)
                             .getConsole()
                             .empty()
-                            .log(
+                            .open()
+                            .append(
                                 f.create("div")
                                     .attr("style", "margin-top: 10px;")
                                     .append(
@@ -1390,8 +1377,7 @@ var forp = {
                 new f.ToggleButton(
                     "top 20 duration",
                     function(e) {
-                        var lines = [],
-                            datas = self.getStack().getTopCpu();
+                        var datas = self.getStack().getTopCpu();
 
                         self.selectTab(e.target);
 
@@ -1434,8 +1420,7 @@ var forp = {
                 new f.ToggleButton(
                     "top 20 memory",
                     function(e) {
-                        var lines = [],
-                            datas = self.getStack()
+                        var datas = self.getStack()
                                         .getTopMemory();
 
                         self.selectTab(e.target);
@@ -1470,8 +1455,7 @@ var forp = {
                 new f.ToggleButton(
                     "top 20 calls",
                     function(e) {
-                        var lines = [],
-                            datas = self.getStack()
+                        var datas = self.getStack()
                                         .getTopCalls();
 
                         self.selectTab(e.target);
@@ -1503,8 +1487,7 @@ var forp = {
                 new f.ToggleButton(
                     "files (" + self.getStack().includesCount + ")",
                     function(e) {
-                        var lines = [],
-                            datas = self.getStack()
+                        var datas = self.getStack()
                                         .getIncludes();
 
                         self.selectTab(e.target);
@@ -1532,58 +1515,47 @@ var forp = {
                 new f.ToggleButton(
                     "groups (" + self.getStack().groupsCount + ")",
                     function(e) {
-                        self.selectTab(e.target)
-                            .show(
-                            self.getStack().getGroups()
-                            , function(datas) {
+                        var datas = self.getStack()
+                                        .getGroups();
 
-                                var t = f.create("table")
-                                    ,tr = f.create("tr", t);
+                        self.selectTab(e.target);
 
-                                f.create("th", tr, "group");
-                                f.create("th", tr, "calls", "w100");
-                                f.create("th", tr, "ms", "w100");
-                                f.create("th", tr, "Kb", "w100");
+                        var table = self.getConsole()
+                                        .empty()
+                                        .open()
+                                        .table(["group", "calls", "ms", "Kb"]);
 
-                                for(var i in datas) {
-                                    var tr = f.create("tr", t);
-                                    f.create("td", tr)
-                                        .append(f.TagRandColor.provideFor(i))
-                                        .append(f.create("span").text(datas[i].refs.length + ' ' + (datas[i].refs.length>1 ? 'entries' : 'entry')));
-                                    f.create("td", tr, datas[i].calls, 'numeric');
-                                    f.create("td", tr, f.roundDiv(datas[i].usec, 1000).toFixed(3) + '', 'numeric');
-                                    f.create("td", tr, f.roundDiv(datas[i].bytes, 1024).toFixed(3) + '', 'numeric');
-                                    for(var j in datas[i].refs) {
-                                        var trsub = f.create("tr", t);
-                                        trsub.attr("data-ref", datas[i].refs[j].id);
-                                        trsub.bind("click", self.toggleDetails);
-                                        f.create("td", trsub, datas[i].refs[j].id);
-                                        f.create("td", trsub, "", 'numeric')
-                                            .append(
-                                                new f.Gauge(
-                                                    f.round((self.functions[datas[i].refs[j].id].calls * 100) / datas[i].calls)
-                                                    , self.functions[datas[i].refs[j].id].calls
-                                                )
-                                            );
-                                        f.create("td", trsub, "", 'numeric')
-                                            .append(
-                                                new f.Gauge(
-                                                    f.round(self.getStack().sumDuration(self.functions[datas[i].refs[j].id].refs) * 100) / self.getStack().sumDuration(datas[i].refs)
-                                                    , f.roundDiv(self.getStack().sumDuration(self.functions[datas[i].refs[j].id].refs), 1000).toFixed(3)
-                                                )
-                                            );
-                                        f.create("td", trsub, "", 'numeric')
-                                            .append(
-                                                new f.Gauge(
-                                                    f.round(self.getStack().sumMemory(self.functions[datas[i].refs[j].id].refs) * 100) / self.getStack().sumDuration(datas[i].refs)
-                                                    , f.roundDiv(self.getStack().sumMemory(self.functions[datas[i].refs[j].id].refs), 1024).toFixed(3)
-                                                )
-                                            );
-                                    }
-                                }
-                                return t;
+                        for(var i in datas) {
+                            table.line([
+                                    "<strong>" + i + "</strong> " +
+                                    datas[i].refs.length + " " +
+                                    (datas[i].refs.length>1 ? "entries" : "entry"),
+                                    datas[i].calls,
+                                    f.roundDiv(datas[i].usec, 1000).toFixed(3) + '',
+                                    f.roundDiv(datas[i].bytes, 1024).toFixed(3) + ''
+                                ])
+                                .attr("style", "color: #fff; background-color:" + f.TagRandColor.provideFor(i));
+
+                            for(var j in datas[i].refs) {
+                                table.line([
+                                    datas[i].refs[j].id,
+                                    new f.Gauge(
+                                        f.round((self.functions[datas[i].refs[j].id].calls * 100) / datas[i].calls)
+                                        , self.functions[datas[i].refs[j].id].calls
+                                    ),
+                                    new f.Gauge(
+                                        f.round(self.getStack().sumDuration(self.functions[datas[i].refs[j].id].refs) * 100) / self.getStack().sumDuration(datas[i].refs)
+                                        , f.roundDiv(self.getStack().sumDuration(self.functions[datas[i].refs[j].id].refs), 1000).toFixed(3)
+                                    ),
+                                    new f.Gauge(
+                                        f.round(self.getStack().sumMemory(self.functions[datas[i].refs[j].id].refs) * 100) / self.getStack().sumDuration(datas[i].refs)
+                                        , f.roundDiv(self.getStack().sumMemory(self.functions[datas[i].refs[j].id].refs), 1024).toFixed(3)
+                                    )
+                                ])
+                                .attr("data-ref", datas[i].refs[j].id)
+                                .bind("click", self.toggleDetails);
                             }
-                        );
+                        }
                     },
                     self.layout.getMainPanel().close
                 )
@@ -1618,11 +1590,11 @@ var forp = {
                 )
             );
 
-            f.create("input")
+            container.append(
+               f.create("input")
                 .attr("type", "text")
                 .attr("name", "forpSearch")
                 .attr("placeholder", "Search forp ...")
-                .appendTo(container)
                 .bind(
                     "click",
                     function() {
@@ -1633,31 +1605,25 @@ var forp = {
                 .bind(
                     "keyup",
                     function() {
-                        self.layout.open();
-                        self.show(
-                            self.getStack().search(this.value)
-                            , function(datas) {
-                                var t = f.create("table")
-                                    ,tr = f.create("tr", t);
-                                f.create("th", tr, "function");
-                                f.create("th", tr, "calls", "w100");
-                                f.create("th", tr, "ms", "w100");
-                                f.create("th", tr, "Kb", "w100");
-                                //f.create("th", tr, "called from");
-                                for(var i in datas) {
-                                    tr = f.create("tr", t);
-                                    tr.attr("data-ref", datas[i].id);
-                                    tr.bind("click", self.toggleDetails);
-                                    f.create("td", tr, datas[i].id);
-                                    f.create("td", tr, datas[i].calls, "numeric");
-                                    f.create("td", tr, f.roundDiv(self.getStack().sumDuration(datas[i].refs), 1000).toFixed(3) + '', "numeric");
-                                    f.create("td", tr, f.roundDiv(self.getStack().sumMemory(datas[i].refs), 1024).toFixed(3) + '', "numeric");
-                                }
-                                return t;
-                            }
-                        );
+                        var table = self.getConsole()
+                                        .empty()
+                                        .open()
+                                        .table(["function", "calls", "ms", "Kb"]),
+                            datas = self.getStack().search(this.value);
+
+                        for(var i in datas) {
+                            table.line([
+                                datas[i].id,
+                                datas[i].calls,
+                                f.roundDiv(self.getStack().sumDuration(datas[i].refs), 1000).toFixed(3) + '',
+                                f.roundDiv(self.getStack().sumMemory(datas[i].refs), 1024).toFixed(3) + ''
+                            ])
+                            .attr("data-ref", datas[i].id)
+                            .bind("click", self.toggleDetails);
+                        }
                     }
-                );
+                )
+            );
             return this;
         };
     };
@@ -1927,8 +1893,8 @@ forp.ready(
             || document.getElementsByTagName('body')[0]).appendChild(s);
 
         // Runs forp
-        var f = new forp.Manager();
-        (new forp.Manager())
+        var f = new forp.Controller();
+        (new forp.Controller())
             .setStack(forp.stack)
             .run();
     }
