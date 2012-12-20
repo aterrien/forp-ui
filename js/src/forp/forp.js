@@ -1526,15 +1526,13 @@ var forp = {
                                         .table(["group", "calls", "ms", "Kb"]);
 
                         for(var i in datas) {
-                            //table.line(["","","",""]).attr("colspan", 4)
-                            //     .attr("style", "height: 5px; color: #fff; background-color:" + f.TagRandColor.provideFor(i));
                             table
                                 .append(
                                     f.create("tr")
                                      .append(
                                         f.create("td")
                                          .attr("colspan", 4)
-                                         .attr("style", "padding: 0px; height: 4px; color: #fff; background-color:" + f.TagRandColor.provideFor(i))
+                                         .attr("style", "padding: 0px; height: 4px; background-color:" + f.TagRandColor.provideFor(i))
                                      )
                                 )
                                 .line([
@@ -1545,8 +1543,7 @@ var forp = {
                                     f.roundDiv(datas[i].usec, 1000).toFixed(3) + '',
                                     f.roundDiv(datas[i].bytes, 1024).toFixed(3) + ''
                                 ]);
-                                //.attr("style", "color: #fff; background-color:" + f.TagRandColor.provideFor(i));
-
+                                
                             for(var j in datas[i].refs) {
                                 table.line([
                                     datas[i].refs[j].id,
