@@ -1526,15 +1526,26 @@ var forp = {
                                         .table(["group", "calls", "ms", "Kb"]);
 
                         for(var i in datas) {
-                            table.line([
+                            //table.line(["","","",""]).attr("colspan", 4)
+                            //     .attr("style", "height: 5px; color: #fff; background-color:" + f.TagRandColor.provideFor(i));
+                            table
+                                .append(
+                                    f.create("tr")
+                                     .append(
+                                        f.create("td")
+                                         .attr("colspan", 4)
+                                         .attr("style", "padding: 0px; height: 4px; color: #fff; background-color:" + f.TagRandColor.provideFor(i))
+                                     )
+                                )
+                                .line([
                                     "<strong>" + i + "</strong> " +
                                     datas[i].refs.length + " " +
                                     (datas[i].refs.length>1 ? "entries" : "entry"),
                                     datas[i].calls,
                                     f.roundDiv(datas[i].usec, 1000).toFixed(3) + '',
                                     f.roundDiv(datas[i].bytes, 1024).toFixed(3) + ''
-                                ])
-                                .attr("style", "color: #fff; background-color:" + f.TagRandColor.provideFor(i));
+                                ]);
+                                //.attr("style", "color: #fff; background-color:" + f.TagRandColor.provideFor(i));
 
                             for(var j in datas[i].refs) {
                                 table.line([
@@ -1567,6 +1578,7 @@ var forp = {
                     function(e) {
 
                         // TODO Metrics API
+                        // @see http://www.sdmetrics.com/LoM.html
 
                         //   Cyclomatic complexity
                         //   Excessive class complexity
@@ -1577,14 +1589,14 @@ var forp = {
                         var table = self.getConsole()
                                         .empty()
                                         .open()
-                                        .table(["type", "metric", "value", "tip"]);
+                                        .table(["metric", "type", "value", "tip"]);
 
                         self.selectTab(e.target);
 
-                        table.line(["<strong>Performance</strong>", "Total includes", self.getStack().includesCount, ""]);
-                        table.line(["<strong>Performance</strong>", "Total calls", self.getStack().stack.length, ""]);
-                        table.line(["<strong>Ease of change</strong>", "Max nested level", self.getStack().maxNestedLevel, ""]);
-                        table.line(["<strong>Ease of change</strong>", "Avg nested level", self.getStack().avgLevel.toFixed(2), ""]);
+                        table.line(["<strong>Total includes</strong>", "Performance", self.getStack().includesCount, ""]);
+                        table.line(["<strong>Total calls</strong>", "Performance", self.getStack().stack.length, ""]);
+                        table.line(["<strong>Max nested level</strong>", "Nesting", self.getStack().maxNestedLevel, ""]);
+                        table.line(["<strong>Avg nested level</strong>", "Nesting", self.getStack().avgLevel.toFixed(2), ""]);
                     },
                     self.layout.getMainPanel().close
                 )
