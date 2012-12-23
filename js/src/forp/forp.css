@@ -1,221 +1,252 @@
-#forp {
-    position: fixed;
-    bottom: 0px;
-    right: 0px;
-    color: #222;
-    z-index: 2147483647;
-    text-decoration: none;
-    font-family: "Helvetica Neue", Helvetica, Nimbus, Arial, sans-serif;
-    font-weight: 300;
-    text-rendering: optimizelegibility;
-    max-width: 300px;
-    font-size : 13px;
-    background-color: #fff;
-    line-height: 1.3;
-}
-#forp div.footer {
-    height: 10px; position: absolute;
-    top: 0px; left: 0px; right: 0px;
-    -webkit-box-shadow: inset 0 3px 8px -2px #aaa;
-    -moz-box-shadow: inset 0 3px 8px -2px #aaa;
-    box-shadow: inset 0 3px 8px -2px #aaa;
-}
-#forp.closed {
-    margin: 15px;
-    border-radius: 8px;
-    width: 200px;
-    opacity: .6;
-    cursor: pointer;
-   -moz-box-shadow: 0 0 8px #aaa;
-   -webkit-box-shadow: 0 0 8px #aaa;
-   box-shadow: 0 0 8px #aaa;
-}
-#forp.closed:hover {
-    opacity: 1;
-}
-#forp.opened{
-    max-width: 100%;
-    left: 0px;
-}
-#forp.opened a{
-    display: inline;
-}
-#forp nav{
-    border-radius: 8px;
-    padding: 14px 10px 10px 10px;
-}
-#forp.closed nav{
-    height: auto;
-}
-#forp.closed nav>div{
-    margin: 3px 0px;
-}
-#forp.opened nav{
-    height: 22px;
-}
-#forp.opened nav>div{
-    float: left;
-}
-#forp a{
-    white-space:nowrap;
-    text-decoration: none;
-    color: #FFF;
-}
-#forp a.btn, a.tbtn{
-    color: #FFF;
-    margin: 0px 5px;
-    padding: 4px 5px 5px 5px;
-    background-color: #555;
-    text-decoration: none;
-}
-#forp a.close{
-    padding: 5px 10px;
-    position: absolute; 
-    top: 12px; 
-    right: 30px; 
-    text-align: center;
-}
-#forp a.selected {
-    background-color: #4D90FE;
-}
-#forp a.tag{
-    background-color: #EE0;
-    color : #222;
-    font-size : 10px;
-    padding: 2px 5px;
-    margin: 0px 5px;
-}
-#forp a.tag, #forp a{
-    border-radius: 3px;
-}
-#forp table{
-    font-weight: 300;
-    font-size : 13px;
-    width: 100%;
-    border-collapse: collapse;
-}
-#forp div.console{
-    background-color: #fff;
-    overflow: auto;
-    overflow-x: hidden;
-    border-top: 1px solid #888;
-    transition: height .1s;
-    -moz-transition: height .1s;
-    -webkit-transition: height .1s;
-    -o-transition: height .1s;
-    transition-timing-function: ease-in;
-    -moz-transition-timing-function: ease-in;
-    -webkit-transition-timing-function: ease-in;
-    -o-transition-timing-function: ease-in;
-}
-#forp th, #forp td{
-    padding: 5px;
-    border: 1px solid #ddd;
-}
-#forp th{
-    text-align: center;
-    font-weight: bold;
-    color: #333;
-    border: 1px solid #ddd;
-    background-color : #eee;
-}
-#forp .w100{
-    width: 120px;
-}
-#forp td{
-    text-align: left;
-    text-overflow: ellipsis;
-    word-space: nowrap;
-    overflow: hidden;
-    vertical-align: top;
-}
-#forp tr{
-    color: #333;
-    background-color: #fff;
-}
-#forp tr.sub{
-    background-color: #eee;
-}
-#forp tr:hover{ 
-    background-color: #eeb; 
-}
-#forp tr[data-ref]{
-    cursor: pointer;
-}
-#forp .numeric{
-    text-align: right;
-}
-#forp ul{
-    line-height: 1.8;
-    list-style: none;
-    padding-left: 20px;
-}
-#forp ul.l0{
-    padding-left: 10px;
-}
-#forp li > div.numeric{
-    min-width: 60px;
-    margin: 0px 10px
-}
-#forp div.expander{
-    text-align:center;
-    width: 20px;
-    cursor: pointer;
-}
-#forp li.expanded > div.expander:before{
-    content: "-";
-}
-#forp li.collapsed > div.expander:before {
-    content: "+";
-}
-#forp li.collapsed > ul{
-    display: none;
-}
-#forp .left{
-    float: left;
-}
-#forp .right{
-    float: right;
-}
-#forp div.gauge{
-    line-height: 1.8;
-    color: #fff;
-    margin: 4px 5px 0px 0px;
-    width: 110px;
-    text-align: right;
-    font-size: 0.8em;
-    padding: 0px 3px;
-}
-#forp td>div.gauge{
-    margin: 0px;
-}
-#forp div.i{
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    font-weight: 900;
-    text-align: center;
-    background-color: #ccc;
-    width: 15px;
-    height: 15px;
-    border-radius: 10px;
-}
-#forp div.i>a{
-    font-family: Georgia;
-    color: #FFF;
+#forp {\n\
+    position: fixed;\n\
+    bottom: 0px;\n\
+    right: 0px;\n\
+    color: #222;\n\
+    z-index: 2147483647;\n\
+    text-decoration: none;\n\
+    font-family: "Helvetica Neue", Helvetica, Nimbus, Arial, sans-serif;\n\
+    font-weight: 300;\n\
+    text-rendering: optimizelegibility;\n\
+    max-width: 300px;\n\
+    font-size : 13px;\n\
+    background-color: #fff;\n\
+    line-height: 1.3;\n\
+}\n\
+#forp div.footer {\n\
+    height: 10px; position: absolute;\n\
+    top: 0px; left: 0px; right: 0px;\n\
+    -webkit-box-shadow: inset 0 3px 5px -2px #aaa;\n\
+    -moz-box-shadow: inset 0 3px 5px -2px #aaa;\n\
+    box-shadow: inset 0 3px 5px -2px #aaa;\n\
+}\n\
+#forp.closed {\n\
+    margin: 15px;\n\
+    border-radius: 8px;\n\
+    width: 200px;\n\
+    opacity: .6;\n\
+    cursor: pointer;\n\
+}\n\
+#forp.closed:hover {\n\
+    opacity: 1;\n\
+}\n\
+#forp.opened{\n\
+    max-width: 100%;\n\
+    left: 0px;\n\
+}\n\
+#forp.opened a{\n\
+    display: inline;\n\
+}\n\
+#forp nav{\n\
+    border-radius: 8px;\n\
+    padding: 14px 10px 10px 10px;\n\
+}\n\
+#forp.closed nav{\n\
+    height: auto;\n\
+}\n\
+#forp.closed nav>div{\n\
+    margin: 3px 0px;\n\
+}\n\
+#forp.opened nav{\n\
+    height: 22px;\n\
+}\n\
+#forp.opened nav>div{\n\
+    float: left;\n\
+}\n\
+#forp a{\n\
+    white-space:nowrap;\n\
+    text-decoration: none;\n\
+    color: #FFF;\n\
+}\n\
+#forp a.btn, a.tbtn{\n\
+    color: #FFF;\n\
+    margin: 0px 5px;\n\
+    padding: 4px 5px 5px 5px;\n\
+    background-color: #555;\n\
+    text-decoration: none;\n\
+}\n\
+#forp a.close{\n\
+    padding: 5px 10px;\n\
+    position: absolute; \n\
+    top: 12px; \n\
+    right: 30px; \n\
+    text-align: center;\n\
+    //background-color: #DD4B39;\n\
+}\n\
+#forp .highlight {\n\
+    background-color: #4D90FE !important;\n\
+    color: #FFF !important;\n\
+}\n\
+#forp a.tag{\n\
+    background-color: #EE0;\n\
+    color : #222;\n\
+    font-size : 10px;\n\
+    padding: 2px 5px;\n\
+    margin: 0px 5px;\n\
+}\n\
+#forp a.tag, #forp a{\n\
+    border-radius: 3px;\n\
+}\n\
+#forp .backtrace-item{\n\
+    color: #333;\n\
+    margin: 0px 5px;\n\
+    padding: 4px 5px 5px 5px;\n\
+    background-color: #eee;\n\
+    text-decoration: none;\n\
+    border-radius: 8px;\n\
+    padding: 5px;\n\
+    display: inline-block;\n\
+}\n\
+#forp.shadow{\n\
+   -moz-box-shadow: 0 0 8px #ccc;\n\
+   -webkit-box-shadow: 0 0 8px #ccc;\n\
+   box-shadow: 0 0 8px #ccc;\n\
+}\n\
+#forp table{\n\
+    font-weight: 300;\n\
+    font-size : 13px;\n\
+    width: 100%;\n\
+    border-collapse: collapse;\n\
+}\n\
+#forp div.panel {\n\
+    overflow: auto;\n\
+    overflow-x: hidden;\n\
+    transition: height .1s;\n\
+    -moz-transition: height .1s;\n\
+    -webkit-transition: height .1s;\n\
+    -o-transition: height .1s;\n\
+    transition-timing-function: ease-in;\n\
+    -moz-transition-timing-function: ease-in;\n\
+    -webkit-transition-timing-function: ease-in;\n\
+    -o-transition-timing-function: ease-in;\n\
+}\n\
+#forp div.mainpanel {\n\
+    border-top: 1px solid #BBB;\n\
+}\n\
+#forp div.console{\n\
+    float: left;\n\
+    background-color: #fff;\n\
+    width: 100%;\n\
+    //border-top: 1px solid #888;\n\
+}\n\
+#forp div.sidebar{\n\
+    float: right;\n\
+}\n\
+#forp th, #forp td{\n\
+    padding: 5px;\n\
+    border: 1px solid #ddd;\n\
+}\n\
+#forp th{\n\
+    text-align: center;\n\
+    font-weight: bold;\n\
+    color: #333;\n\
+    border: 1px solid #ddd;\n\
+    background-color : #eee;\n\
+}\n\
+#forp .w100{\n\
+    width: 120px;\n\
+}\n\
+#forp td{\n\
+    text-align: left;\n\
+    text-overflow: ellipsis;\n\
+    word-space: nowrap;\n\
+    overflow: hidden;\n\
+    vertical-align: top;\n\
+}\n\
+#forp tr{\n\
+    color: #333;\n\
+    background-color: #fff;\n\
+}\n\
+#forp tr.sub{\n\
+    background-color: #eee;\n\
+}\n\
+#forp tr:hover{ \n\
+    background-color: #EDF4FF; \n\
+}\n\
+#forp tr[data-ref]{\n\
+    cursor: pointer;\n\
+}\n\
+#forp .numeric{\n\
+    text-align: right;\n\
+}\n\
+#forp ul{\n\
+    line-height: 1.8;\n\
+    list-style: none;\n\
+    padding-left: 20px;\n\
+}\n\
+#forp ul.l0{\n\
+    padding-left: 10px;\n\
+}\n\
+#forp li{\n\
+    line-height: 1.8;\n\
+}\n\
+#forp li > div.numeric{\n\
+    min-width: 60px;\n\
+    margin: 0px 10px\n\
+}\n\
+#forp div.expander{\n\
+    text-align:center;\n\
+    width: 20px;\n\
+    cursor: pointer;\n\
+}\n\
+#forp li.expanded > div.expander:before{\n\
+    content: "-";\n\
+}\n\
+#forp li.collapsed > div.expander:before {\n\
+    content: "+";\n\
+}\n\
+#forp li.collapsed > ul{\n\
+    display: none;\n\
+}\n\
+#forp .left{\n\
+    float: left;\n\
+}\n\
+#forp .right{\n\
+    float: right;\n\
+}\n\
+#forp div.gauge{\n\
+    line-height: 1.8;\n\
+    color: #fff;\n\
+    margin: 4px 5px 0px 0px;\n\
+    width: 110px;\n\
+    text-align: right;\n\
+    font-size: 0.8em;\n\
+    padding: 0px 3px;\n\
+}\n\
+#forp td>div.gauge{\n\
+    margin: 0px;\n\
+}\n\
+#forp div.i{\n\
+    position: absolute;\n\
+    top: 5px;\n\
+    right: 5px;\n\
+    font-weight: 900;\n\
+    text-align: center;\n\
+    background-color: #ccc;\n\
+    width: 15px;\n\
+    height: 15px;\n\
+    border-radius: 10px;\n\
+}\n\
+#forp div.i>a{\n\
+    font-family: Georgia;\n\
+    color: #FFF;\n\
 }
 #forp input[type=text]{
     font-size: 11px;
     padding: 5px;
     border: 1px solid #777;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
     border-radius: 3px;
     background-color: #fff;
     margin: 0px 5px
 }
 #forp .indent {
     padding-left: 30px
+}
+#forp div.w2of3 {
+    width: 66% !important;
+}
+#forp div.w1of3 {
+    width: 33% !important;
 }
 #forp .dbg-text {
     padding-left: 6px;

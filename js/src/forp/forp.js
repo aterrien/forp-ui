@@ -1,5 +1,4 @@
-'use strict';
-
+"use strict";
 /**
  * DOM Element wrapper creator
  * @param DOM Element
@@ -91,6 +90,18 @@ var forp = {
         return this.round(v / d);
     },
     /**
+     * inArray
+     * @param needle
+     * @param haystack
+     */
+    inArray : function(needle, haystack) {
+        var length = haystack.length;
+        for(var i = 0; i < length; i++) {
+            if(haystack[i] == needle) return true;
+        }
+        return false;
+    },
+    /**
      * DOM Element wrapper, makes it fluent
      * @param DOM Element
      */
@@ -98,6 +109,7 @@ var forp = {
     {
         var self = this;
         this.element = element;
+        this.classes = [];
 
         this.bind = function(evType, fn) {
             if (this.element.addEventListener) {
@@ -120,6 +132,11 @@ var forp = {
         this.find = function(s) {
             return new forp.DOMElementWrapperCollection(this.element.querySelectorAll(s));
         };
+
+        this.prepend = function(o) {
+            this.element.insertBefore(o.element, this.element.firstChild);
+            return this;
+        };
         this.append = function(o) {
             this.element.appendChild(o.element);
             return this;
@@ -128,14 +145,28 @@ var forp = {
             o.append(this);
             return this;
         };
-        this.addClass = function(c) {
-            return this.attr("class", this.getAttr("class") + " " + c);
-        };
         this.class = function(c) {
-            return this.attr("class", c);
+            this.classes = [];
+            return this.addClass(c);
         };
         this.getClass = function(c) {
             return this.getAttr("class");
+        };
+        this.addClass = function(c) {
+            var cArr = c.split(" ");
+            for (var i=0; i<cArr.length; i++) {
+                if(forp.inArray(cArr[i], this.classes)) return this;
+                this.classes.push(cArr[i]);
+            }
+            return this.attr("class", this.classes.join(" "));
+        };
+        this.removeClass = function(c) {
+            for (var k in this.classes) {
+                if (this.classes[k] == c) {
+                    this.classes.splice(k, 1);
+                }
+            }
+            return this.attr("class", this.classes.join(" "));
         };
         this.text = function(t) {
             this.element.innerHTML = t;
@@ -202,10 +233,17 @@ var forp = {
         };
         this.insertAfter = function(element) {
             this.element.parentNode.insertBefore( element.element, this.element.nextSibling );
-        }
+        };
         this.nextSibling = function() {
             return forp.wrap(this.element.nextSibling);
-        }
+        };
+        this.addEventListener = function(listener) {
+            listener.target = this;
+            listener.init();
+        };
+        this.scrollBottom = function() {
+            this.element.scrollTop = forp.wrap(this.element.firstChild).height();
+        };
     },
     /**
      * DOM Element Collection Class
@@ -286,47 +324,162 @@ var forp = {
         };
     },
     /**
-     * Console Class
+     * forp Layout
+     *
+     * - Layout #forp
+     *  - Navbar nav
+     *  - MainPanel .mainpanel
+     *   - Console .console
+     *   - Sidebar .sidebar
      */
-    Console : function()
+    Layout : function()
     {
         var self = this;
         forp.DOMElementWrapper.call(this);
         this.element = document.createElement("div");
+        this.attr("id", "forp");
 
-        this.open = function() {
+        this.mainpanel = null;
 
-            this.attr("style", "height: " + (window.innerHeight / 1.5) + "px")
-                .class("console opened");
-
-            forp.create("a")
-                .text("v")
-                .attr("href", "javascript:void(0);")
-                .appendTo(this)
-                .class("btn close")
-                .bind(
-                    'click',
-                    function(e) {
-                        self.close();
-                    }
-                );
-
-            return this;
+        this.getMainPanel = function()
+        {
+            if(!this.mainpanel) {
+                this.mainpanel = (new forp.MainPanel(this)).appendTo(this);
+            }
+            return this.mainpanel;
         };
 
-        this.log = function(content) {
-            this.open()
-                .append(content);
+        this.getConsole = function()
+        {
+            return this.getMainPanel()
+                       .getConsole();
+        };
 
+        document.body.insertBefore(this.element, document.body.firstChild);
+    },
+    /**
+     * Panel
+     */
+    Panel : function(id)
+    {
+        var self = this;
+        forp.DOMElementWrapper.call(this);
+        this.element = document.createElement("div");
+        this.class(id + " panel");
+
+        this.id = id;
+    },
+    /**
+     * Panel
+     */
+    MainPanel : function(id)
+    {
+        var self = this;
+        forp.Panel.call(this, "mainpanel");
+
+        this.console = null;
+
+        this.getConsole = function()
+        {
+            if(!this.console) {
+                this.console = (new forp.Console(this)).appendTo(this);
+            }
+            return this.console;
+        };
+
+        this.open = function() {
+            this.attr("style", "height: " + Math.round(window.innerHeight / 1.5) + "px");
             return this;
         };
 
         this.close = function() {
-            this.css("height: 0px", function() {self.empty();});
+            self.css(
+                "height: 0px",
+                function() {
+                    //self.closeButton.remove();
+                }
+            );
+            return this;
+        };
+    },
+    /**
+     * ToggleButton Class
+     */
+    ToggleButton : function(label, on, off)
+    {
+        var self = this;
+        forp.DOMElementWrapper.call(this);
+        this.element = document.createElement("a");
+
+        this.text(label)
+            .attr("href", "#")
+            .class("tbtn")
+            .bind(
+                'click',
+                function(e) {
+                    if(self.getAttr("data-state") == "on") {
+                        off && off(e);
+                        self.removeClass("highlight")
+                            .attr("data-state", "off");
+                    } else {
+                        on && on(e);
+                        self.addClass("highlight")
+                            .attr("data-state", "on");
+                    }
+                }
+            );
+    },
+    /**
+     * Sidebar Class
+     */
+    Sidebar : function()
+    {
+        var self = this;
+        forp.Panel.call(this, "sidebar");
+        this.addClass("w1of3");
+        this.attr("style", "height: " + Math.round(window.innerHeight / 1.5) + "px");
+    },
+    /**
+     * Console Class
+     * @param Window w
+     */
+    Console : function(parent)
+    {
+        var self = this;
+        forp.Panel.call(this, "console");
+
+        this.parent = parent;
+
+        this.open = function() {
+
+            this.closeSidebar();
+            this.parent.open();
+            this.attr("style", "height: " + Math.round(window.innerHeight / 1.5) + "px")
+                .addClass("opened");
+
             return this;
         };
 
-        this.open();
+        this.getSidebar = function() {
+            if(!this.sidebar) {
+                this.addClass("w2of3");
+                this.sidebar = new forp.Sidebar();
+                this.parent
+                    .append(this.sidebar);
+            }
+            return this.sidebar;
+        };
+
+        this.closeSidebar = function() {
+            if(this.sidebar) {
+                this.removeClass("w2of3");
+                this.sidebar.remove();
+                this.sidebar = null;
+            }
+            return this;
+        };
+
+        //this.open();
     },
     /**
      * @param Object headers
@@ -404,7 +557,7 @@ var forp = {
 
             if(entry.groups) {
                 for(var g in entry.groups) {
-                    li.append(forp.TagRandColor.provideFor(entry.groups[g]));
+                    li.append(forp.TagRandColor.provideElementFor(entry.groups[g]));
                 }
             }
             if(entry.caption) li.append(forp.create("span").text(entry.caption));
@@ -462,6 +615,75 @@ var forp = {
         this.append(this.treeList(stack[0], true));
     },
     /**
+     * Backtrace Class
+     */
+    Backtrace : function(i, stack)
+    {
+        forp.DOMElementWrapper.call(this);
+        this.element = document.createElement("div");
+        this.attr("style", "text-align: center");
+
+        this.prependItem = function(entry, highlight) {
+            return this.prepend(
+                forp.create("div")
+                    .class("backtrace-item shadow" + (highlight ? " highlight" : ""))
+                    .text(
+                        "<strong>" + entry.id + "</strong><br>" +
+                        entry.filelineno + "<br>" +
+                        forp.roundDiv(entry.usec, 1000).toFixed(3) + "ms " +
+                        forp.roundDiv(entry.bytes, 1024).toFixed(3) + "Kb"
+                    )
+            );
+        };
+
+        var child = i;
+        while(i != null) {
+            this.prependItem(stack[i], child == i);
+            i = stack[i].parent;
+            if(i != null) {
+                this.prepend(forp.create("div").text("\\/"));
+            }
+        }
+
+        this.prepend(forp.create("br"))
+            .prepend(forp.create("br"))
+            .append(forp.create("br"))
+            .append(forp.create("br"));
+    },
+    /**
+     * LineEventListenerBacktrace Class
+     *
+     * @param i Stack index
+     * @param context
+     */
+    LineEventListenerBacktrace : function(i, context)
+    {
+        this.target = null;
+        this.init = function()
+        {
+            this.target.attr("data-ref", i)
+                .bind(
+                    "click",
+                    function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        var line = forp.wrap(this);
+                        context.getConsole()
+                               .getSidebar()
+                               .empty()
+                               .append(
+                                   new forp.Backtrace(
+                                    line.getAttr("data-ref"),
+                                    context.getStack().stack
+                                   )
+                               )
+                               .scrollBottom();
+                    }
+                );
+        }
+    },
+    /**
      * Gauge Class
      */
     Gauge : function(percent, text, hcolor)
@@ -472,7 +694,7 @@ var forp = {
         var bcolor = "#bbb";
         hcolor = hcolor ? hcolor : "#4D90FE";
 
-        this.class("gauge")
+        this.addClass("gauge")
             .text(text)
             .attr(
                 "style",
@@ -485,22 +707,35 @@ var forp = {
      * Tag Class
      */
     TagRandColor : {
+        i : 0,
+        pocket : ["#ea5", "#e5a", "#5ae", "#5ea", "#ae6", "#a5e",
+                  "#e55", "#ee6", "#e6e", "#5e5", "#5ee", "#55e"],
+        //pocket : ["#ffa0ff", "#ffa000", "#c0a0ff", "#c0e000", "#e06040",
+        //          "#80a0ff", "#80e000", "#6080ff", "#a060c0", "#00a060"],
         tagsColor : {},
         provideFor : function(name)
         {
             if(!this.tagsColor[name]) {
-                this.tagsColor[name] = 'rgb(' +
-                    Math.round(Math.random() * 100 + 155) + ',' +
-                    Math.round(Math.random() * 100 + 155) + ',' +
-                    Math.round(Math.random() * 100 + 155)
-                    + ')';
+                if(this.i < this.pocket.length) {
+                    this.tagsColor[name] = this.pocket[this.i];
+                    this.i++;
+                } else {
+                    this.tagsColor[name] = 'rgb(' +
+                        Math.round(Math.random() * 100 + 155) + ',' +
+                        Math.round(Math.random() * 100 + 155) + ',' +
+                        Math.round(Math.random() * 100 + 155)
+                        + ')';
+                }
             }
-
+            return this.tagsColor[name];
+        },
+        provideElementFor : function(name)
+        {
             return forp.create("a")
                     .class("tag")
                     .attr(
                         'style',
-                        'background-color: ' + this.tagsColor[name]
+                        'color: #fff; background-color: ' + this.provideFor(name)
                     )
                     .text(name)
                     .bind(
@@ -510,23 +745,14 @@ var forp = {
                         }
                     );
         }
-    }
-};
-/**
- * forp IIFE
- * @param forp f
- */
-(function(f) {
-
+    },
     /**
-     * forp window manager
-     * @param array forp stack
+     * Stack Class
      */
-    f.Manager = function(stack)
+    Stack : function(stack)
     {
         var self = this;
 
-        this.window = null;
         this.stack = stack; // RAW stack
         this.functions = null; // indexed stack
         this.includes = null; // included files
@@ -537,12 +763,9 @@ var forp = {
         this.topCpu = null;
         this.topCalls = null;
         this.topMemory = null;
-        this.console = null;
         this.found = {};
         this.maxNestedLevel = 0;
         this.avgLevel = 0;
-        this.opened = false;
-        this.tree = null;
 
         /**
          * @param Object stack entry
@@ -622,14 +845,14 @@ var forp = {
                 this.groups = {};
                 this.leaves = [];
 
-                this.topCpu = new f.SortedFixedArray(
+                this.topCpu = new forp.SortedFixedArray(
                     function(a, b) {
                         return (a.usec > b.usec);
                     },
                     20
                 );
 
-                this.topMemory = new f.SortedFixedArray(
+                this.topMemory = new forp.SortedFixedArray(
                     function(a, b) {
                         return (a.bytes > b.bytes);
                     },
@@ -640,8 +863,8 @@ var forp = {
 
                     id = this.getEntryId(this.stack[entry]);
                     filelineno = this.stack[entry].file + (this.stack[entry].lineno ? ':' + this.stack[entry].lineno : '');
-                    ms = f.roundDiv(this.stack[entry].usec, 1000);
-                    kb = f.roundDiv(this.stack[entry].bytes, 1024);
+                    ms = forp.roundDiv(this.stack[entry].usec, 1000);
+                    kb = forp.roundDiv(this.stack[entry].bytes, 1024);
 
                     // entry
                     this.stack[entry].i = entry;
@@ -726,7 +949,7 @@ var forp = {
                     this.functions[id].entries[filelineno].refs.push(this.stack[entry]);
 
                     // Refines ancestors
-                    //this.refineParents(this.stack[entry]);
+//this.refineParents(this.stack[entry]);
 
                     // Files
                     if(!this.includes[this.stack[entry].file]) {
@@ -767,13 +990,21 @@ var forp = {
         };
 
         /**
+         * @return array Main entry
+         */
+        this.getMainEntry = function()
+        {
+            return this.stack[0];
+        };
+
+        /**
          * @param array Stack entry
          * @return string
          */
         this.getEntryId = function(entry)
         {
             return ((entry.class) ? entry.class + '::' : '') + entry.function;
-        }
+        };
 
         /**
          * @return array
@@ -781,7 +1012,7 @@ var forp = {
         this.getFunctions = function()
         {
             return this.aggregate().functions;
-        }
+        };
 
         /**
          * Regexp search in stack functions
@@ -812,7 +1043,7 @@ var forp = {
         this.getTopCalls = function()
         {
             if(!this.topCalls) {
-                this.topCalls = new f.SortedFixedArray(
+                this.topCalls = new forp.SortedFixedArray(
                     function(a, b) {return (a.calls > b.calls);},
                     20
                 );
@@ -887,47 +1118,70 @@ var forp = {
         {
             return this.aggregate().groups;
         };
+    }
+};
+/**
+ * forp IIFE
+ * @param forp f
+ */
+(function(f) {
+
+    /**
+     * forp stack manager
+     * @param array forp stack
+     */
+    f.Controller = function(stack)
+    {
+        var self = this;
+
+        this.layout = null;
+        this.console = null;
+        this.opened = false;
+        this.tree = null;
+
+        this.stack = null;
+        this.functions = null;
+        this.groups = null;
+
+        /**
+         *
+         */
+        this.setStack = function(stack)
+        {
+            this.stack = new f.Stack(stack);
+            return this;
+        };
+
+        /**
+         *
+         */
+        this.getStack = function()
+        {
+            return this.stack;
+        };
 
         /**
          * @return Object Console
          */
         this.getConsole = function()
         {
-            if(!this.console) {
-                this.console = (new f.Console()).appendTo(this.window);
-                this.console.appendTo(this.window);
-            }
-            return this.console;
+            return this.layout.getConsole();
         };
 
         /**
-         * Display datas
-         *
-         * @param array datas
-         * @return Object
-         */
-        this.show = function(datas, func)
-        {
-            this.getConsole()
-                .empty()
-                .log(func(datas));
-        };
-
-        /**
-         * Run window manager
-         * @return forp.Manager
+         * Run layout manager
+         * @return forp.Controller
          */
         this.run = function()
         {
-            // init
-            this.window = f.create("div")
-                           .attr("id", "forp")
-                           .close();
+            // layout
+            this.layout = (new f.Layout())
+                            .close()
+                            .addClass("shadow");
 
-            document.body.insertBefore(this.window.element, document.body.firstChild);
-
+            // toolbar
             this.nav = f.create("nav")
-                        .appendTo(this.window);
+                        .appendTo(this.layout);
 
             // infos button
             f.create("div")
@@ -940,24 +1194,23 @@ var forp = {
                  .attr("title", "forp documentation")
                  .text("i")
              )
-             .appendTo(this.window);
+             .appendTo(this.layout);
 
+            if(this.getStack()) {
 
-            if(this.stack) {
-
-                this.window.bind(
+                this.layout.bind(
                     "click",
                     function() {self.open();}
                 );
 
                 f.create("div")
                     .attr("style", "margin-right: 10px")
-                    .text(f.roundDiv(this.stack[0].usec, 1000) + ' ms ')
+                    .text(f.roundDiv(this.getStack().getMainEntry().usec, 1000) + ' ms ')
                     .appendTo(this.nav);
 
                 f.create("div")
                     .attr("style", "margin-right: 10px")
-                    .text(f.roundDiv(this.stack[0].bytes, 1024) + ' Kb')
+                    .text(f.roundDiv(this.getStack().getMainEntry().bytes, 1024) + ' Kb')
                     .appendTo(this.nav);
             } else {
                 f.create("div")
@@ -968,15 +1221,28 @@ var forp = {
             return this;
         };
 
+        this.clearTabs = function()
+        {
+            self.layout
+                .find(".tbtn")
+                .each(
+                    function(o) {
+                        o.class("tbtn");
+                        o.attr("data-state", "off")
+                    }
+                );
+            return this;
+        };
+
         /**
          * Select a tab
          * @param string DOM Element target
-         * @return forp.Manager
+         * @return forp.Controller
          */
         this.selectTab = function(target)
         {
-            self.window.find(".tbtn").each(function(o) {o.class("tbtn");});
-            f.find(target).class("tbtn selected");
+            this.clearTabs();
+            f.find(target).class("tbtn highlight");
             return this;
         };
 
@@ -1004,74 +1270,64 @@ var forp = {
             for(var i in self.functions[id].entries) {
                 for(var j in self.functions[id].entries[i].refs) {
                     if(!self.functions[id].entries[i].refs[j]) continue;
+
                     table.line([
                         self.functions[id].entries[i].refs[j].filelineno +
                         (self.functions[id].entries[i].refs[j].caption ? "<br>" + self.functions[id].entries[i].refs[j].caption : ""),
                         new f.Gauge(
-                            f.round((self.functions[id].entries[i].refs[j].usec * 100) / self.sumDuration(self.functions[id].refs))
+                            f.round((self.functions[id].entries[i].refs[j].usec * 100) / self.getStack().sumDuration(self.functions[id].refs))
                             , f.roundDiv(self.functions[id].entries[i].refs[j].usec, 1000).toFixed(3)
                         ),
                         new f.Gauge(
-                            f.round((self.functions[id].entries[i].refs[j].bytes * 100) / self.sumMemory(self.functions[id].refs))
-                            , f.roundDiv(self.functions[id].entries[i].refs[j].bytes, 1000).toFixed(3)
+                            f.round((self.functions[id].entries[i].refs[j].bytes * 100) / self.getStack().sumMemory(self.functions[id].refs))
+                            , f.roundDiv(self.functions[id].entries[i].refs[j].bytes, 1024).toFixed(3)
                         ),
-                    ]);
-                }
-                /*table.line([
-                    self.functions[id].entries[i].filelineno,
-                    self.gauge(
-                        f.round((self.functions[id].entries[i].calls * 100) / self.functions[id].calls)
-                        , self.functions[id].entries[i].calls
-                    ),
-                    self.gauge(
-                        f.round((self.sumDuration(self.functions[id].entries[i].refs) * 100) / self.sumDuration(self.functions[id].refs))
-                        , f.roundDiv(self.sumDuration(self.functions[id].entries[i].refs), 1000).toFixed(3)
-                    ),
-                    self.gauge(
-                            f.round((self.sumMemory(self.functions[id].entries[i].refs) * 100) / self.sumMemory(self.functions[id].refs))
-                            , f.roundDiv(self.sumMemory(self.functions[id].entries[i].refs), 1024).toFixed(3)
+                    ]).addEventListener(
+                        new forp.LineEventListenerBacktrace(
+                            self.functions[id].entries[i].refs[j].i,
+                            self
                         )
-                ]);*/
+                    );
+                }
             }
             target.insertAfter(line);
         };
 
         /**
-         * Expand main window
-         * @return forp.Manager
+         * Expand main layout
+         * @return forp.Controller
          */
         this.open = function()
         {
             if(this.opened) return; // TODO unbind
             this.opened = true;
 
-            this.window.open();
+            this.layout.open();
 
             // footer
             f.create("div")
                 .class("footer")
-                .appendTo(this.window);
+                .appendTo(this.layout);
 
             var container = f.create("div").attr("style", "margin-top: -2px");
             container.appendTo(this.nav);
 
-            self.aggregate();
+            self.getStack().aggregate();
+            //this.stack = self.getStack().stack;
+            self.functions = self.getStack().functions;
+            self    .groups = self.getStack().groups;
 
-            f.create("a")
-                .text("stack (" + self.stack.length + ")")
-                .attr("href", "javascript:void(0);")
-                .class("tbtn")
-                .appendTo(container)
-                .bind(
-                    'click',
-                    function() {
+            container.append(
+                new f.ToggleButton(
+                    "stack (" + self.getStack().stack.length + ")",
+                    function(e) {
 
-                        if(!self.tree) self.tree = new f.Tree(self.stack);
-
-                        self.selectTab(this)
+                        if(!self.tree) self.tree = new f.Tree(self.getStack().stack);
+                        self.selectTab(e.target)
                             .getConsole()
                             .empty()
-                            .log(
+                            .open()
+                            .append(
                                 f.create("div")
                                     .attr("style", "margin-top: 10px;")
                                     .append(
@@ -1114,21 +1370,18 @@ var forp = {
                                         f.create("div").append(self.tree)
                                     )
                                 );
-                            }
-                        );
+                    },
+                    self.layout.getMainPanel().close
+                )
+            );
 
-            f.create("a")
-                .text("top 20 duration")
-                .attr("href", "#")
-                .class("tbtn")
-                .appendTo(container)
-                .bind(
-                    'click',
-                    function() {
-                        var lines = [],
-                            datas = self.getTopCpu();
+            container.append(
+                new f.ToggleButton(
+                    "top 20 duration",
+                    function(e) {
+                        var datas = self.getStack().getTopCpu();
 
-                        self.selectTab(this);
+                        self.selectTab(e.target);
 
                         /*for(var i = 0; i < self.leaves.length; i++) {
                             var h = (self.leaves[i].usec * 50) / datas[0].usec;
@@ -1145,60 +1398,69 @@ var forp = {
                                         .table(["function", "self cost ms", "total cost ms", "calls"]);
 
                         for(var i in datas) {
-                            var id = self.getEntryId(datas[i]);
+                            var id = self.getStack().getEntryId(datas[i]);
                             table.line([
                                     "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
                                     + (datas[i].caption ? "<br>" + datas[i].caption : ""),
                                     f.roundDiv(datas[i].usec, 1000).toFixed(3) + '',
-                                    f.roundDiv(self.sumDuration(self.functions[id].refs), 1000).toFixed(3) + '',
+                                    f.roundDiv(self.getStack().sumDuration(self.functions[id].refs), 1000).toFixed(3) + '',
                                     self.functions[id].calls
-                                ]);
+                                ])
+                                .addEventListener(
+                                    new forp.LineEventListenerBacktrace(
+                                        datas[i].i,
+                                        self
+                                    )
+                                );
                         }
-                    }
-                );
+                    },
+                    self.layout.getMainPanel().close
+                )
+            );
 
-            f.create("a")
-                .text("top 20 memory")
-                .attr("href", "#")
-                .class("tbtn")
-                .appendTo(container)
-                .bind(
-                    'click',
-                    function() {
-                        var lines = [],
-                            datas = self.getTopMemory();
+            container.append(
+                new f.ToggleButton(
+                    "top 20 memory",
+                    function(e) {
+                        var datas = self.getStack()
+                                        .getTopMemory();
 
-                        self.selectTab(this);
+                        self.selectTab(e.target);
 
                         var table = self.getConsole()
                                         .empty()
                                         .open()
                                         .table(["function", "self cost Kb", "total cost Kb", "calls"]);
                         for(var i in datas) {
-                            var id = self.getEntryId(datas[i]);
+                            var id = self.getStack().getEntryId(datas[i]);
                             table.line([
-                                "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
-                                + (datas[i].caption ? "<br>" + datas[i].caption : ""),
-                                f.roundDiv(datas[i].bytes, 1024).toFixed(3) + '',
-                                f.roundDiv(self.sumMemory(self.functions[id].refs), 1024).toFixed(3) + '',
-                                self.functions[id].calls
-                            ]);
+                                    "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
+                                    + (datas[i].caption ? "<br>" + datas[i].caption : ""),
+                                    f.roundDiv(datas[i].bytes, 1024).toFixed(3) + '',
+                                    f.roundDiv(self.getStack().sumMemory(self.functions[id].refs), 1024).toFixed(3) + '',
+                                    self.functions[id].calls
+                                ])
+                                .addEventListener(
+                                    new forp.LineEventListenerBacktrace(
+                                        datas[i].i,
+                                        self
+                                    )
+                                );
                         }
-                    }
-                );
+                    },
+                    self.layout.getMainPanel().close
+                )
+            );
 
-            f.create("a")
-                .text("top 20 calls")
-                .attr("href", "#")
-                .class("tbtn")
-                .appendTo(container)
-                .bind(
-                    'click',
+
+            container.append(
+                new f.ToggleButton(
+                    "top 20 calls",
                     function(e) {
-                        var lines = [],
-                            datas = self.getTopCalls();
+                        var datas = self.getStack()
+                                        .getTopCalls();
 
-                        self.selectTab(this);
+                        self.selectTab(e.target);
 
                         var table = self.getConsole()
                                         .empty()
@@ -1208,8 +1470,8 @@ var forp = {
                             table.line([
                                     datas[i].id,
                                     datas[i].calls,
-                                    f.roundDiv(self.sumDuration(datas[i].refs), 1000).toFixed(3) + '',
-                                    f.roundDiv(self.sumMemory(datas[i].refs), 1000).toFixed(3) + ''
+                                    f.roundDiv(self.getStack().sumDuration(datas[i].refs), 1000).toFixed(3) + '',
+                                    f.roundDiv(self.getStack().sumMemory(datas[i].refs), 1000).toFixed(3) + ''
                                 ])
                                 .attr("data-ref", datas[i].id)
                                 .bind(
@@ -1217,34 +1479,21 @@ var forp = {
                                     self.toggleDetails
                                 );
                         }
-                    }
-                );
+                    },
+                    self.layout.getMainPanel().close
+                )
+            );
 
-            if(self.includesCount > 0)
-            f.create("a")
-                .text("files (" + self.includesCount + ")")
-                .attr("href", "#")
-                .class("tbtn")
-                .appendTo(container)
-                .bind(
-                    'click',
-                    function() {
-                        var lines = [],
-                            datas = self.getIncludes();
+            if(self.getStack().includesCount > 0)
+            container.append(
+                new f.ToggleButton(
+                    "files (" + self.getStack().includesCount + ")",
+                    function(e) {
+                        var datas = self.getStack()
+                                        .getIncludes();
 
-                        self.selectTab(this);
+                        self.selectTab(e.target);
 
-                        /*for(var i in datas) {
-                            lines.push(
-                                {
-                                    "file" : i,
-                                    "calls from" : self.gauge(
-                                        f.round((datas[i].calls * 100) / self.stack.length),
-                                        datas[i].calls
-                                    )
-                                }
-                            );
-                        }*/
                         var table = self.getConsole()
                                         .empty()
                                         .open()
@@ -1258,132 +1507,134 @@ var forp = {
                                 )
                             ]);
                         }
-                    }
-                );
+                    },
+                    self.layout.getMainPanel().close
+                )
+            );
 
-            if(self.groupsCount > 0)
-            f.create("a")
-                .text("groups (" + self.groupsCount + ")")
-                .attr("href", "#")
-                .class("tbtn")
-                .appendTo(container)
-                .bind(
-                    'click',
-                    function() {
-                        self.selectTab(this)
-                            .show(
-                            self.getGroups()
-                            , function(datas) {
-                                var t = f.create("table")
-                                    ,tr = f.create("tr", t);
+            if(self.getStack().groupsCount > 0)
+            container.append(
+                new f.ToggleButton(
+                    "groups (" + self.getStack().groupsCount + ")",
+                    function(e) {
+                        var datas = self.getStack()
+                                        .getGroups();
 
-                                f.create("th", tr, "group");
-                                f.create("th", tr, "calls", "w100");
-                                f.create("th", tr, "ms", "w100");
-                                f.create("th", tr, "Kb", "w100");
+                        self.selectTab(e.target);
 
-                                for(var i in datas) {
-                                    var tr = f.create("tr", t);
-                                    f.create("td", tr)
-                                        .append(f.TagRandColor.provideFor(i))
-                                        .append(f.create("span").text(datas[i].refs.length + ' ' + (datas[i].refs.length>1 ? 'entries' : 'entry')));
-                                    f.create("td", tr, datas[i].calls, 'numeric');
-                                    f.create("td", tr, f.roundDiv(datas[i].usec, 1000).toFixed(3) + '', 'numeric');
-                                    f.create("td", tr, f.roundDiv(datas[i].bytes, 1024).toFixed(3) + '', 'numeric');
-                                    for(var j in datas[i].refs) {
-                                        var trsub = f.create("tr", t);
-                                        trsub.attr("data-ref", datas[i].refs[j].id);
-                                        trsub.bind("click", self.toggleDetails);
-                                        f.create("td", trsub, datas[i].refs[j].id);
-                                        f.create("td", trsub, "", 'numeric')
-                                            .append(
-                                                new f.Gauge(
-                                                    f.round((self.functions[datas[i].refs[j].id].calls * 100) / datas[i].calls)
-                                                    , self.functions[datas[i].refs[j].id].calls
-                                                )
-                                            );
-                                        f.create("td", trsub, "", 'numeric')
-                                            .append(
-                                                new f.Gauge(
-                                                    f.round(self.sumDuration(self.functions[datas[i].refs[j].id].refs) * 100) / self.sumDuration(datas[i].refs)
-                                                    , f.roundDiv(self.sumDuration(self.functions[datas[i].refs[j].id].refs), 1000).toFixed(3)
-                                                )
-                                            );
-                                        f.create("td", trsub, "", 'numeric')
-                                            .append(
-                                                new f.Gauge(
-                                                    f.round(self.sumMemory(self.functions[datas[i].refs[j].id].refs) * 100) / self.sumDuration(datas[i].refs)
-                                                    , f.roundDiv(self.sumMemory(self.functions[datas[i].refs[j].id].refs), 1024).toFixed(3)
-                                                )
-                                            );
-                                    }
-                                }
-                                return t;
+                        var table = self.getConsole()
+                                        .empty()
+                                        .open()
+                                        .table(["group", "calls", "ms", "Kb"]);
+
+                        for(var i in datas) {
+                            table
+                                .append(
+                                    f.create("tr")
+                                     .append(
+                                        f.create("td")
+                                         .attr("colspan", 4)
+                                         .attr("style", "padding: 0px; height: 4px; background-color:" + f.TagRandColor.provideFor(i))
+                                     )
+                                )
+                                .line([
+                                    "<strong>" + i + "</strong> " +
+                                    datas[i].refs.length + " " +
+                                    (datas[i].refs.length>1 ? "entries" : "entry"),
+                                    datas[i].calls,
+                                    f.roundDiv(datas[i].usec, 1000).toFixed(3) + '',
+                                    f.roundDiv(datas[i].bytes, 1024).toFixed(3) + ''
+                                ]);
+                                
+                            for(var j in datas[i].refs) {
+                                table.line([
+                                    datas[i].refs[j].id,
+                                    new f.Gauge(
+                                        f.round((self.functions[datas[i].refs[j].id].calls * 100) / datas[i].calls)
+                                        , self.functions[datas[i].refs[j].id].calls
+                                    ),
+                                    new f.Gauge(
+                                        f.round(self.getStack().sumDuration(self.functions[datas[i].refs[j].id].refs) * 100) / self.getStack().sumDuration(datas[i].refs)
+                                        , f.roundDiv(self.getStack().sumDuration(self.functions[datas[i].refs[j].id].refs), 1000).toFixed(3)
+                                    ),
+                                    new f.Gauge(
+                                        f.round(self.getStack().sumMemory(self.functions[datas[i].refs[j].id].refs) * 100) / self.getStack().sumDuration(datas[i].refs)
+                                        , f.roundDiv(self.getStack().sumMemory(self.functions[datas[i].refs[j].id].refs), 1024).toFixed(3)
+                                    )
+                                ])
+                                .attr("data-ref", datas[i].refs[j].id)
+                                .bind("click", self.toggleDetails);
                             }
-                        );
-                    }
-                );
+                        }
+                    },
+                    self.layout.getMainPanel().close
+                )
+            );
 
-            f.create("a")
-                .text("metrics")
-                .attr("href", "#")
-                .class("tbtn")
-                .appendTo(container)
-                .bind(
-                    'click',
-                    function() {
-                        var table = self.selectTab(this)
-                            .getConsole()
-                            .empty()
-                            .open()
-                            .table(["key", "value"]);
+            container.append(
+                new f.ToggleButton(
+                    "metrics",
+                    function(e) {
 
-                        table.line(["total calls", self.stack.length]);
-                        table.line(["max nested level", self.maxNestedLevel]);
-                        table.line(["avg nested level", self.avgLevel.toFixed(2)]);
-                    }
-                );
+                        // TODO Metrics API
+                        // @see http://www.sdmetrics.com/LoM.html
 
-            f.create("input")
+                        //   Cyclomatic complexity
+                        //   Excessive class complexity
+                        //   N-path complexity
+                        //   Too many fields
+                        //   Too many methods
+                        // x Ease of change
+                        var table = self.getConsole()
+                                        .empty()
+                                        .open()
+                                        .table(["metric", "type", "value", "tip"]);
+
+                        self.selectTab(e.target);
+
+                        table.line(["<strong>Total includes</strong>", "Performance", self.getStack().includesCount, ""]);
+                        table.line(["<strong>Total calls</strong>", "Performance", self.getStack().stack.length, ""]);
+                        table.line(["<strong>Max nested level</strong>", "Nesting", self.getStack().maxNestedLevel, ""]);
+                        table.line(["<strong>Avg nested level</strong>", "Nesting", self.getStack().avgLevel.toFixed(2), ""]);
+                    },
+                    self.layout.getMainPanel().close
+                )
+            );
+
+            container.append(
+               f.create("input")
                 .attr("type", "text")
                 .attr("name", "forpSearch")
                 .attr("placeholder", "Search forp ...")
-                .appendTo(container)
                 .bind(
                     "click",
                     function() {
-                        f.find(this).class("selected");
-                        self.selectTab(this);
+                        f.find(this);
+                        self.clearTabs();
                     }
                 )
                 .bind(
                     "keyup",
                     function() {
-                        self.window.open();
-                        self.show(
-                            self.search(this.value)
-                            , function(datas) {
-                                var t = f.create("table")
-                                    ,tr = f.create("tr", t);
-                                f.create("th", tr, "function");
-                                f.create("th", tr, "calls", "w100");
-                                f.create("th", tr, "ms", "w100");
-                                f.create("th", tr, "Kb", "w100");
-                                //f.create("th", tr, "called from");
-                                for(var i in datas) {
-                                    tr = f.create("tr", t);
-                                    tr.attr("data-ref", datas[i].id);
-                                    tr.bind("click", self.toggleDetails);
-                                    f.create("td", tr, datas[i].id);
-                                    f.create("td", tr, datas[i].calls, "numeric");
-                                    f.create("td", tr, f.roundDiv(self.sumDuration(datas[i].refs), 1000).toFixed(3) + '', "numeric");
-                                    f.create("td", tr, f.roundDiv(self.sumMemory(datas[i].refs), 1024).toFixed(3) + '', "numeric");
-                                }
-                                return t;
-                            }
-                        );
+                        var table = self.getConsole()
+                                        .empty()
+                                        .open()
+                                        .table(["function", "calls", "ms", "Kb"]),
+                            datas = self.getStack().search(this.value);
+
+                        for(var i in datas) {
+                            table.line([
+                                datas[i].id,
+                                datas[i].calls,
+                                f.roundDiv(self.getStack().sumDuration(datas[i].refs), 1000).toFixed(3) + '',
+                                f.roundDiv(self.getStack().sumMemory(datas[i].refs), 1024).toFixed(3) + ''
+                            ])
+                            .attr("data-ref", datas[i].id)
+                            .bind("click", self.toggleDetails);
+                        }
                     }
-                );
+                )
+            );
             return this;
         };
     };
@@ -1401,8 +1652,9 @@ forp.ready(
             || document.getElementsByTagName('body')[0]).appendChild(s);
 
         // Runs forp
-        var f = new forp.Manager();
-        f.stack = forp.stack;
-        f.run();
+        var f = new forp.Controller();
+        (new forp.Controller())
+            .setStack(forp.stack)
+            .run();
     }
 );
