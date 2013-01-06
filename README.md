@@ -5,7 +5,7 @@ forpgui JS helps you to refine it clientside.
 
         forp (PHP extension) > json encode (PHP) > forpgui (JavaScript)
 
-forpgui features :
+forpgui features (example : Yii PHP framework) :
 
 - Stack tree
 ![tree](https://raw.github.com/aterrien/forpgui/master/doc/ui-tree.png)
