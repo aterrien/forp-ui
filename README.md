@@ -12,6 +12,9 @@ forpgui features :
 
 - top 20 duration
 ![duration](https://raw.github.com/aterrien/forpgui/master/doc/ui-duration.png)
+
+Click on a stack entry displays backtrace in sidebar :
+
 ![duration details](https://raw.github.com/aterrien/forpgui/master/doc/ui-duration-details.png)
 
 - top 20 Memory
@@ -21,8 +24,17 @@ forpgui features :
 ![calls](https://raw.github.com/aterrien/forpgui/master/doc/ui-calls.png)
 
 - groups
+
+This is the result of forp @ProfileGroup annotation.
+
 ![groups](https://raw.github.com/aterrien/forpgui/master/doc/ui-groups.png)
+
+Click on a group entry displays "called from" block :
+
 ![groups details](https://raw.github.com/aterrien/forpgui/master/doc/ui-groups-details.png)
 
-- Search input
+- search engine
 ![search](https://raw.github.com/aterrien/forpgui/master/doc/ui-search.png)
+
+
+- quality metrics
