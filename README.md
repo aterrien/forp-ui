@@ -1,26 +1,28 @@
-!under development!
+A simple GUI for forp extension https://github.com/aterrien/forp.
 
+forp extension gives us the full PHP stack with profiling informations.
+forpgui JS helps you to refine it clientside.
 
-A simple GUI lib for forp extension https://github.com/aterrien/forp.
+        forp (PHP extension) > json encode (PHP) > forpgui (JavaScript)
 
-# JS GUI #
+forpgui features :
 
-A complete GUI for forp with :
-- Full stack
-- top 20 Calls
-- top 20 CPU
+- Stack tree
+![tree](https://raw.github.com/aterrien/forpgui/master/doc/ui-tree.png)
+
+- top 20 duration
+![duration](https://raw.github.com/aterrien/forpgui/master/doc/ui-duration.png)
+![duration details](https://raw.github.com/aterrien/forpgui/master/doc/ui-duration-details.png)
+
 - top 20 Memory
+![memory](https://raw.github.com/aterrien/forpgui/master/doc/ui-memory.png)
+
+- top 20 Calls
+![calls](https://raw.github.com/aterrien/forpgui/master/doc/ui-calls.png)
+
 - groups
+![groups](https://raw.github.com/aterrien/forpgui/master/doc/ui-groups.png)
+![groups details](https://raw.github.com/aterrien/forpgui/master/doc/ui-groups-details.png)
+
 - Search input
-
-forp extension > json_encode() > forp.js
-
-See js_demo.php
-or js/index.html for a bigger stack
-
-
-# PHP GUI #
-
-... if you are afraid to use Javascript to display the forp stack.
-
-See php_demo.php
+![search](https://raw.github.com/aterrien/forpgui/master/doc/ui-search.png)
