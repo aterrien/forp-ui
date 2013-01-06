@@ -1,0 +1,259 @@
+#forp {
+    position: fixed;
+    bottom: 0px;
+    right: 0px;
+    color: #222;
+    z-index: 2147483647;
+    text-decoration: none;
+    font-family: "Helvetica Neue", Helvetica, Nimbus, Arial, sans-serif;
+    font-weight: 300;
+    text-rendering: optimizelegibility;
+    max-width: 300px;
+    font-size : 13px;
+    background: #fff;
+    line-height: 1.3;
+}
+#forp div.footer {
+    height: 10px; position: absolute;
+    top: 0px; left: 0px; right: 0px;
+    -webkit-box-shadow: inset 0 3px 5px -2px #aaa;
+    -moz-box-shadow: inset 0 3px 5px -2px #aaa;
+    box-shadow: inset 0 3px 5px -2px #aaa;
+}
+#forp.closed {
+    margin: 15px;
+    border-radius: 8px;
+    width: 200px;
+    opacity: .6;
+    cursor: pointer;
+}
+#forp.closed:hover {
+    opacity: 1;
+}
+#forp.opened{
+    max-width: 100%;
+    left: 0px;
+}
+#forp.opened a{
+    display: inline;
+}
+#forp nav{
+    background: #fcfcfc;
+    border-radius: 8px;
+    padding: 14px 10px 10px 10px;
+}
+#forp.closed nav{
+    height: auto;
+}
+#forp.closed nav>div{
+    margin: 3px 0px;
+}
+#forp.opened nav{
+    height: 22px;
+}
+#forp.opened nav>div{
+    float: left;
+}
+#forp a{
+    white-space:nowrap;
+    text-decoration: none;
+    color: #FFF;
+}
+#forp a.btn, a.tbtn{
+    color: #FFF;
+    margin: 0px 5px;
+    padding: 4px 5px 5px 5px;
+    background: #555;
+    text-decoration: none;
+}
+#forp div.close{
+    color: #ccc;
+    padding: 5px 10px;
+    position: absolute;
+    top: 0px;
+    right: 30px;
+    text-align: center;
+}
+#forp div.close:hover{
+    cursor: pointer;
+    color: #555;
+}
+#forp .highlight {
+    background: #4D90FE !important;
+    color: #FFF !important;
+}
+#forp a.tag{
+    background: #EE0;
+    color : #222;
+    font-size : 10px;
+    padding: 2px 5px;
+    margin: 0px 5px;
+}
+#forp a.tag, #forp a{
+    border-radius: 3px;
+}
+#forp .backtrace-item{
+    color: #333;
+    margin: 0px 5px;
+    padding: 4px 5px 5px 5px;
+    background: #eee;
+    text-decoration: none;
+    border-radius: 8px;
+    padding: 5px;
+    display: inline-block;
+}
+#forp.shadow{
+   -moz-box-shadow: 0 0 8px #ccc;
+   -webkit-box-shadow: 0 0 8px #ccc;
+   box-shadow: 0 0 8px #ccc;
+}
+#forp table{
+    font-weight: 300;
+    font-size : 13px;
+    width: 100%;
+    border-collapse: collapse;
+}
+#forp div.panel {
+    overflow: auto;
+    overflow-x: hidden;
+    transition: height .1s;
+    -moz-transition: height .1s;
+    -webkit-transition: height .1s;
+    -o-transition: height .1s;
+    transition-timing-function: ease-in;
+    -moz-transition-timing-function: ease-in;
+    -webkit-transition-timing-function: ease-in;
+    -o-transition-timing-function: ease-in;
+}
+#forp div.mainpanel {
+    border-top: 1px solid #BBB;
+}
+#forp div.console{
+    float: left;
+    background: #fff;
+    width: 100%;
+}
+#forp div.sidebar{
+    float: right;
+}
+#forp th, #forp td{
+    padding: 5px;
+    border: 1px solid #ddd;
+}
+#forp th{
+    text-align: center;
+    font-weight: bold;
+    color: #333;
+    border: 1px solid #ddd;
+    background: #eee;
+}
+#forp .w100{
+    width: 110px;
+}
+#forp td{
+    text-align: left;
+    text-overflow: ellipsis;
+    word-space: nowrap;
+    overflow: hidden;
+    vertical-align: top;
+}
+#forp tr{
+    color: #333;
+    background: #fff;
+}
+#forp tr.sub{
+    background: #eee;
+}
+#forp tr:hover{
+    background: #EDF4FF;
+}
+#forp tr[data-ref]{
+    cursor: pointer;
+}
+#forp .numeric{
+    text-align: right;
+}
+#forp ul{
+    line-height: 1.8;
+    list-style: none;
+    padding-left: 20px;
+}
+#forp ul.l0{
+    padding-left: 10px;
+}
+#forp li{
+    line-height: 1.8;
+}
+#forp li > div.numeric{
+    min-width: 60px;
+    margin: 0px 10px
+}
+#forp div.expander{
+    text-align:center;
+    width: 20px;
+    cursor: pointer;
+}
+#forp li.expanded > div.expander:before{
+    content: "-";
+}
+#forp li.collapsed > div.expander:before {
+    content: "+";
+}
+#forp li.collapsed > ul{
+    display: none;
+}
+#forp .left{
+    float: left;
+}
+#forp .right{
+    float: right;
+}
+#forp div.gauge{
+    position: relative;
+    background: #eee;
+    line-height: 1.8;
+    color: #555;
+    margin: 4px 5px 0px 0px;
+    width: 110px;
+    text-align: right;
+    font-size: 0.8em;
+}
+#forp div.gauge div.bar{
+    background: #59f;
+    height: 18px;
+}
+#forp td>div.gauge{
+    margin: 0px;
+}
+#forp div.i{
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-weight: 900;
+    text-align: center;
+    background: #ccc;
+    width: 15px;
+    height: 15px;
+    border-radius: 10px;
+}
+#forp div.i>a{
+    font-family: Georgia;
+    color: #FFF;
+}
+#forp input[type=text]{
+    font-size: 11px;
+    padding: 5px;
+    border: 1px solid #777;
+    border-radius: 3px;
+    background: #fff;
+    margin: 0px 5px
+}
+#forp .indent {
+    padding-left: 30px
+}
+#forp div.w2of3 {
+    width: 66% !important;
+}
+#forp div.w1of3 {
+    width: 33% !important;
+}

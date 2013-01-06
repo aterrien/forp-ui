@@ -17,7 +17,7 @@ register_shutdown_function(
         //forp_print();
         //echo '</pre>';
         ?>
-        <script src="js/src/forp/forp.js"></script>
+        <script src="js/forp.min.js"></script>
         <script>
             forp.stack = <?php echo $json_dump; ?>;
         </script>

@@ -95,7 +95,7 @@ function fibo( $x ) {
     }
 }
 
-for( $i = 1; $i < 10; $i++) {
+for( $i = 1; $i < 1; $i++) {
     printf(
         'fibo(%1$s) = %2$s'.$br,
         $i, fibo($i)
