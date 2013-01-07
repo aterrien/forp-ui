@@ -8,7 +8,7 @@ forpgui JS helps you to refine it clientside.
         forp (PHP extension) > json_encode($forpStack) (PHP) > forpgui (JavaScript)
 
 Call stack example :
-<code>
+```
 <script src="js/forp.min.js"></script>
 <script>
 forp.stack =
@@ -33,7 +33,7 @@ forp.stack =
     }
 ];
 </script>
-</code>
+```
 
 
 forpgui features (example : Yii PHP framework) :
