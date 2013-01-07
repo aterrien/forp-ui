@@ -225,21 +225,6 @@
 #forp td>div.gauge{
     margin: 0px;
 }
-#forp div.i{
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    font-weight: 900;
-    text-align: center;
-    background: #ccc;
-    width: 15px;
-    height: 15px;
-    border-radius: 10px;
-}
-#forp div.i>a{
-    font-family: Georgia;
-    color: #FFF;
-}
 #forp input[type=text]{
     font-size: 11px;
     padding: 5px;

@@ -1,3 +1,47 @@
+/**
+ * forpgui
+ *
+ * Call stack visualizer.
+ *
+ * https://github.com/aterrien/forpgui
+ *
+ * forpgui is the perfect tool to treat the
+ * call stack built by forp PHP profiler (https://github.com/aterrien/forp).
+ *
+ * Call stack example :
+ * <code>
+ *  <script src="js/forp.min.js"></script>
+ *  <script>
+ *  forp.stack =
+ *  [
+ *      {
+ *      "file":"\/var\/www\/forpgui\/js_demo.php",
+ *      "function":"{main}",
+ *      "usec":618,
+ *      "pusec":5,
+ *      "bytes":14516,
+ *      "level":0
+ *      },
+ *      {
+ *      "file":"\/var\/www\/forpgui\/common.php",
+ *      "function":"include",
+ *      "lineno":6,
+ *      "usec":347,
+ *      "pusec":6,
+ *      "bytes":7364,
+ *      "level":1,
+ *      "parent":0
+ *      }
+ *  ];
+ *  </script>
+ * </code>
+ *
+ * Copyright (c) 2012 Anthony Terrien
+ *
+ * Under MIT and GPL licenses:
+ *  http://www.opensource.org/licenses/mit-license.php
+ *  http://www.gnu.org/licenses/gpl.html
+ */
 var forp = {};
 (function() {
 
@@ -413,8 +457,17 @@ var forp = {};
                 return this.console;
             };
 
-            this.open = function() {
+            this.resize = function() {
                 this.attr("style", "height: " + Math.round(window.innerHeight / 1.5) + "px");
+            };
+
+            this.open = function() {
+
+                this.resize();
+                window.onresize = function(e) {
+                    self.resize();
+                }
+
                 return this;
             };
 
@@ -1225,19 +1278,6 @@ var forp = {};
         {
             this.getLayout().close();
 
-            // infos button
-            f.create("div")
-             .class("i")
-             .append(
-                f.create("a")
-                 .attr("href", "https://github.com/aterrien/forp")
-                 .attr("target", "_blank")
-                 .attr("alt", "forp documentation")
-                 .attr("title", "forp documentation")
-                 .text("i")
-             )
-             .appendTo(this.layout);
-
             if(this.getStack()) {
 
                 this.layout.bind(
@@ -1654,7 +1694,7 @@ var forp = {};
                f.create("input")
                 .attr("type", "text")
                 .attr("name", "forpSearch")
-                .attr("placeholder", "Search forp ...")
+                .attr("placeholder", "Search ...")
                 .bind(
                     "click",
                     function() {
@@ -1704,7 +1744,7 @@ var forp = {};
 })(forp);
 
 /**
- * forp starter
+ * forpgui bootstrap
  */
 forp.ready(
     function(){
@@ -1715,7 +1755,6 @@ forp.ready(
         (document.getElementsByTagName('head')[0]
             || document.getElementsByTagName('body')[0]).appendChild(s);
 
-        // Runs forp
         var f = new forp.Controller();
         (new forp.Controller())
             .setStack(forp.stack)

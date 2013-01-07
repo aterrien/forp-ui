@@ -10,7 +10,7 @@ try {
             '%forp.css%',
             CssMin::minify(file_get_contents(dirname(__FILE__) . '/src/forp/forp.css')),
             JSMin::minify(
-                file_get_contents(dirname(__FILE__) . '/src/forp/test.js')
+                file_get_contents(dirname(__FILE__) . '/src/forp/forp.js')
             )
         )
     );
