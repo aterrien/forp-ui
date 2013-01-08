@@ -52,9 +52,9 @@ class Foo {
 
     /**
      * @ProfileGroup("Foo Group")
-     * @ProfileCaption("Caption of bar2.")
+     * @ProfileCaption("Caption of bar2 #1 #2.")
      */
-    function bar2() { }
+    function bar2($lambda, $object) { }
 }
 // closure
 $lambda =
@@ -77,7 +77,7 @@ $lambda();
 $foo = new Foo();
 //sleep(1);
 $foo->bar();
-$foo->bar2();
+$foo->bar2($lambda, $foo);
 // fibo
 $br = (php_sapi_name() == "cli")? "\n":"<br>\n";
 
