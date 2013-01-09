@@ -1280,6 +1280,9 @@ var forp = {};
 
             if(this.getStack()) {
 
+                this.getStack()
+                    .aggregate();
+
                 this.layout.bind(
                     "click",
                     this.openEventListener = function() {self.open();}
@@ -1395,8 +1398,6 @@ var forp = {};
 
             var container = f.create("div").attr("style", "margin-top: -2px");
             container.appendTo(this.getLayout().getNav());
-
-            self.getStack().aggregate();
 
             container.append(
                 new f.ToggleButton(
