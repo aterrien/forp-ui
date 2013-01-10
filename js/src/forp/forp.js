@@ -1744,7 +1744,6 @@ forp.ready(
         (document.getElementsByTagName('head')[0]
             || document.getElementsByTagName('body')[0]).appendChild(s);
 
-        var f = new forp.Controller();
         (new forp.Controller())
             .setStack(forp.stack)
             .run();
