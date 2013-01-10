@@ -31,6 +31,7 @@
     opacity: 1;
 }
 #forp.opened{
+    min-width: 1000px;
     max-width: 100%;
     left: 0px;
 }
@@ -92,7 +93,10 @@
 #forp a.tag, #forp a{
     border-radius: 3px;
 }
-#forp .backtrace-item{
+#forp div.backtrace {
+    color: #aaa;
+}
+#forp div.backtrace-item{
     color: #333;
     margin: 0px 5px;
     padding: 4px 5px 5px 5px;
@@ -129,6 +133,7 @@
     border-top: 1px solid #BBB;
 }
 #forp div.console{
+    position: relative;
     float: left;
     background: #fff;
     width: 100%;
@@ -211,8 +216,7 @@
 #forp div.gauge{
     position: relative;
     background: #eee;
-    line-height: 1.8;
-    color: #555;
+    color: #333;
     margin: 4px 5px 0px 0px;
     width: 110px;
     text-align: right;
@@ -221,6 +225,12 @@
 #forp div.gauge div.bar{
     background: #59f;
     height: 18px;
+}
+#forp div.gauge div.text{
+    position: absolute;
+    top: 0px;
+    right: 4px;
+    line-height: 1.8;
 }
 #forp td>div.gauge{
     margin: 0px;

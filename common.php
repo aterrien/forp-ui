@@ -66,7 +66,7 @@ $lambda =
  */
 function() {
     echo "html highlight me !";
-    //sleep(1);
+    test();
 };
 //
 // calls

@@ -491,7 +491,7 @@ var forp = {};
             this.element = document.createElement("a");
 
             this.text(label)
-                .attr("href", "#")
+                .attr("href", "javascript:void(0);")
                 .class("tbtn")
                 .bind(
                     'click',
@@ -694,7 +694,8 @@ var forp = {};
         {
             forp.DOMElementWrapper.call(this);
             this.element = document.createElement("div");
-            this.attr("style", "text-align: center");
+            this.class("backtrace")
+                .attr("style", "text-align: center");
 
             this.prependItem = function(entry, highlight) {
                 return this.prepend(
@@ -714,7 +715,7 @@ var forp = {};
                 this.prependItem(stack[i], child == i);
                 i = stack[i].parent;
                 if(i != null) {
-                    this.prepend(forp.create("div").text("\\/"));
+                    this.prepend(forp.create("div").text("&#x25BC;"));
                 }
             }
 
@@ -770,10 +771,7 @@ var forp = {};
             this.addClass("gauge")
                 .append(
                     forp.create("div")
-                        .attr(
-                            "style",
-                            "position: absolute; top: 0px; right: 4px"
-                            )
+                        .class("text")
                         .text(text)
                 )
                 .append(
@@ -784,16 +782,6 @@ var forp = {};
                             "width: " + percent.toFixed(0) + "%"
                             )
                 );
-
-            /*this.addClass("gauge")
-                .text(text)
-                .attr(
-                    "style",
-                    "background: -moz-linear-gradient(left, " +
-                        hcolor + " 0%, " + hcolor + " " + percent + "%, " +
-                        bcolor + " " + percent + "%, " + bcolor +
-                        " 100%);background: -webkit-gradient(linear, left top, right top, color-stop(0%," + hcolor + "), color-stop(" + percent + "%," + hcolor + "), color-stop(" + percent + "%,#BBB), color-stop(100%," + bcolor + "));background: -webkit-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);background: -o-linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);background: linear-gradient(left, " + hcolor + " 0%," + hcolor + " " + percent + "%," + bcolor + " " + percent + "%," + bcolor + " 100%);");
-            */
         },
         /**
         * Tag Class
@@ -1418,7 +1406,7 @@ var forp = {};
                                             .append(
                                                 f.create("a")
                                                     .text("expand")
-                                                    .attr("href", "#")
+                                                    .attr("href", "javascript:void(0);")
                                                     .class("btn")
                                                     .bind(
                                                         "click",
@@ -1434,7 +1422,7 @@ var forp = {};
                                             .append(
                                                 f.create("a")
                                                     .text("collapse")
-                                                    .attr("href", "#")
+                                                    .attr("href", "javascript:void(0);")
                                                     .class("btn")
                                                     .bind(
                                                         "click",
@@ -1617,7 +1605,7 @@ var forp = {};
                                      .append(
                                         f.create("td")
                                          .attr("colspan", 4)
-                                         .attr("style", "border: none; padding: 0px; height: 4px; background:" + f.TagRandColor.provideFor(i))
+                                         .attr("style", "padding: 0px; height: 4px; background:" + f.TagRandColor.provideFor(i))
                                      )
                                 )
                                 .line([
