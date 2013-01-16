@@ -1,13 +1,13 @@
-forpgui is a call stack visualizer.
+GUI utility that allows you to view profiler dump.
 
-forpgui is the perfect tool to treat the call stack built by forp PHP profiler (https://github.com/aterrien/forp).
+forpgui is the perfect tool to treat the forp PHP profiler dump (https://github.com/aterrien/forp).
 
-forp extension gives us the full PHP call stack with profiling informations.
+forp extension gives us PHP profiling datas.
 forpgui JS helps you to refine it clientside.
 
         forp (PHP extension) > json_encode($forpStack) (PHP) > forpgui (JavaScript)
 
-Call stack example :
+Example :
 ```
 <script src="js/forp.min.js"></script>
 <script>

@@ -1,5 +1,6 @@
 <?php
 /**
+ * TODO JSON : empty if > 256Kb
  * TODO LZW-compress
  */
 register_shutdown_function(
