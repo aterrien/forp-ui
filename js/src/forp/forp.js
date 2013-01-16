@@ -54,15 +54,19 @@ var forp = {};
     */
     forp = {
         /**
-        * Wrap function
-        */
+         * Call stack array
+         */
+        stack : [],
+        /**
+         * Wrap function
+         */
         wrap : function(element)
         {
             return new forp.DOMElementWrapper(element);
         },
         /**
-        * Shortcut function
-        */
+         * Shortcut function
+         */
         create : function(tag, appendTo, inner, css)
         {
             var e = document.createElement(tag);
@@ -76,10 +80,10 @@ var forp = {};
             return forp.wrap(e);
         },
         /**
-        * Find a DOM Element
-        * @param mixed
-        * @return forp.DOMElementWrapper|forp.DOMElementWrapperCollection
-        */
+         * Find a DOM Element
+         * @param mixed
+         * @return forp.DOMElementWrapper|forp.DOMElementWrapperCollection
+         */
         find : function(mixed)
         {
             if(typeof(mixed) == 'object') {
@@ -89,9 +93,9 @@ var forp = {};
             }
         },
         /**
-        * DOM Ready function
-        * @param callback
-        */
+         * DOM Ready function
+         * @param callback
+         */
         ready : function(callback) {
             /* Internet Explorer */
             /*@cc_on
@@ -120,28 +124,28 @@ var forp = {};
             }
         },
         /**
-        * @param string v
-        * @param int d
-        * @return int
-        */
+         * @param string v
+         * @param int d
+         * @return int
+         */
         round : function(v)
         {
             return (~~ (0.5 + (v * 1000))) / 1000;
         },
         /**
-        * @param string v
-        * @param int d
-        * @return int
-        */
+         * @param string v
+         * @param int d
+         * @return int
+         */
         roundDiv : function(v, d)
         {
             return this.round(v / d);
         },
         /**
-        * inArray
-        * @param needle
-        * @param haystack
-        */
+         * inArray
+         * @param needle
+         * @param haystack
+         */
         inArray : function(needle, haystack) {
             var length = haystack.length;
             for(var i = 0; i < length; i++) {
@@ -150,9 +154,9 @@ var forp = {};
             return false;
         },
         /**
-        * DOM Element wrapper, makes it fluent
-        * @param DOM Element
-        */
+         * DOM Element wrapper, makes it fluent
+         * @param DOM Element
+         */
         DOMElementWrapper : function(element)
         {
             var self = this;
@@ -176,6 +180,25 @@ var forp = {};
                     return r;
                 }
                 return this;
+            };
+            this.trigger = function(eventName) {
+                var event;
+                if (document.createEvent) {
+                    event = document.createEvent("HTMLEvents");
+                    event.initEvent(eventName, true, true);
+                } else {
+                    event = document.createEventObject();
+                    event.eventType = eventName;
+                }
+
+                event.eventName = eventName;
+                //event.memo = memo || { };
+
+                if (document.createEvent) {
+                    this.element.dispatchEvent(event);
+                } else {
+                    this.element.fireEvent("on" + event.eventType, event);
+                }
             };
             this.find = function(s) {
                 return new forp.DOMElementWrapperCollection(this.element.querySelectorAll(s));
@@ -254,7 +277,7 @@ var forp = {};
             this.width = function() {
                 return this.element.offsetWidth;
             };
-            this.open = function()
+            /*this.open = function()
             {
                 self.class('opened')
                     .unbind('click', self.open);
@@ -265,7 +288,7 @@ var forp = {};
                 self.class('closed')
                     .unbind('click', self.close);
                 return self;
-            };
+            };*/
             this.css = function(p, complete)
             {
                 var transitionEnd = forp.Normalizr.getEventTransitionEnd();
@@ -294,9 +317,9 @@ var forp = {};
             };
         },
         /**
-        * DOM Element Collection Class
-        * @param DOM Element
-        */
+         * DOM Element Collection Class
+         * @param DOM Element
+         */
         DOMElementWrapperCollection : function(elements)
         {
             this.elements = elements;
@@ -308,8 +331,8 @@ var forp = {};
             }
         },
         /**
-        * Normalizr Class
-        */
+         * Normalizr Class
+         */
         Normalizr : {
             getEventTransitionEnd : function() {
                 var t;
@@ -330,18 +353,18 @@ var forp = {};
             }
         },
         /**
-        * Sorted Fixed Array Class
-        * @param callback compare
-        * @param int size
-        */
+         * Sorted Fixed Array Class
+         * @param callback compare
+         * @param int size
+         */
         SortedFixedArray : function(compare, size) {
             this.stack = [];
             this.size = size;
             /**
-            * Internal method insert
-            * @param mixed entry
-            * @param int i
-            */
+             * Internal method insert
+             * @param mixed entry
+             * @param int i
+             */
             this.insert = function(entry, i) {
                 for(var j = Math.min(this.size - 1, this.stack.length); j > i; j--) {
                     this.stack[j] = this.stack[j - 1];
@@ -349,9 +372,9 @@ var forp = {};
                 this.stack[i] = entry;
             }
             /**
-            * Evaluate and put a new entry in the stack
-            * @param mixed entry
-            */
+             * Evaluate and put a new entry in the stack
+             * @param mixed entry
+             */
             this.put = function(entry) {
                 if(this.stack.length) {
                     for(var i = 0; i < this.stack.length; i++) {
@@ -372,15 +395,15 @@ var forp = {};
             };
         },
         /**
-        * forp Layout
-        *
-        * - Layout #forp
-        *  - Navbar nav
-        *  - MainPanel .mainpanel
-        *   - Console .console
-        *   - Sidebar .sidebar
-        */
-        Layout : function()
+         * forp Layout
+         *
+         * - Layout #forp
+         *  - Navbar nav
+         *  - MainPanel .mainpanel
+         *   - Console .console
+         *   - Sidebar .sidebar
+         */
+        Layout : function(viewMode)
         {
             var self = this;
             forp.DOMElementWrapper.call(this);
@@ -389,6 +412,72 @@ var forp = {};
 
             this.mainpanel = null;
             this.nav = null;
+            this.viewMode = viewMode; // embeddedExpanded, embeddedCompacted, standalone
+
+            this.conf = {
+                embeddedExpanded : {
+                    size : function() {
+                        self.attr(
+                                "style",
+                                "height: 70%"
+                            );
+
+                        if( self.getConsole()
+                                .attr(
+                                    "style",
+                                    "height: " + (self.height()-45) + "px"
+                                )
+                                .hasSidebar()
+                        ) {
+                            self.getConsole()
+                                .getSidebar()
+                                .attr(
+                                    "style",
+                                    "height: " + (self.height()-45) + "px"
+                                    );
+                        }
+                        if(window.onresize == null) {
+                            window.onresize = function(e) {
+                                self.size();
+                            }
+                        }
+                    }
+                }
+                , embeddedCompacted : {
+                    size : function() {
+
+                    }
+                }
+                , standalone : {
+                    size : function() {
+                        self.attr(
+                            "style",
+                            "height: 100%"
+                        );
+
+                        if( self.getConsole()
+                                .attr(
+                                    "style",
+                                    "height: " + (self.height()-45) + "px"
+                                )
+                                .hasSidebar()
+                        ) {
+                            self.getConsole()
+                                .getSidebar()
+                                .attr(
+                                    "style",
+                                    "height: " + (self.height()-45) + "px"
+                                    );
+                        }
+                    }
+                }
+            };
+
+            this.setViewMode = function(viewMode)
+            {
+                this.viewMode = viewMode;
+                return this;
+            };
 
             this.getMainPanel = function()
             {
@@ -411,16 +500,35 @@ var forp = {};
                 return this.getMainPanel().getConsole();
             };
 
-            this.close = function()
+            this.open = function()
             {
-                this.empty().class("closed shadow");
+                this.class(this.viewMode);
+                return this;
+            };
+
+            this.size = function() {
+                this.conf[this.viewMode].size();
+                return this;
+            };
+
+            this.compact = function(callback)
+            {
+                this.attr("style", "")
+                    .empty()
+                    .class(this.viewMode + " shadow");
                 this.nav = null;
                 this.mainpanel = null;
+
+                callback();
+
                 return this;
             };
 
             document.body.insertBefore(this.element, document.body.firstChild);
         },
+        /**
+         * Nav
+         */
         Nav : function()
         {
             var self = this;
@@ -428,8 +536,9 @@ var forp = {};
             this.element = document.createElement("nav");
         },
         /**
-        * Panel
-        */
+         * Panel
+         * @param string id Panel ID
+         */
         Panel : function(id)
         {
             var self = this;
@@ -440,14 +549,16 @@ var forp = {};
             this.id = id;
         },
         /**
-        * Panel
-        */
-        MainPanel : function(id)
+         * MainPanel
+         * @param Layout layout
+         */
+        MainPanel : function(layout)
         {
             var self = this;
             forp.Panel.call(this, "mainpanel");
 
             this.console = null;
+            this.layout = layout;
 
             this.getConsole = function()
             {
@@ -457,17 +568,8 @@ var forp = {};
                 return this.console;
             };
 
-            this.resize = function() {
-                this.attr("style", "height: " + Math.round(window.innerHeight / 1.5) + "px");
-            };
-
             this.open = function() {
-
-                this.resize();
-                window.onresize = function(e) {
-                    self.resize();
-                }
-
+                this.layout.size();
                 return this;
             };
 
@@ -482,11 +584,15 @@ var forp = {};
             };
         },
         /**
-        * ToggleButton Class
-        */
-        ToggleButton : function(label, on, off)
+         * ToggleButton Class
+         * @param string label
+         * @param function on On callback
+         * @param function off Off callback
+         * @param boolean triggerOn Fire click event if true
+         */
+        ToggleButton : function(label, on, off, triggerOn)
         {
-            var self = this;
+            var self = this, click = null;
             forp.DOMElementWrapper.call(this);
             this.element = document.createElement("a");
 
@@ -495,7 +601,7 @@ var forp = {};
                 .class("tbtn")
                 .bind(
                     'click',
-                    function(e) {
+                    click = function(e) {
                         if(self.getAttr("data-state") == "on") {
                             off && off(e);
                             self.removeClass("highlight")
@@ -507,44 +613,53 @@ var forp = {};
                         }
                     }
                 );
+
+            triggerOn && this.trigger("click");
         },
         /**
-        * Sidebar Class
-        */
-        Sidebar : function()
+         * Sidebar Class
+         * @param DOMElementWrapper parent
+         */
+        Sidebar : function(parent)
         {
             var self = this;
             forp.Panel.call(this, "sidebar");
             this.addClass("w1of3");
-            this.attr("style", "height: " + Math.round(window.innerHeight / 1.5) + "px");
+            this.parent = parent;
         },
         /**
-        * Console Class
-        * @param Window w
-        */
+         * Console Class
+         * @param DOMElementWrapper parent
+         */
         Console : function(parent)
         {
             var self = this;
             forp.Panel.call(this, "console");
 
+            this.sidebar = null;
             this.parent = parent;
 
             this.open = function() {
 
                 this.closeSidebar();
                 this.parent.open();
-                this.attr("style", "height: " + Math.round(window.innerHeight / 1.5) + "px")
-                    .addClass("opened");
+                //this.addClass("opened");
 
                 return this;
+            };
+
+            this.hasSidebar = function() {
+                return (this.sidebar != null);
             };
 
             this.getSidebar = function() {
                 if(!this.sidebar) {
                     this.addClass("w2of3");
-                    this.sidebar = new forp.Sidebar();
+                    this.sidebar = new forp.Sidebar(this.parent);
                     this.parent
-                        .append(this.sidebar);
+                        .append(this.sidebar)
+                        .layout
+                        .size();
                 }
                 return this.sidebar;
             };
@@ -559,8 +674,8 @@ var forp = {};
             };
         },
         /**
-        * @param Object headers
-        */
+         * @param Object headers
+         */
         Table : function(headers)
         {
             forp.DOMElementWrapper.call(this);
@@ -578,8 +693,8 @@ var forp = {};
             }
         },
         /**
-        * @param Object cols
-        */
+         * @param Object cols
+         */
         Line : function(cols)
         {
             forp.DOMElementWrapper.call(this);
@@ -596,8 +711,9 @@ var forp = {};
             }
         },
         /**
-        * Stack Tree Class
-        */
+         * Stack Tree Class
+         * @param Object stack Call stack array
+         */
         Tree : function(stack)
         {
             var self = this;
@@ -605,12 +721,12 @@ var forp = {};
             this.element = document.createElement("div");
 
             /**
-            * Generates a tree representation (UL) of the stack
-            *
-            * @param array entry Root entry
-            * @param boolean recursive Says if we have to fetch it recursively
-            * @return Object Wrapped UL
-            */
+             * Generates a tree representation (UL) of the stack
+             *
+             * @param array entry Root entry
+             * @param boolean recursive Says if we have to fetch it recursively
+             * @return Object Wrapped UL
+             */
             this.treeList = function(entry, recursive)
             {
                 var ul = forp.create("ul").class("l" + entry.level)
@@ -688,8 +804,10 @@ var forp = {};
             this.append(this.treeList(stack[0], true));
         },
         /**
-        * Backtrace Class
-        */
+         * Backtrace Class
+         * @param integer i Index
+         * @param Object stack Callc stack array
+         */
         Backtrace : function(i, stack)
         {
             forp.DOMElementWrapper.call(this);
@@ -700,7 +818,7 @@ var forp = {};
             this.prependItem = function(entry, highlight) {
                 return this.prepend(
                     forp.create("div")
-                        .class("backtrace-item shadow" + (highlight ? " highlight" : ""))
+                        .class("backtrace-item " + (highlight ? " highlight" : ""))
                         .text(
                             "<strong>" + entry.id + "</strong><br>" +
                             entry.filelineno + "<br>" +
@@ -725,11 +843,10 @@ var forp = {};
                 .append(forp.create("br"));
         },
         /**
-        * LineEventListenerBacktrace Class
-        *
-        * @param i Stack index
-        * @param context
-        */
+         * LineEventListenerBacktrace Class
+         * @param i Stack index
+         * @param context
+         */
         LineEventListenerBacktrace : function(i, context)
         {
             this.target = null;
@@ -758,15 +875,14 @@ var forp = {};
             }
         },
         /**
-        * Gauge Class
-        */
-        Gauge : function(percent, text, hcolor)
+         * Gauge Class
+         * @param integer percent
+         * @param string text
+         */
+        Gauge : function(percent, text)
         {
             forp.DOMElementWrapper.call(this);
             this.element = document.createElement("div");
-
-            var bcolor = "#555";
-            hcolor = hcolor ? hcolor : "#4D90FE";
 
             this.addClass("gauge")
                 .append(
@@ -784,8 +900,9 @@ var forp = {};
                 );
         },
         /**
-        * Tag Class
-        */
+         * TagRandColor Class
+         * Provides predefined colors
+         */
         TagRandColor : {
             i : 0,
             pocket : ["#f95", "#f59", "#59f", "#5e9", "#9e6", "#95f",
@@ -825,8 +942,9 @@ var forp = {};
             }
         },
         /**
-        * Stack Class
-        */
+         * Stack Class
+         * @param Object stack Call stack array
+         */
         Stack : function(stack)
         {
             var self = this;
@@ -846,9 +964,9 @@ var forp = {};
             this.avgLevel = 0;
 
             /**
-            * @param Object stack entry
-            * @return bool
-            */
+             * @param Object stack entry
+             * @return bool
+             */
             this.isRecursive = function(entry)
             {
                 var i = entry.i;
@@ -860,9 +978,9 @@ var forp = {};
             };
 
             /**
-            * Sum duration of an array of entries
-            * @return int Sum
-            */
+             * Sum duration of an array of entries
+             * @return int Sum
+             */
             this.sumDuration = function(entries)
             {
                 var sum = 0;
@@ -874,9 +992,9 @@ var forp = {};
             };
 
             /**
-            * Sum memory of an array of entries
-            * @return int Sum
-            */
+             * Sum memory of an array of entries
+             * @return int Sum
+             */
             this.sumMemory = function(entries)
             {
                 var sum = 0;
@@ -888,10 +1006,10 @@ var forp = {};
             };
 
             /**
-            * Refines ancestors metrics
-            * @param object Descendant stack entry
-            * @return forp
-            */
+             * Refines ancestors metrics
+             * @param object Descendant stack entry
+             * @return forp.Controller
+             */
             this.refineParents = function(descendant, value)
             {
                 if(descendant.parent != null) {
@@ -903,17 +1021,17 @@ var forp = {};
             };
 
             /**
-            * Aggregates stack entries
-            * This is the core function
-            *
-            * One loop to :
-            * - compute top duration
-            * - compute top memory
-            * - groups
-            * - included files
-            *
-            * @return forp.Manager
-            */
+             * Aggregates stack entries
+             * This is the core function
+             *
+             * One loop to compute :
+             * - top duration
+             * - top memory
+             * - groups
+             * - included files
+             *
+             * @return forp.Controller
+             */
             this.aggregate = function()
             {
                 if(!this.functions) {
@@ -1069,35 +1187,35 @@ var forp = {};
             };
 
             /**
-            * @return array Main entry
-            */
+             * @return array Main entry
+             */
             this.getMainEntry = function()
             {
                 return this.stack[0];
             };
 
             /**
-            * @param array Stack entry
-            * @return string
-            */
+             * @param array Stack entry
+             * @return string
+             */
             this.getEntryId = function(entry)
             {
                 return ((entry.class) ? entry.class + '::' : '') + entry.function;
             };
 
             /**
-            * @return array
-            */
+             * @return array
+             */
             this.getFunctions = function()
             {
                 return this.aggregate().functions;
             };
 
             /**
-            * Regexp search in stack functions
-            * @param string query
-            * @return array founds
-            */
+             * Regexp search in stack functions
+             * @param string query
+             * @return array founds
+             */
             this.search = function(query)
             {
                 if(!this.found[query]) {
@@ -1116,9 +1234,9 @@ var forp = {};
             };
 
             /**
-            * Top X calls
-            * @return array SortedFixedArray stack
-            */
+             * Top X calls
+             * @return array SortedFixedArray stack
+             */
             this.getTopCalls = function()
             {
                 if(!this.topCalls) {
@@ -1135,9 +1253,9 @@ var forp = {};
             };
 
             /**
-            * Top X CPU
-            * @return array SortedFixedArray stack
-            */
+             * Top X CPU
+             * @return array SortedFixedArray stack
+             */
             this.getTopCpu = function()
             {
                 /*if(!this.topCpu) {
@@ -1158,9 +1276,9 @@ var forp = {};
             };
 
             /**
-            * Top X memory
-            * @return array SortedFixedArray stack
-            */
+             * Top X memory
+             * @return array SortedFixedArray stack
+             */
             this.getTopMemory = function()
             {
                 /*if(!this.topMemory) {
@@ -1181,18 +1299,18 @@ var forp = {};
             };
 
             /**
-            * Distinct included files
-            * @return array Files
-            */
+             * Distinct included files
+             * @return array Files
+             */
             this.getIncludes = function()
             {
                 return this.aggregate().includes;
             };
 
             /**
-            * Groups
-            * @return array Files
-            */
+             * Groups
+             * @return array Files
+             */
             this.getGroups = function()
             {
                 return this.aggregate().groups;
@@ -1221,6 +1339,21 @@ var forp = {};
         this.tree = null;
         this.stack = null;
         this.openEventListener = null;
+        this.viewMode = "embeddedCompacted";
+
+        this.setViewMode = function(viewMode)
+        {
+            this.viewMode = viewMode;
+            return this;
+        };
+
+        /**
+         *
+         */
+        this.hasStack = function(stack)
+        {
+            return this.stack != null;
+        };
 
         /**
          *
@@ -1247,9 +1380,12 @@ var forp = {};
             return this.layout.getConsole();
         };
 
+        /**
+         *
+         */
         this.getLayout = function()
         {
-            if(!this.layout) this.layout = new f.Layout();
+            if(!this.layout) this.layout = new f.Layout(this.viewMode);
             return this.layout;
         };
 
@@ -1259,41 +1395,80 @@ var forp = {};
          */
         this.run = function()
         {
-            this.minimize();
-        };
-
-        this.minimize = function()
-        {
-            this.getLayout().close();
-
-            if(this.getStack()) {
-
-                this.getStack()
+            if(self.hasStack()) {
+                self.getStack()
                     .aggregate();
 
-                this.layout.bind(
-                    "click",
-                    this.openEventListener = function() {self.open();}
-                );
+                if(this.viewMode == "embeddedCompacted") {
+                    this.getLayout()
+                        .compact(this.onCompact);
+
+                }
+
+                if(this.viewMode == "standalone") {
+                    this.open();
+                }
+            } else {
+                console.warn("forp : The call stack is undefined.");
+            }
+        };
+
+        /**
+         *
+         */
+        this.onCompact = function() {
+            if(self.getStack().stack.length > 0) {
+
+                self.layout
+                    .bind(
+                        "click",
+                        self.openEventListener = function() {
+                            self.getLayout()
+                                .setViewMode('embeddedExpanded');
+                            self.open();
+                        }
+
+                    );
 
                 f.create("div")
                     .attr("style", "margin-right: 10px")
-                    .text(f.roundDiv(this.getStack().getMainEntry().usec, 1000) + ' ms ')
-                    .appendTo(this.getLayout().getNav());
+                    .text(f.roundDiv(self.getStack().getMainEntry().usec, 1000) + ' ms ')
+                    .appendTo(self.getLayout().getNav());
 
                 f.create("div")
                     .attr("style", "margin-right: 10px")
-                    .text(f.roundDiv(this.getStack().getMainEntry().bytes, 1024) + ' Kb')
-                    .appendTo(this.getLayout().getNav());
+                    .text(f.roundDiv(self.getStack().getMainEntry().bytes, 1024) + ' Kb')
+                    .appendTo(self.getLayout().getNav());
             } else {
                 f.create("div")
                     .text("Give me something to eat !")
-                    .appendTo(this.getLayout().getNav());
+                    .appendTo(self.getLayout().getNav());
             }
-
-            return this;
         };
 
+        /**
+         * forpgui bootstrap
+         */
+        this.runOnReady = function()
+        {
+            f.ready(
+                function(){
+                    var s = document.createElement('style');
+                        t = document.createTextNode('%forp.css%');
+
+                    s.appendChild(t);
+                    (document.getElementsByTagName('head')[0]
+                        || document.getElementsByTagName('body')[0]).appendChild(s);
+
+                    //self.setStack(forp.stack);
+                    self.run();
+                }
+            );
+        },
+
+        /**
+         *
+         */
         this.clearTabs = function()
         {
             self.layout
@@ -1375,7 +1550,7 @@ var forp = {};
             //if(this.opened) return; // TODO unbind
             //this.opened = true;
 
-            this.layout
+            this.getLayout()
                 .unbind("click", this.openEventListener)
                 .open();
 
@@ -1386,6 +1561,39 @@ var forp = {};
 
             var container = f.create("div").attr("style", "margin-top: -2px");
             container.appendTo(this.getLayout().getNav());
+
+            container.append(
+                new f.ToggleButton(
+                    "metrics",
+                    function(e) {
+
+                        // TODO Metrics API
+                        // @see http://www.sdmetrics.com/LoM.html
+
+                        //   Cyclomatic complexity
+                        //   Excessive class complexity
+                        //   N-path complexity
+                        //   Too many fields
+                        //   Too many methods
+                        // x Ease of change
+                        var table = self.getConsole()
+                                        .empty()
+                                        .open()
+                                        .table(["metric", "type", "value", "grade"]);
+
+                        self.selectTab(e.target);
+
+                        table.line(["<strong>Duration (ms)</strong>", "Performance", f.roundDiv(self.getStack().getMainEntry().usec, 1000), ""]);
+                        table.line(["<strong>Memory usage (Kb)</strong>", "Performance", f.roundDiv(self.getStack().getMainEntry().bytes, 1024), ""]);
+                        table.line(["<strong>Total includes</strong>", "Performance", self.getStack().includesCount, ""]);
+                        table.line(["<strong>Total calls</strong>", "Performance", self.getStack().stack.length, ""]);
+                        table.line(["<strong>Max nested level</strong>", "Nesting", self.getStack().maxNestedLevel, ""]);
+                        table.line(["<strong>Avg nested level</strong>", "Nesting", self.getStack().avgLevel.toFixed(2), ""]);
+                    },
+                    self.layout.getMainPanel().close,
+                    true
+                )
+            );
 
             container.append(
                 new f.ToggleButton(
@@ -1650,36 +1858,6 @@ var forp = {};
             );
 
             container.append(
-                new f.ToggleButton(
-                    "metrics",
-                    function(e) {
-
-                        // TODO Metrics API
-                        // @see http://www.sdmetrics.com/LoM.html
-
-                        //   Cyclomatic complexity
-                        //   Excessive class complexity
-                        //   N-path complexity
-                        //   Too many fields
-                        //   Too many methods
-                        // x Ease of change
-                        var table = self.getConsole()
-                                        .empty()
-                                        .open()
-                                        .table(["metric", "type", "value", "tip"]);
-
-                        self.selectTab(e.target);
-
-                        table.line(["<strong>Total includes</strong>", "Performance", self.getStack().includesCount, ""]);
-                        table.line(["<strong>Total calls</strong>", "Performance", self.getStack().stack.length, ""]);
-                        table.line(["<strong>Max nested level</strong>", "Nesting", self.getStack().maxNestedLevel, ""]);
-                        table.line(["<strong>Avg nested level</strong>", "Nesting", self.getStack().avgLevel.toFixed(2), ""]);
-                    },
-                    self.layout.getMainPanel().close
-                )
-            );
-
-            container.append(
                f.create("input")
                 .attr("type", "text")
                 .attr("name", "forpSearch")
@@ -1714,6 +1892,7 @@ var forp = {};
                 )
             );
 
+            (this.viewMode == "embeddedCompacted") &&
             container.append(
                 f.create("div")
                  .text("&#x25BC;")
@@ -1722,7 +1901,9 @@ var forp = {};
                     "click",
                     function(e) {
                         e.stopPropagation();
-                        self.minimize();
+                        self.getLayout()
+                            .setViewMode('embeddedCompacted')
+                            .compact(self.onCompact);
                     }
                  )
             );
@@ -1731,21 +1912,3 @@ var forp = {};
         };
     };
 })(forp);
-
-/**
- * forpgui bootstrap
- */
-forp.ready(
-    function(){
-        var s = document.createElement('style');
-            t = document.createTextNode('%forp.css%');
-
-        s.appendChild(t);
-        (document.getElementsByTagName('head')[0]
-            || document.getElementsByTagName('body')[0]).appendChild(s);
-
-        (new forp.Controller())
-            .setStack(forp.stack)
-            .run();
-    }
-);
