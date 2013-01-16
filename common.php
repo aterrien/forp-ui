@@ -36,7 +36,7 @@ echo   'Nisi mihi Phaedrum, inquam, tu mentitum aut
  * @ProfileGroup("Test")
  * @ProfileCaption("User function Hello world !")
  */
-function test(){ echo 'Hello world !'; };
+function test($i = 0){ echo 'Hello world ! '.$i; };
 /**
  * @ProfileGroup("Foo Group")
  * @ProfileCaption("User function that calls another one")
@@ -70,7 +70,9 @@ function() {
 };
 //
 // calls
-test();
+for($i = 0; $i<10; $i++) {
+    test($i);
+}
 for($i=0;$i<5;$i++){ test1(); }
 $lambda();
 $lambda();
@@ -95,7 +97,7 @@ function fibo( $x ) {
     }
 }
 
-for( $i = 1; $i < 1; $i++) {
+for( $i = 1; $i < 10; $i++) {
     printf(
         'fibo(%1$s) = %2$s'.$br,
         $i, fibo($i)
