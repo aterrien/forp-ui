@@ -1,13 +1,29 @@
-GUI utility that allows you to view profiler dump.
+! wait for release branch before using it !
 
-forpgui is the perfect tool to treat the forp PHP profiler dump (https://github.com/aterrien/forp).
+## Introduction ##
 
-forp extension gives us PHP profiling datas.
-forpgui JS helps you to refine it clientside.
+forpgui is a GUI utility that allows you to view and explore profiles dump.
 
-        forp (PHP extension) > json_encode($forpStack) (PHP) > forpgui (JavaScript)
+It is very easy to integrate forgui into an HTML page because is is written in JavaSCript.
 
-Example :
+## Basic features ##
+
+- search engine
+- tree representation of the stack
+- top 20 duration
+- top 20 memory
+- top 20 calls
+- grouping of functions
+- metrics and quality grades
+- "called from" view
+- "backtrace" view
+
+## Integration into an HTML page and example ##
+
+Download the minified version from the release branch of forpgui on Github.
+Put it in the js directory of your project, then run forgui as in the example below.
+
+
 ```
 <script src="js/forp.min.js"></script>
 <script>
@@ -35,26 +51,34 @@ forp.stack =
 </script>
 ```
 
+## Communication with forp PHP profiler ##
 
-forpgui features (example : Yii PHP framework) :
+forpgui is the perfect tool to treat the forp PHP profiles dump (https://github.com/aterrien/forp).
+forp extension gives us PHP profiling datas, forpgui helps you to refine it clientside.
 
-- Stack tree
+## Screenshots (example : Yii PHP framework) ##
+
+### tree representation of the stack ###
+
 ![tree](https://raw.github.com/aterrien/forpgui/master/doc/ui-tree.png)
 
-- top 20 duration
+### top 20 duration ###
+
 ![duration](https://raw.github.com/aterrien/forpgui/master/doc/ui-duration.png)
 
 Click on a stack entry displays backtrace in sidebar :
 
 ![duration details](https://raw.github.com/aterrien/forpgui/master/doc/ui-duration-details.png)
 
-- top 20 Memory
+### top 20 memory ###
+
 ![memory](https://raw.github.com/aterrien/forpgui/master/doc/ui-memory.png)
 
-- top 20 Calls
+### top 20 Calls ###
+
 ![calls](https://raw.github.com/aterrien/forpgui/master/doc/ui-calls.png)
 
-- groups
+### grouping of functions ###
 
 This is the result of forp @ProfileGroup annotation.
 
@@ -64,8 +88,9 @@ Click on a group entry displays "called from" block :
 
 ![groups details](https://raw.github.com/aterrien/forpgui/master/doc/ui-groups-details.png)
 
-- search engine
+### search engine ###
+
 ![search](https://raw.github.com/aterrien/forpgui/master/doc/ui-search.png)
 
 
-- quality metrics
+### metrics and quality grades

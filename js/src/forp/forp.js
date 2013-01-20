@@ -12,7 +12,8 @@
  * <code>
  *  <script src="js/forp.min.js"></script>
  *  <script>
- *  forp.stack =
+ *  (new forp.Controller())
+ *  .setStack(
  *  [
  *      {
  *      "file":"\/var\/www\/forpgui\/js_demo.php",
@@ -32,7 +33,9 @@
  *      "level":1,
  *      "parent":0
  *      }
- *  ];
+ *  ]
+ *  )
+ *  .run();
  *  </script>
  * </code>
  *
@@ -43,7 +46,7 @@
  *  http://www.gnu.org/licenses/gpl.html
  */
 var forp = {};
-(function() {
+(function(f) {
 
     "use strict";
 
@@ -52,7 +55,7 @@ var forp = {};
     * @param DOM Element
     * @return forp.DOMElementWrapper
     */
-    forp = {
+    forp = f = {
         /**
          * Call stack array
          */
@@ -62,7 +65,7 @@ var forp = {};
          */
         wrap : function(element)
         {
-            return new forp.DOMElementWrapper(element);
+            return new f.DOMElementWrapper(element);
         },
         /**
          * Shortcut function
@@ -71,13 +74,13 @@ var forp = {};
         {
             var e = document.createElement(tag);
             if(inner) e.innerHTML = inner;
-            if(appendTo) appendTo.append(forp.wrap(e));
+            if(appendTo) appendTo.append(f.wrap(e));
             if(css) {
                 var classAttr = document.createAttribute("class");
                 classAttr.nodeValue = css;
                 e.setAttributeNode(classAttr);
             }
-            return forp.wrap(e);
+            return f.wrap(e);
         },
         /**
          * Find a DOM Element
@@ -87,9 +90,9 @@ var forp = {};
         find : function(mixed)
         {
             if(typeof(mixed) == 'object') {
-                return forp.wrap(mixed);
+                return f.wrap(mixed);
             } else {
-                return new forp.DOMElementWrapperCollection(document.querySelectorAll(mixed));
+                return new f.DOMElementWrapperCollection(document.querySelectorAll(mixed));
             }
         },
         /**
@@ -125,7 +128,6 @@ var forp = {};
         },
         /**
          * @param string v
-         * @param int d
          * @return int
          */
         round : function(v)
@@ -201,7 +203,7 @@ var forp = {};
                 }
             };
             this.find = function(s) {
-                return new forp.DOMElementWrapperCollection(this.element.querySelectorAll(s));
+                return new f.DOMElementWrapperCollection(this.element.querySelectorAll(s));
             };
 
             this.prepend = function(o) {
@@ -226,7 +228,7 @@ var forp = {};
             this.addClass = function(c) {
                 var cArr = c.split(" ");
                 for (var i=0; i<cArr.length; i++) {
-                    if(forp.inArray(cArr[i], this.classes)) return this;
+                    if(f.inArray(cArr[i], this.classes)) return this;
                     this.classes.push(cArr[i]);
                 }
                 return this.attr("class", this.classes.join(" "));
@@ -277,43 +279,35 @@ var forp = {};
             this.width = function() {
                 return this.element.offsetWidth;
             };
-            /*this.open = function()
-            {
-                self.class('opened')
-                    .unbind('click', self.open);
-                return self;
-            };
-            this.close = function()
-            {
-                self.class('closed')
-                    .unbind('click', self.close);
-                return self;
-            };*/
             this.css = function(p, complete)
             {
-                var transitionEnd = forp.Normalizr.getEventTransitionEnd();
+                var transitionEnd = f.Normalizr.getEventTransitionEnd();
                 var _c = function() {
                     complete();
                     document.removeEventListener(transitionEnd, _c);
                 };
                 document.addEventListener(transitionEnd, _c);
                 this.attr("style", p);
+                return this;
             };
             this.table = function(headers) {
-                return (new forp.Table(headers)).appendTo(this);
+                return (new f.Table(headers)).appendTo(this);
             };
             this.insertAfter = function(element) {
                 this.element.parentNode.insertBefore( element.element, this.element.nextSibling );
+                return this;
             };
             this.nextSibling = function() {
-                return forp.wrap(this.element.nextSibling);
+                return f.wrap(this.element.nextSibling);
             };
             this.addEventListener = function(listener) {
                 listener.target = this;
                 listener.init();
+                return this;
             };
             this.scrollBottom = function() {
-                this.element.scrollTop = forp.wrap(this.element.firstChild).height();
+                this.element.scrollTop = f.wrap(this.element.firstChild).height();
+                return this;
             };
         },
         /**
@@ -326,7 +320,7 @@ var forp = {};
             this.each = function(fn)
             {
                 for(var i=0; i<this.elements.length; i++) {
-                    fn(new forp.DOMElementWrapper(this.elements[i]));
+                    fn(new f.DOMElementWrapper(this.elements[i]));
                 }
             }
         },
@@ -395,7 +389,7 @@ var forp = {};
             };
         },
         /**
-         * forp Layout
+         * Layout
          *
          * - Layout #forp
          *  - Navbar nav
@@ -406,7 +400,7 @@ var forp = {};
         Layout : function(viewMode)
         {
             var self = this;
-            forp.DOMElementWrapper.call(this);
+            f.DOMElementWrapper.call(this);
             this.element = document.createElement("div");
             this.attr("id", "forp");
 
@@ -441,12 +435,17 @@ var forp = {};
                                 self.size();
                             }
                         }
+                    },
+                    reduce : function() {
+                        self.attr(
+                            "style",
+                            "height: 45px"
+                        );
                     }
                 }
                 , embeddedCompacted : {
-                    size : function() {
-
-                    }
+                    size : function() { return false },
+                    reduce : function() { return false }
                 }
                 , standalone : {
                     size : function() {
@@ -469,7 +468,8 @@ var forp = {};
                                     "height: " + (self.height()-45) + "px"
                                     );
                         }
-                    }
+                    },
+                    reduce : function() { return false }
                 }
             };
 
@@ -482,7 +482,7 @@ var forp = {};
             this.getMainPanel = function()
             {
                 if(!this.mainpanel) {
-                    this.mainpanel = (new forp.MainPanel(this)).appendTo(this);
+                    this.mainpanel = (new f.MainPanel(this)).appendTo(this);
                 }
                 return this.mainpanel;
             };
@@ -490,7 +490,7 @@ var forp = {};
             this.getNav = function()
             {
                 if(!this.nav) {
-                    this.nav = (new forp.Nav()).appendTo(this);
+                    this.nav = (new f.Nav()).appendTo(this);
                 }
                 return this.nav;
             };
@@ -507,8 +507,11 @@ var forp = {};
             };
 
             this.size = function() {
-                this.conf[this.viewMode].size();
-                return this;
+                return (this.conf[this.viewMode].size() !== false);
+            };
+
+            this.reduce = function() {
+                return (self.conf[self.viewMode].reduce() !== false);
             };
 
             this.compact = function(callback)
@@ -532,7 +535,7 @@ var forp = {};
         Nav : function()
         {
             var self = this;
-            forp.DOMElementWrapper.call(this);
+            f.DOMElementWrapper.call(this);
             this.element = document.createElement("nav");
         },
         /**
@@ -542,7 +545,7 @@ var forp = {};
         Panel : function(id)
         {
             var self = this;
-            forp.DOMElementWrapper.call(this);
+            f.DOMElementWrapper.call(this);
             this.element = document.createElement("div");
             this.class(id + " panel");
 
@@ -555,7 +558,7 @@ var forp = {};
         MainPanel : function(layout)
         {
             var self = this;
-            forp.Panel.call(this, "mainpanel");
+            f.Panel.call(this, "mainpanel");
 
             this.console = null;
             this.layout = layout;
@@ -563,7 +566,7 @@ var forp = {};
             this.getConsole = function()
             {
                 if(!this.console) {
-                    this.console = (new forp.Console(this)).appendTo(this);
+                    this.console = (new f.Console(this)).appendTo(this);
                 }
                 return this.console;
             };
@@ -587,13 +590,13 @@ var forp = {};
          * ToggleButton Class
          * @param string label
          * @param function on On callback
-         * @param function off Off callback
+         * @param mixed off Off callback function or false if off disabled
          * @param boolean triggerOn Fire click event if true
          */
         ToggleButton : function(label, on, off, triggerOn)
         {
             var self = this, click = null;
-            forp.DOMElementWrapper.call(this);
+            f.DOMElementWrapper.call(this);
             this.element = document.createElement("a");
 
             this.text(label)
@@ -603,13 +606,13 @@ var forp = {};
                     'click',
                     click = function(e) {
                         if(self.getAttr("data-state") == "on") {
-                            off && off(e);
-                            self.removeClass("highlight")
-                                .attr("data-state", "off");
+                            off && (off(e) !== false)
+                                && self.removeClass("highlight")
+                                       .attr("data-state", "off");
                         } else {
-                            on && on(e);
-                            self.addClass("highlight")
-                                .attr("data-state", "on");
+                            on && (on(e) !== false)
+                               && self.addClass("highlight")
+                                      .attr("data-state", "on");
                         }
                     }
                 );
@@ -623,7 +626,7 @@ var forp = {};
         Sidebar : function(parent)
         {
             var self = this;
-            forp.Panel.call(this, "sidebar");
+            f.Panel.call(this, "sidebar");
             this.addClass("w1of3");
             this.parent = parent;
         },
@@ -634,7 +637,7 @@ var forp = {};
         Console : function(parent)
         {
             var self = this;
-            forp.Panel.call(this, "console");
+            f.Panel.call(this, "console");
 
             this.sidebar = null;
             this.parent = parent;
@@ -643,7 +646,6 @@ var forp = {};
 
                 this.closeSidebar();
                 this.parent.open();
-                //this.addClass("opened");
 
                 return this;
             };
@@ -655,7 +657,7 @@ var forp = {};
             this.getSidebar = function() {
                 if(!this.sidebar) {
                     this.addClass("w2of3");
-                    this.sidebar = new forp.Sidebar(this.parent);
+                    this.sidebar = new f.Sidebar(this.parent);
                     this.parent
                         .append(this.sidebar)
                         .layout
@@ -678,18 +680,18 @@ var forp = {};
          */
         Table : function(headers)
         {
-            forp.DOMElementWrapper.call(this);
+            f.DOMElementWrapper.call(this);
             this.element = document.createElement("table");
 
             if(headers) {
-                var header = forp.create("tr", this);
+                var header = f.create("tr", this);
                 for(var i in headers) {
-                    forp.create("th", header, headers[i]);
+                    f.create("th", header, headers[i]);
                 }
             }
 
             this.line = function(cols) {
-                return (new forp.Line(cols)).appendTo(this);
+                return (new f.Line(cols)).appendTo(this);
             }
         },
         /**
@@ -697,16 +699,16 @@ var forp = {};
          */
         Line : function(cols)
         {
-            forp.DOMElementWrapper.call(this);
+            f.DOMElementWrapper.call(this);
             this.element = document.createElement("tr");
 
             for(var i in cols) {
                 if(typeof cols[i] === "object") {
-                    forp.create("td", this, "", "numeric w100").append(cols[i]);
+                    f.create("td", this, "", "numeric w100").append(cols[i]);
                 } else if(isNaN(cols[i])) {
-                    forp.create("td", this, cols[i]);
+                    f.create("td", this, cols[i]);
                 } else {
-                    forp.create("td", this, cols[i], "numeric w100");
+                    f.create("td", this, cols[i], "numeric w100");
                 }
             }
         },
@@ -717,7 +719,7 @@ var forp = {};
         Tree : function(stack)
         {
             var self = this;
-            forp.DOMElementWrapper.call(this);
+            f.DOMElementWrapper.call(this);
             this.element = document.createElement("div");
 
             /**
@@ -729,32 +731,36 @@ var forp = {};
              */
             this.treeList = function(entry, recursive)
             {
-                var ul = forp.create("ul").class("l" + entry.level)
-                    , ex = forp.create("div")
+                var ul = f.create("ul").class("l" + entry.level)
+                    , ex = f.create("div")
                             .text("&nbsp;")
                             .addClass("left expander")
-                    , gd = new forp.Gauge(
-                                stack[entry.parent] ? forp.round((entry.usec * 100) / stack[entry.parent].usec) : 100
-                                , forp.roundDiv(entry.usec, 1000) + 'ms'
-                        ).addClass("left")
-                    , gb = new forp.Gauge(
-                                stack[entry.parent] ? forp.round((entry.bytes * 100) / stack[entry.parent].bytes) : 100
-                                , forp.roundDiv(entry.bytes, 1024) + 'Kb'
-                        ).addClass("left")
-                    , li = forp.create("li").text(entry.id);
+                    , gd = new f.Gauge(
+                                stack[entry.parent] ? entry.usec : 1,
+                                stack[entry.parent] ? stack[entry.parent].usec : 1,
+                                1000,
+                                'ms'
+                            ).addClass("left")
+                    , gb = new f.Gauge(
+                                stack[entry.parent] ? entry.bytes : 1,
+                                stack[entry.parent] ? stack[entry.parent].bytes : 1,
+                                1024,
+                                'Kb'
+                            ).addClass("left")
+                    , li = f.create("li").text(entry.id);
 
 
                 if(entry.groups) {
                     for(var g in entry.groups) {
-                        li.append(forp.TagRandColor.provideElementFor(entry.groups[g]));
+                        li.append(f.TagRandColor.provideElementFor(entry.groups[g]));
                     }
                 }
-                if(entry.caption) li.append(forp.create("span").text(entry.caption));
+                if(entry.caption) li.append(f.create("span").text(entry.caption));
 
                 li.append(ex)
-                .append(gd)
-                .append(gb)
-                .appendTo(ul);
+                  .append(gd)
+                  .append(gb)
+                  .appendTo(ul);
 
                 if(entry.childrenRefs) {
                     //if(parseInt(entry.level) >= 2){
@@ -787,11 +793,40 @@ var forp = {};
                     if(parseInt(entry.level) < 2) {
                         li.class("expanded");
                         if(!li.getAttr("data-tree")) {
-                            for(var i in entry.childrenRefs) {
-                                this.treeList(stack[entry.childrenRefs[i]])
-                                    .appendTo(li);
-                            }
                             li.attr("data-tree", 1);
+                            var loopCounter,
+                                lastId,
+                                loopMaxIter = 100;
+
+                            for(var i in entry.childrenRefs) {
+
+                                if(stack[entry.childrenRefs[i]].id == lastId) {
+                                    loopCounter++;
+                                } else {
+                                    loopCounter = 0;
+                                }
+                                lastId = stack[entry.childrenRefs[i]].id;
+
+                                // loop detected, max item reached
+                                if(loopCounter == loopMaxIter) {
+                                    f.create("ul")
+                                        .append(
+                                            f.create("li")
+                                             .append(ex)
+                                             .append(
+                                                f.create("div")
+                                                    .text(lastId + " : too many items to display (>" + loopMaxIter + ")")
+                                             )
+                                        )
+                                        .appendTo(li);
+                                    continue;
+                                }
+
+                                if(loopCounter < loopMaxIter) {
+                                    this.treeList(stack[entry.childrenRefs[i]])
+                                        .appendTo(li);
+                                }
+                            }
                         }
                     } else {
                         li.addClass("collapsed");
@@ -810,20 +845,20 @@ var forp = {};
          */
         Backtrace : function(i, stack)
         {
-            forp.DOMElementWrapper.call(this);
+            f.DOMElementWrapper.call(this);
             this.element = document.createElement("div");
             this.class("backtrace")
                 .attr("style", "text-align: center");
 
             this.prependItem = function(entry, highlight) {
                 return this.prepend(
-                    forp.create("div")
+                    f.create("div")
                         .class("backtrace-item " + (highlight ? " highlight" : ""))
                         .text(
                             "<strong>" + entry.id + "</strong><br>" +
                             entry.filelineno + "<br>" +
-                            forp.roundDiv(entry.usec, 1000).toFixed(3) + "ms " +
-                            forp.roundDiv(entry.bytes, 1024).toFixed(3) + "Kb"
+                            f.roundDiv(entry.usec, 1000).toFixed(3) + "ms " +
+                            f.roundDiv(entry.bytes, 1024).toFixed(3) + "Kb"
                         )
                 );
             };
@@ -833,14 +868,14 @@ var forp = {};
                 this.prependItem(stack[i], child == i);
                 i = stack[i].parent;
                 if(i != null) {
-                    this.prepend(forp.create("div").text("&#x25BC;"));
+                    this.prepend(f.create("div").text("&#x25BC;"));
                 }
             }
 
-            this.prepend(forp.create("br"))
-                .prepend(forp.create("br"))
-                .append(forp.create("br"))
-                .append(forp.create("br"));
+            this.prepend(f.create("br"))
+                .prepend(f.create("br"))
+                .append(f.create("br"))
+                .append(f.create("br"));
         },
         /**
          * LineEventListenerBacktrace Class
@@ -859,12 +894,12 @@ var forp = {};
                             e.preventDefault();
                             e.stopPropagation();
 
-                            var line = forp.wrap(this);
+                            var line = f.wrap(this);
                             context.getConsole()
                                 .getSidebar()
                                 .empty()
                                 .append(
-                                    new forp.Backtrace(
+                                    new f.Backtrace(
                                         line.getAttr("data-ref"),
                                         context.getStack().stack
                                     )
@@ -876,22 +911,35 @@ var forp = {};
         },
         /**
          * Gauge Class
-         * @param integer percent
+         * @param integer value
+         * @param integer max
          * @param string text
          */
-        Gauge : function(percent, text)
+        Gauge : function(value, max, divider, unit)
         {
-            forp.DOMElementWrapper.call(this);
+            f.DOMElementWrapper.call(this);
             this.element = document.createElement("div");
+
+            var percent = 0, text, displayedValue;
+
+            displayedValue = f.roundDiv(value, (divider ? divider : 1));
+            if(value > max) {
+                text = "reached " + displayedValue.toFixed(3) + (unit ? unit : '');
+            } else if(value < 0) {
+                text = "won " + Math.abs(displayedValue).toFixed(3) + (unit ? unit : '');
+            } else {
+                text = displayedValue.toFixed(3) + (unit ? unit : '');
+                percent = f.round(value * 100 / max);
+            }
 
             this.addClass("gauge")
                 .append(
-                    forp.create("div")
+                    f.create("div")
                         .class("text")
                         .text(text)
                 )
                 .append(
-                    forp.create("div")
+                    f.create("div")
                         .addClass("bar")
                         .attr(
                             "style",
@@ -926,7 +974,7 @@ var forp = {};
             },
             provideElementFor : function(name)
             {
-                return forp.create("a")
+                return f.create("a")
                         .class("tag")
                         .attr(
                             'style',
@@ -1042,14 +1090,14 @@ var forp = {};
                     this.groups = {};
                     this.leaves = [];
 
-                    this.topCpu = new forp.SortedFixedArray(
+                    this.topCpu = new f.SortedFixedArray(
                         function(a, b) {
                             return (a.usec > b.usec);
                         },
                         20
                     );
 
-                    this.topMemory = new forp.SortedFixedArray(
+                    this.topMemory = new f.SortedFixedArray(
                         function(a, b) {
                             return (a.bytes > b.bytes);
                         },
@@ -1060,8 +1108,8 @@ var forp = {};
 
                         id = this.getEntryId(this.stack[entry]);
                         filelineno = this.stack[entry].file + (this.stack[entry].lineno ? ':' + this.stack[entry].lineno : '');
-                        ms = forp.roundDiv(this.stack[entry].usec, 1000);
-                        kb = forp.roundDiv(this.stack[entry].bytes, 1024);
+                        ms = f.roundDiv(this.stack[entry].usec, 1000);
+                        kb = f.roundDiv(this.stack[entry].bytes, 1024);
 
                         // entry
                         this.stack[entry].i = entry;
@@ -1240,7 +1288,7 @@ var forp = {};
             this.getTopCalls = function()
             {
                 if(!this.topCalls) {
-                    this.topCalls = new forp.SortedFixedArray(
+                    this.topCalls = new f.SortedFixedArray(
                         function(a, b) {return (a.calls > b.calls);},
                         20
                     );
@@ -1258,20 +1306,6 @@ var forp = {};
              */
             this.getTopCpu = function()
             {
-                /*if(!this.topCpu) {
-                    this.topCpu = new f.SortedFixedArray(
-                        function(a, b) {
-                            a.usecavg = f.round((a.usec / a.calls) * 100) / 100;
-                            b.usecavg = f.round((b.usec / b.calls) * 100) / 100;
-                            return (a.usecavg > b.usecavg);
-                        },
-                        20
-                    );
-
-                    for(var entry in this.getFunctions()) {
-                        this.topCpu.put(this.functions[entry]);
-                    }
-                }*/
                 return this.aggregate().topCpu.stack;
             };
 
@@ -1281,20 +1315,6 @@ var forp = {};
              */
             this.getTopMemory = function()
             {
-                /*if(!this.topMemory) {
-                    this.topMemory = new f.SortedFixedArray(
-                        function(a, b) {
-                            a.bytesavg = f.round((a.bytes / a.calls) * 100) / 100;
-                            b.bytesavg = f.round((b.bytes / b.calls) * 100) / 100;
-                            return (a.bytesavg > b.bytesavg);
-                        },
-                        20
-                    );
-
-                    for(var entry in this.getFunctions()) {
-                        this.topMemory.put(this.functions[entry]);
-                    }
-                }*/
                 return this.aggregate().topMemory.stack;
             };
 
@@ -1315,600 +1335,780 @@ var forp = {};
             {
                 return this.aggregate().groups;
             };
-        }
-    };
-})();
-
-/**
- * forp IIFE
- * @param forp f
- */
-(function(f) {
-
-    /**
-     * forp stack manager
-     * @param array forp stack
-     */
-    f.Controller = function(stack)
-    {
-        var self = this;
-
-        this.layout = null;
-        this.console = null;
-        this.opened = false;
-        this.tree = null;
-        this.stack = null;
-        this.openEventListener = null;
-        this.viewMode = "embeddedCompacted";
-
-        this.setViewMode = function(viewMode)
-        {
-            this.viewMode = viewMode;
-            return this;
-        };
-
-        /**
-         *
-         */
-        this.hasStack = function(stack)
-        {
-            return this.stack != null;
-        };
-
-        /**
-         *
-         */
-        this.setStack = function(stack)
-        {
-            this.stack = new f.Stack(stack);
-            return this;
-        };
-
-        /**
-         *
-         */
-        this.getStack = function()
-        {
-            return this.stack;
-        };
-
-        /**
-         * @return Object Console
-         */
-        this.getConsole = function()
-        {
-            return this.layout.getConsole();
-        };
-
-        /**
-         *
-         */
-        this.getLayout = function()
-        {
-            if(!this.layout) this.layout = new f.Layout(this.viewMode);
-            return this.layout;
-        };
-
-        /**
-         * Run layout manager
-         * @return forp.Controller
-         */
-        this.run = function()
-        {
-            if(self.hasStack()) {
-                self.getStack()
-                    .aggregate();
-
-                if(this.viewMode == "embeddedCompacted") {
-                    this.getLayout()
-                        .compact(this.onCompact);
-
-                }
-
-                if(this.viewMode == "standalone") {
-                    this.open();
-                }
-            } else {
-                console.warn("forp : The call stack is undefined.");
-            }
-        };
-
-        /**
-         *
-         */
-        this.onCompact = function() {
-            if(self.getStack().stack.length > 0) {
-
-                self.layout
-                    .bind(
-                        "click",
-                        self.openEventListener = function() {
-                            self.getLayout()
-                                .setViewMode('embeddedExpanded');
-                            self.open();
-                        }
-
-                    );
-
-                f.create("div")
-                    .attr("style", "margin-right: 10px")
-                    .text(f.roundDiv(self.getStack().getMainEntry().usec, 1000) + ' ms ')
-                    .appendTo(self.getLayout().getNav());
-
-                f.create("div")
-                    .attr("style", "margin-right: 10px")
-                    .text(f.roundDiv(self.getStack().getMainEntry().bytes, 1024) + ' Kb')
-                    .appendTo(self.getLayout().getNav());
-            } else {
-                f.create("div")
-                    .text("Give me something to eat !")
-                    .appendTo(self.getLayout().getNav());
-            }
-        };
-
-        /**
-         * forpgui bootstrap
-         */
-        this.runOnReady = function()
-        {
-            f.ready(
-                function(){
-                    var s = document.createElement('style');
-                        t = document.createTextNode('%forp.css%');
-
-                    s.appendChild(t);
-                    (document.getElementsByTagName('head')[0]
-                        || document.getElementsByTagName('body')[0]).appendChild(s);
-
-                    //self.setStack(forp.stack);
-                    self.run();
-                }
-            );
         },
-
-        /**
-         *
-         */
-        this.clearTabs = function()
+        Grader : function()
         {
-            self.layout
-                .find(".tbtn")
-                .each(
-                    function(o) {
-                        o.class("tbtn");
-                        o.attr("data-state", "off")
+
+            this.gradeColors = {
+                A : '',
+                B : '',
+                C : '',
+                D : '',
+                E : '',
+                F : ''
+            };
+
+            this.grades = {
+                duration : {
+                    A : {
+                        min : 0, max : 0.1, tip : ["Very good job !", "The planet will reward you. !", "You'll be the king to the coffee machine.", "Your servers thank you."]
+                    },
+                    B : {
+                        min : 0.1, max : 0.3, tip : ["Good job !"]
+                    },
+                    C : {
+                        min : 0.3, max : 0.6, tip : ["You are close to job performance."]
+                    },
+                    D : {
+                        min : 0.6, max : 1.0, tip : ["You are under one second.", "Think cache."]
+                    },
+                    E : {
+                        min : 1, max : 2, tip : ["At your own risk !"]
+                    }
+                },
+                memory : {
+                    A : {
+                        min : 0, max : 2000, tip : ["Very good job !", "How are you doing ?"]
+                    },
+                    B : {
+                        min : 2000, max : 4000, tip : ["Good job !"]
+                    },
+                    C : {
+                        min : 4000, max : 8000, tip : ["Respectable"]
+                    },
+                    D : {
+                        min : 8000, max : 12000, tip : ["You load too much data."]
+                    },
+                    E : {
+                        min : 12000, max : 20000, tip : ["You load a lot of data."]
+                    }
+                },
+                includes : {
+                    A : {
+                        min : 0, max : 5, tip : ["Very good job !"]
+                    },
+                    B : {
+                        min : 5, max : 10, tip : ["Good job !"]
+                    },
+                    C : {
+                        min : 10, max : 30, tip : ["Build script can do the rest."]
+                    },
+                    D : {
+                        min : 30, max : 60, tip : ["At your own risk !", "Build script is your friend."]
+                    },
+                    E : {
+                        min : 60, max : 120, tip : ["At your own risk !", "Build script is your friend."]
+                    }
+                },
+                calls : {
+                    A : {
+                        min : 0, max : 400, tip : ["Very good job !", "This is the 'Hello world' script ?"]
+                    },
+                    B : {
+                        min : 400, max : 800, tip : ["Very good job !"]
+                    },
+                    C : {
+                        min : 800, max : 1600, tip : ["Respectable"]
+                    },
+                    D : {
+                        min : 1600, max : 3200, tip : ["Has a bad impact on performance."]
+                    },
+                    E : {
+                        min : 3200, max : 6400, tip : ["It's a joke ?", "At your own risk !"]
+                    }
+                },
+                nesting : {
+                    A : {
+                        min : 0, max : 5, tip : ["This is the 'Hello world' script ?"]
+                    },
+                    B : {
+                        min : 5, max : 10, tip : ["Very good job !"]
+                    },
+                    C : {
+                        min : 10, max : 15, tip : ["Respectable"]
+                    },
+                    D : {
+                        min : 15, max : 20, tip : ["Too many levels of indirection ?"]
+                    },
+                    E : {
+                        min : 20, max : 30, tip : ["Perhaps, are you currently refactoring ?"]
+                    }
+                }
+            };
+
+            this.getGrade = function(gradeName, mesure) {
+                for(var grade in this.grades[gradeName]) {
+                    if( mesure > this.grades[gradeName][grade]['min']
+                        && mesure <= this.grades[gradeName][grade]['max']
+                    ) {
+                        return grade;
+                    }
+                }
+                return grade;
+            };
+
+            this.getTip = function(gradeName, grade) {
+            var i = Math.floor((Math.random() * this.grades[gradeName][grade]['tip'].length));
+            return this.grades[gradeName][grade]['tip'][i];
+            };
+
+            this.getGradeWithTip = function(gradeName, mesure) {
+                var grade = this.getGrade(gradeName, mesure);
+                return grade + " - " + this.getTip(gradeName, grade);
+            };
+        },
+        /**
+        * forp stack manager
+        * @param array forp stack
+        */
+        Controller : function(stack)
+        {
+            var self = this;
+
+            this.layout = null;
+            this.console = null;
+            this.grader = null;
+            this.tree = null;
+            this.stack = null;
+            this.openEventListener = null;
+            this.viewMode = "embeddedCompacted";
+
+            this.setViewMode = function(viewMode)
+            {
+                this.viewMode = viewMode;
+                return this;
+            };
+
+            /**
+            *
+            */
+            this.hasStack = function(stack)
+            {
+                return this.stack != null;
+            };
+
+            /**
+            *
+            */
+            this.setStack = function(stack)
+            {
+                this.stack = new f.Stack(stack);
+                return this;
+            };
+
+            /**
+            *
+            */
+            this.getStack = function()
+            {
+                return this.stack;
+            };
+
+            /**
+            * @return Object Console
+            */
+            this.getConsole = function()
+            {
+                return this.layout.getConsole();
+            };
+
+            /**
+            *
+            */
+            this.getLayout = function()
+            {
+                if(!this.layout) this.layout = new f.Layout(this.viewMode);
+                return this.layout;
+            };
+
+            this.getGrader = function()
+            {
+                if(!this.grader) this.grader = new f.Grader();
+                return this.grader;
+            };
+
+            /**
+            * Run layout manager
+            * @return forp.Controller
+            */
+            this.run = function()
+            {
+                try
+                {
+                    if(!self.hasStack()) {
+                        throw {
+                            name: "Undefined",
+                            message: "Stack undefined."
+                        }
+                    }
+
+                    if(self.getStack().stack.length > 20000) {
+                        throw new RangeError("More than 20000 entries in the stack (" + self.getStack().stack.length + ").");
+                    }
+
+                    // proceeds and aggregates stack datas
+                    self.getStack()
+                        .aggregate();
+
+                    if(this.viewMode == "embeddedCompacted") {
+                        // compacted view mode
+                        this.getLayout()
+                            .compact(this.onCompact);
+                    } else if(this.viewMode == "standalone") {
+                        // open at run
+                        this.open();
+                    }
+                } catch(e)
+                {
+                    // EvalError, RangeError, ReferenceError, SyntaxError,
+                    // TypeError, URIError and custom exception
+                    console.error("forpgui > " + e.name + ": " + e.message);
+                    //alert(  "An error occurred! "
+                    //+ (e.number      || e.name   ) + ": "
+                    //+ (e.description || e.message) );
+                }
+            };
+
+            /**
+            *
+            */
+            this.onCompact = function() {
+                if(self.getStack().stack.length > 0) {
+
+                    self.layout
+                        .bind(
+                            "click",
+                            self.openEventListener = function() {
+                                self.getLayout()
+                                    .setViewMode('embeddedExpanded');
+                                self.open();
+                            }
+
+                        );
+
+                    f.create("div")
+                        .attr("style", "margin-right: 10px")
+                        .text(f.roundDiv(self.getStack().getMainEntry().usec, 1000) + ' ms ')
+                        .appendTo(self.getLayout().getNav());
+
+                    f.create("div")
+                        .attr("style", "margin-right: 10px")
+                        .text(f.roundDiv(self.getStack().getMainEntry().bytes, 1024) + ' Kb')
+                        .appendTo(self.getLayout().getNav());
+                } else {
+                    f.create("div")
+                        .text("Give me something to eat !")
+                        .appendTo(self.getLayout().getNav());
+                }
+            };
+
+            /*this.runOnReady = function()
+            {
+                f.ready(
+                    function(){
+                        var s = document.createElement('style'),
+                            t = document.createTextNode('%forp.css%');
+
+                        s.appendChild(t);
+                        (document.getElementsByTagName('head')[0]
+                            || document.getElementsByTagName('body')[0]).appendChild(s);
+
+                        self.run();
                     }
                 );
-            return this;
-        };
+            },*/
 
-        /**
-         * Select a tab
-         * @param string DOM Element target
-         * @return forp.Controller
-         */
-        this.selectTab = function(target)
-        {
-            this.clearTabs();
-            f.find(target).class("tbtn highlight");
-            return this;
-        };
-
-        /**
-         * Show details table in a new line
-         */
-        this.toggleDetails = function()
-        {
-            var target = f.find(this);
-            if(target.getAttr("data-details") == 1) {
-                target.nextSibling().remove();
-                target.attr("data-details", 0);
-                return;
-            }
-
-            target.attr("data-details", 1);
-
-            var id = target.getAttr("data-ref"),
-                line = f.create("tr"),
-                td = f.create("td")
-                      .attr("colspan", 4)
-                      .appendTo(line);
-
-            var table = td.table(["called from", " ms", "Kb"]); //"calls",
-            for(var i in self.getStack().getFunctions()[id].entries) {
-                for(var j in self.getStack().getFunctions()[id].entries[i].refs) {
-                    if(!self.getStack().getFunctions()[id].entries[i].refs[j]) continue;
-
-                    table.line([
-                        self.getStack().getFunctions()[id].entries[i].refs[j].filelineno +
-                        (self.getStack().getFunctions()[id].entries[i].refs[j].caption ? "<br>" + self.getStack().getFunctions()[id].entries[i].refs[j].caption : ""),
-                        new f.Gauge(
-                            f.round((self.getStack().getFunctions()[id].entries[i].refs[j].usec * 100) / self.getStack().sumDuration(self.getStack().getFunctions()[id].refs))
-                            , f.roundDiv(self.getStack().getFunctions()[id].entries[i].refs[j].usec, 1000).toFixed(3)
-                        ),
-                        new f.Gauge(
-                            f.round((self.getStack().getFunctions()[id].entries[i].refs[j].bytes * 100) / self.getStack().sumMemory(self.getStack().getFunctions()[id].refs))
-                            , f.roundDiv(self.getStack().getFunctions()[id].entries[i].refs[j].bytes, 1024).toFixed(3)
-                        ),
-                    ]).addEventListener(
-                        new forp.LineEventListenerBacktrace(
-                            self.getStack().getFunctions()[id].entries[i].refs[j].i,
-                            self
-                        )
+            /**
+            *
+            */
+            this.clearTabs = function()
+            {
+                self.layout
+                    .find(".tbtn")
+                    .each(
+                        function(o) {
+                            o.class("tbtn");
+                            o.attr("data-state", "off")
+                        }
                     );
+                return this;
+            };
+
+            /**
+            * Select a tab
+            * @param string DOM Element target
+            * @return forp.Controller
+            */
+            this.selectTab = function(target)
+            {
+                this.clearTabs();
+                f.find(target).class("tbtn highlight");
+                return this;
+            };
+
+            /**
+            * Show details table in a new line
+            */
+            this.toggleDetails = function()
+            {
+                var target = f.find(this);
+                if(target.getAttr("data-details") == 1) {
+                    target.nextSibling().remove();
+                    target.attr("data-details", 0);
+                    return;
                 }
-            }
-            target.insertAfter(line);
-        };
 
-        /**
-         * Expand main layout
-         * @return forp.Controller
-         */
-        this.open = function()
-        {
-            //if(this.opened) return; // TODO unbind
-            //this.opened = true;
+                target.attr("data-details", 1);
 
-            this.getLayout()
-                .unbind("click", this.openEventListener)
-                .open();
+                var id = target.getAttr("data-ref"),
+                    line = f.create("tr"),
+                    td = f.create("td")
+                        .attr("colspan", 4)
+                        .appendTo(line),
+                    table = td.table(["called from", " ms", "Kb"]),
+                    lastId, loopCount, loopMaxIter = 100;
 
-            // footer
-            f.create("div")
-             .class("footer")
-             .appendTo(this.layout);
+                calledFrom:
+                for(var i in self.getStack().getFunctions()[id].entries) {
+                    for(var j in self.getStack().getFunctions()[id].entries[i].refs) {
 
-            var container = f.create("div").attr("style", "margin-top: -2px");
-            container.appendTo(this.getLayout().getNav());
+                        if(!self.getStack().getFunctions()[id].entries[i].refs[j]) continue;
 
-            container.append(
-                new f.ToggleButton(
-                    "metrics",
-                    function(e) {
+                        // detecting loop
+                        if(self.getStack().getFunctions()[id].entries[i].refs[j].id == lastId) {
+                            loopCount++;
+                        } else {
+                            loopCount = 0;
+                        }
+                        lastId = self.getStack().getFunctions()[id].entries[i].refs[j].id;
 
-                        // TODO Metrics API
-                        // @see http://www.sdmetrics.com/LoM.html
+                        // loop detected and max reached
+                        if(loopCount >= loopMaxIter) {
+                            table.append(
+                                f.create("tr")
+                                .append(
+                                    f.create("td")
+                                        .attr("colspan", 3)
+                                        .css("text-align: center")
+                                        .text(lastId + " : " +
+                                            "too many items to display (>" +
+                                            loopMaxIter + ")")
+                                    )
+                            );
+                            break calledFrom;
+                        }
 
-                        //   Cyclomatic complexity
-                        //   Excessive class complexity
-                        //   N-path complexity
-                        //   Too many fields
-                        //   Too many methods
-                        // x Ease of change
-                        var table = self.getConsole()
-                                        .empty()
-                                        .open()
-                                        .table(["metric", "type", "value", "grade"]);
+                        table.line([
+                            self.getStack().getFunctions()[id].entries[i].refs[j].filelineno +
+                            (self.getStack().getFunctions()[id].entries[i].refs[j].caption ? "<br>" + self.getStack().getFunctions()[id].entries[i].refs[j].caption : ""),
+                            new f.Gauge(
+                                self.getStack().getFunctions()[id].entries[i].refs[j].usec,
+                                self.getStack().sumDuration(self.getStack().getFunctions()[id].refs),
+                                1000,
+                                'ms'
+                            ),
+                            new f.Gauge(
+                                self.getStack().getFunctions()[id].entries[i].refs[j].bytes,
+                                self.getStack().sumMemory(self.getStack().getFunctions()[id].refs),
+                                1024,
+                                'Kb'
+                            ),
+                        ]).addEventListener(
+                            new f.LineEventListenerBacktrace(
+                                self.getStack().getFunctions()[id].entries[i].refs[j].i,
+                                self
+                            )
+                        );
+                    }
+                }
+                target.insertAfter(line);
+            };
 
-                        self.selectTab(e.target);
+            /**
+            * Expand main layout
+            * @return forp.Controller
+            */
+            this.open = function()
+            {
+                this.getLayout()
+                    .unbind("click", this.openEventListener)
+                    .open();
 
-                        table.line(["<strong>Duration (ms)</strong>", "Performance", f.roundDiv(self.getStack().getMainEntry().usec, 1000), ""]);
-                        table.line(["<strong>Memory usage (Kb)</strong>", "Performance", f.roundDiv(self.getStack().getMainEntry().bytes, 1024), ""]);
-                        table.line(["<strong>Total includes</strong>", "Performance", self.getStack().includesCount, ""]);
-                        table.line(["<strong>Total calls</strong>", "Performance", self.getStack().stack.length, ""]);
-                        table.line(["<strong>Max nested level</strong>", "Nesting", self.getStack().maxNestedLevel, ""]);
-                        table.line(["<strong>Avg nested level</strong>", "Nesting", self.getStack().avgLevel.toFixed(2), ""]);
-                    },
-                    self.layout.getMainPanel().close,
-                    true
-                )
-            );
+                // footer
+                f.create("div")
+                 .class("footer")
+                 .appendTo(this.layout);
 
-            container.append(
-                new f.ToggleButton(
-                    "stack (" + self.getStack().stack.length + ")",
-                    function(e) {
+                var container = f.create("div").attr("style", "margin-top: -2px");
+                container.appendTo(this.getLayout().getNav());
 
-                        if(!self.tree) self.tree = new f.Tree(self.getStack().stack);
-                        self.selectTab(e.target)
-                            .getConsole()
-                            .empty()
-                            .open()
-                            .append(
+                container.append(
+                    new f.ToggleButton(
+                        "metrics",
+                        function(e) {
+
+                            // TODO Metrics API
+                            // @see http://www.sdmetrics.com/LoM.html
+
+                            //   Cyclomatic complexity
+                            //   Excessive class complexity
+                            //   N-path complexity
+                            //   Too many fields
+                            //   Too many methods
+                            // x Ease of change
+                            var table = self.getConsole()
+                                            .empty()
+                                            .open()
+                                            .table(["metric", "type", "value", "grade"]);
+
+                            self.selectTab(e.target);
+
+                            var duration = f.roundDiv(self.getStack().getMainEntry().usec, 1000),
+                                memory = f.roundDiv(self.getStack().getMainEntry().bytes, 1024);
+
+                            table.line(["<strong>Duration (ms)</strong>", "Performance",
+                                duration,
+                                self.getGrader().getGradeWithTip("duration", duration)
+                            ]);
+                            table.line(["<strong>Memory usage (Kb)</strong>", "Performance",
+                                memory,
+                                self.getGrader().getGradeWithTip("memory", memory)]);
+                            table.line(["<strong>Total includes</strong>", "Performance",
+                                self.getStack().includesCount,
+                                self.getGrader().getGradeWithTip("includes", self.getStack().includesCount)]);
+                            table.line(["<strong>Total calls</strong>", "Performance",
+                                self.getStack().stack.length,
+                                self.getGrader().getGradeWithTip("calls", self.getStack().stack.length)]);
+                            table.line(["<strong>Max nested level</strong>", "Nesting",
+                                self.getStack().maxNestedLevel,
+                                self.getGrader().getGradeWithTip("nesting", self.getStack().maxNestedLevel)]);
+                            table.line(["<strong>Avg nested level</strong>", "Nesting",
+                                self.getStack().avgLevel.toFixed(2),
+                                self.getGrader().getGradeWithTip("nesting", self.getStack().avgLevel)]);
+                            },
+                        self.getLayout().reduce,
+                        true
+                    )
+                );
+
+                container.append(
+                    new f.ToggleButton(
+                        "stack (" + self.getStack().stack.length + ")",
+                        function(e) {
+
+                            if(!self.tree) self.tree = new f.Tree(self.getStack().stack);
+                            self.selectTab(e.target)
+                                .getConsole()
+                                .empty()
+                                .open()
+                                .append(
+                                    f.create("div")
+                                        .attr("style", "margin-top: 10px;")
+                                        .append(
+                                            f.create("div")
+                                                .attr("style", "position: absolute; margin: 5px; right: 20px")
+                                                .append(
+                                                    f.create("a")
+                                                        .text("expand")
+                                                        .attr("href", "javascript:void(0);")
+                                                        .class("btn")
+                                                        .bind(
+                                                            "click",
+                                                            function() {
+                                                                f.find("li.collapsed[data-tree]")
+                                                                    .each(
+                                                                        function(e){
+                                                                            e.attr("class", "expanded");
+                                                                        }
+                                                                    );
+                                                            })
+                                                    )
+                                                .append(
+                                                    f.create("a")
+                                                        .text("collapse")
+                                                        .attr("href", "javascript:void(0);")
+                                                        .class("btn")
+                                                        .bind(
+                                                            "click",
+                                                            function() {
+                                                                f.find("li.expanded")
+                                                                    .each(
+                                                                        function(e){
+                                                                            e.attr("class", "collapsed");
+                                                                        }
+                                                                    );
+                                                            })
+                                                    )
+                                        )
+                                        .append(
+                                            f.create("div").append(self.tree)
+                                        )
+                                    );
+                        },
+                        self.getLayout().reduce
+                    )
+                );
+
+                container.append(
+                    new f.ToggleButton(
+                        "top 20 duration",
+                        function(e) {
+                            var datas = self.getStack().getTopCpu();
+
+                            self.selectTab(e.target);
+
+                            /*for(var i = 0; i < self.leaves.length; i++) {
+                                var h = (self.leaves[i].usec * 50) / datas[0].usec;
                                 f.create("div")
-                                    .attr("style", "margin-top: 10px;")
+                                    .attr("style", "height: 50px;")
+                                    .class("left")
+                                    .attr("style", "margin: 1px; width: 1px; height: " + h + "px; background: #4D90FE;")
+                                    .appendTo(d);
+                            }*/
+
+                            var table = self.getConsole()
+                                            .empty()
+                                            .open()
+                                            .table(["function", "self cost ms", "total cost ms", "calls"]);
+
+                            for(var i in datas) {
+                                var id = self.getStack().getEntryId(datas[i]);
+                                table.line([
+                                        "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
+                                        + (datas[i].caption ? "<br>" + datas[i].caption : ""),
+                                        f.roundDiv(datas[i].usec, 1000).toFixed(3) + '',
+                                        f.roundDiv(self.getStack().sumDuration(self.getStack().getFunctions()[id].refs), 1000).toFixed(3) + '',
+                                        self.getStack().getFunctions()[id].calls
+                                    ])
+                                    .addEventListener(
+                                        new f.LineEventListenerBacktrace(
+                                            datas[i].i,
+                                            self
+                                        )
+                                    );
+                            }
+                        },
+                        self.getLayout().reduce
+                    )
+                );
+
+                container.append(
+                    new f.ToggleButton(
+                        "top 20 memory",
+                        function(e) {
+                            var datas = self.getStack()
+                                            .getTopMemory();
+
+                            self.selectTab(e.target);
+
+                            var table = self.getConsole()
+                                            .empty()
+                                            .open()
+                                            .table(["function", "self cost Kb", "total cost Kb", "calls"]);
+                            for(var i in datas) {
+                                var id = self.getStack().getEntryId(datas[i]);
+                                table.line([
+                                        "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
+                                        + (datas[i].caption ? "<br>" + datas[i].caption : ""),
+                                        f.roundDiv(datas[i].bytes, 1024).toFixed(3) + '',
+                                        f.roundDiv(self.getStack().sumMemory(self.getStack().getFunctions()[id].refs), 1024).toFixed(3) + '',
+                                        self.getStack().getFunctions()[id].calls
+                                    ])
+                                    .addEventListener(
+                                        new f.LineEventListenerBacktrace(
+                                            datas[i].i,
+                                            self
+                                        )
+                                    );
+                            }
+                        },
+                        self.getLayout().reduce
+                    )
+                );
+
+
+                container.append(
+                    new f.ToggleButton(
+                        "top 20 calls",
+                        function(e) {
+                            var datas = self.getStack()
+                                            .getTopCalls();
+
+                            self.selectTab(e.target);
+
+                            var table = self.getConsole()
+                                            .empty()
+                                            .open()
+                                            .table(["function", "calls", "ms", "Kb"]);
+                            for(var i in datas) {
+                                table.line([
+                                        datas[i].id,
+                                        datas[i].calls,
+                                        f.roundDiv(self.getStack().sumDuration(datas[i].refs), 1000).toFixed(3) + '',
+                                        f.roundDiv(self.getStack().sumMemory(datas[i].refs), 1000).toFixed(3) + ''
+                                    ])
+                                    .attr("data-ref", datas[i].id)
+                                    .bind(
+                                        "click",
+                                        self.toggleDetails
+                                    );
+                            }
+                        },
+                        self.getLayout().reduce
+                    )
+                );
+
+                if(self.getStack().includesCount > 0)
+                container.append(
+                    new f.ToggleButton(
+                        "files (" + self.getStack().includesCount + ")",
+                        function(e) {
+                            var datas = self.getStack()
+                                            .getIncludes();
+
+                            self.selectTab(e.target);
+
+                            var table = self.getConsole()
+                                            .empty()
+                                            .open()
+                                            .table(["file", "calls from"]);
+
+                            for(var i in datas) {
+                                table.line([
+                                    i,
+                                    new f.Gauge(
+                                        datas[i].calls,
+                                        self.getStack().stack.length
+                                    )
+                                ]);
+                            }
+                        },
+                        self.getLayout().reduce
+                    )
+                );
+
+                if(self.getStack().groupsCount > 0)
+                container.append(
+                    new f.ToggleButton(
+                        "groups (" + self.getStack().groupsCount + ")",
+                        function(e) {
+                            var datas = self.getStack()
+                                            .getGroups();
+
+                            self.selectTab(e.target);
+
+                            var table = self.getConsole()
+                                            .empty()
+                                            .open()
+                                            .table(["group", "calls", "ms", "Kb"]);
+
+                            for(var i in datas) {
+                                table
                                     .append(
-                                        f.create("div")
-                                            .attr("style", "position: absolute; margin: 5px; right: 20px")
-                                            .append(
-                                                f.create("a")
-                                                    .text("expand")
-                                                    .attr("href", "javascript:void(0);")
-                                                    .class("btn")
-                                                    .bind(
-                                                        "click",
-                                                        function() {
-                                                            f.find("li.collapsed[data-tree]")
-                                                                .each(
-                                                                    function(e){
-                                                                        e.attr("class", "expanded");
-                                                                    }
-                                                                );
-                                                        })
-                                                )
-                                            .append(
-                                                f.create("a")
-                                                    .text("collapse")
-                                                    .attr("href", "javascript:void(0);")
-                                                    .class("btn")
-                                                    .bind(
-                                                        "click",
-                                                        function() {
-                                                            f.find("li.expanded")
-                                                                .each(
-                                                                    function(e){
-                                                                        e.attr("class", "collapsed");
-                                                                    }
-                                                                );
-                                                        })
-                                                )
+                                        f.create("tr")
+                                        .append(
+                                            f.create("td")
+                                            .attr("colspan", 4)
+                                            .attr("style", "padding: 0px; height: 4px; background:" + f.TagRandColor.provideFor(i))
+                                        )
                                     )
-                                    .append(
-                                        f.create("div").append(self.tree)
-                                    )
-                                );
-                    },
-                    self.layout.getMainPanel().close
-                )
-            );
+                                    .line([
+                                        "<strong>" + i + "</strong> " +
+                                        datas[i].refs.length + " " +
+                                        (datas[i].refs.length>1 ? "entries" : "entry"),
+                                        datas[i].calls,
+                                        f.roundDiv(datas[i].usec, 1000).toFixed(3) + '',
+                                        f.roundDiv(datas[i].bytes, 1024).toFixed(3) + ''
+                                    ]);
 
-            container.append(
-                new f.ToggleButton(
-                    "top 20 duration",
-                    function(e) {
-                        var datas = self.getStack().getTopCpu();
+                                for(var j in datas[i].refs) {
+                                    table.line([
+                                        datas[i].refs[j].id,
+                                        new f.Gauge(
+                                                self.getStack().getFunctions()[datas[i].refs[j].id].calls,
+                                                datas[i].calls
+                                        ),
+                                        new f.Gauge(
+                                                self.getStack().sumDuration(self.getStack().getFunctions()[datas[i].refs[j].id].refs),
+                                                datas[i].usec,
+                                                1000,
+                                                'ms'
+                                        ),
+                                        new f.Gauge(
+                                                self.getStack().sumMemory(self.getStack().getFunctions()[datas[i].refs[j].id].refs),
+                                                datas[i].bytes,
+                                                1024,
+                                                'Kb'
+                                        )
+                                    ])
+                                    .attr("data-ref", datas[i].refs[j].id)
+                                    .bind("click", self.toggleDetails);
+                                }
+                            }
+                        },
+                        self.getLayout().reduce
+                    )
+                );
 
-                        self.selectTab(e.target);
-
-                        /*for(var i = 0; i < self.leaves.length; i++) {
-                            var h = (self.leaves[i].usec * 50) / datas[0].usec;
-                            f.create("div")
-                                .attr("style", "height: 50px;")
-                                .class("left")
-                                .attr("style", "margin: 1px; width: 1px; height: " + h + "px; background: #4D90FE;")
-                                .appendTo(d);
-                        }*/
-
-                        var table = self.getConsole()
-                                        .empty()
-                                        .open()
-                                        .table(["function", "self cost ms", "total cost ms", "calls"]);
-
-                        for(var i in datas) {
-                            var id = self.getStack().getEntryId(datas[i]);
-                            table.line([
-                                    "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
-                                    + (datas[i].caption ? "<br>" + datas[i].caption : ""),
-                                    f.roundDiv(datas[i].usec, 1000).toFixed(3) + '',
-                                    f.roundDiv(self.getStack().sumDuration(self.getStack().getFunctions()[id].refs), 1000).toFixed(3) + '',
-                                    self.getStack().getFunctions()[id].calls
-                                ])
-                                .addEventListener(
-                                    new forp.LineEventListenerBacktrace(
-                                        datas[i].i,
-                                        self
-                                    )
-                                );
+                container.append(
+                f.create("input")
+                    .attr("type", "text")
+                    .attr("name", "forpSearch")
+                    .attr("placeholder", "Search ...")
+                    .bind(
+                        "click",
+                        function() {
+                            f.find(this);
+                            self.clearTabs();
                         }
-                    },
-                    self.layout.getMainPanel().close
-                )
-            );
+                    )
+                    .bind(
+                        "keyup",
+                        function() {
+                            var table = self.getConsole()
+                                            .empty()
+                                            .open()
+                                            .table(["function", "calls", "ms", "Kb"]),
+                                datas = self.getStack().search(this.value);
 
-            container.append(
-                new f.ToggleButton(
-                    "top 20 memory",
-                    function(e) {
-                        var datas = self.getStack()
-                                        .getTopMemory();
-
-                        self.selectTab(e.target);
-
-                        var table = self.getConsole()
-                                        .empty()
-                                        .open()
-                                        .table(["function", "self cost Kb", "total cost Kb", "calls"]);
-                        for(var i in datas) {
-                            var id = self.getStack().getEntryId(datas[i]);
-                            table.line([
-                                    "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
-                                    + (datas[i].caption ? "<br>" + datas[i].caption : ""),
-                                    f.roundDiv(datas[i].bytes, 1024).toFixed(3) + '',
-                                    f.roundDiv(self.getStack().sumMemory(self.getStack().getFunctions()[id].refs), 1024).toFixed(3) + '',
-                                    self.getStack().getFunctions()[id].calls
-                                ])
-                                .addEventListener(
-                                    new forp.LineEventListenerBacktrace(
-                                        datas[i].i,
-                                        self
-                                    )
-                                );
-                        }
-                    },
-                    self.layout.getMainPanel().close
-                )
-            );
-
-
-            container.append(
-                new f.ToggleButton(
-                    "top 20 calls",
-                    function(e) {
-                        var datas = self.getStack()
-                                        .getTopCalls();
-
-                        self.selectTab(e.target);
-
-                        var table = self.getConsole()
-                                        .empty()
-                                        .open()
-                                        .table(["function", "calls", "ms", "Kb"]);
-                        for(var i in datas) {
-                            table.line([
+                            for(var i in datas) {
+                                table.line([
                                     datas[i].id,
                                     datas[i].calls,
                                     f.roundDiv(self.getStack().sumDuration(datas[i].refs), 1000).toFixed(3) + '',
-                                    f.roundDiv(self.getStack().sumMemory(datas[i].refs), 1000).toFixed(3) + ''
+                                    f.roundDiv(self.getStack().sumMemory(datas[i].refs), 1024).toFixed(3) + ''
                                 ])
                                 .attr("data-ref", datas[i].id)
-                                .bind(
-                                    "click",
-                                    self.toggleDetails
-                                );
-                        }
-                    },
-                    self.layout.getMainPanel().close
-                )
-            );
-
-            if(self.getStack().includesCount > 0)
-            container.append(
-                new f.ToggleButton(
-                    "files (" + self.getStack().includesCount + ")",
-                    function(e) {
-                        var datas = self.getStack()
-                                        .getIncludes();
-
-                        self.selectTab(e.target);
-
-                        var table = self.getConsole()
-                                        .empty()
-                                        .open()
-                                        .table(["file", "calls from"]);
-
-                        for(var i in datas) {
-                            table.line([
-                                i,
-                                new f.Gauge(
-                                    f.round((datas[i].calls * 100) / self.getStack().stack.length),
-                                    datas[i].calls
-                                )
-                            ]);
-                        }
-                    },
-                    self.layout.getMainPanel().close
-                )
-            );
-
-            if(self.getStack().groupsCount > 0)
-            container.append(
-                new f.ToggleButton(
-                    "groups (" + self.getStack().groupsCount + ")",
-                    function(e) {
-                        var datas = self.getStack()
-                                        .getGroups();
-
-                        self.selectTab(e.target);
-
-                        var table = self.getConsole()
-                                        .empty()
-                                        .open()
-                                        .table(["group", "calls", "ms", "Kb"]);
-
-                        for(var i in datas) {
-                            table
-                                .append(
-                                    f.create("tr")
-                                     .append(
-                                        f.create("td")
-                                         .attr("colspan", 4)
-                                         .attr("style", "padding: 0px; height: 4px; background:" + f.TagRandColor.provideFor(i))
-                                     )
-                                )
-                                .line([
-                                    "<strong>" + i + "</strong> " +
-                                    datas[i].refs.length + " " +
-                                    (datas[i].refs.length>1 ? "entries" : "entry"),
-                                    datas[i].calls,
-                                    f.roundDiv(datas[i].usec, 1000).toFixed(3) + '',
-                                    f.roundDiv(datas[i].bytes, 1024).toFixed(3) + ''
-                                ]);
-
-                            for(var j in datas[i].refs) {
-                                table.line([
-                                    datas[i].refs[j].id,
-                                    new f.Gauge(
-                                            f.round(
-                                                (self.getStack().getFunctions()[datas[i].refs[j].id].calls * 100) / datas[i].calls
-                                            )
-                                            , self.getStack().getFunctions()[datas[i].refs[j].id].calls
-                                    ),
-                                    new f.Gauge(
-                                            f.round(
-                                                (self.getStack().sumDuration(self.getStack().getFunctions()[datas[i].refs[j].id].refs) * 100) / datas[i].usec
-                                            )
-                                            ,
-                                            f.roundDiv(self.getStack().sumDuration(self.getStack().getFunctions()[datas[i].refs[j].id].refs), 1000).toFixed(3)
-                                    ),
-                                    new f.Gauge(
-                                            f.round(
-                                                (self.getStack().sumMemory(self.getStack().getFunctions()[datas[i].refs[j].id].refs) * 100) / datas[i].bytes
-                                            )
-                                            , f.roundDiv(self.getStack().sumMemory(self.getStack().getFunctions()[datas[i].refs[j].id].refs), 1024).toFixed(3)
-                                    )
-                                ])
-                                .attr("data-ref", datas[i].refs[j].id)
                                 .bind("click", self.toggleDetails);
                             }
                         }
-                    },
-                    self.layout.getMainPanel().close
-                )
-            );
+                    )
+                );
 
-            container.append(
-               f.create("input")
-                .attr("type", "text")
-                .attr("name", "forpSearch")
-                .attr("placeholder", "Search ...")
-                .bind(
-                    "click",
-                    function() {
-                        f.find(this);
-                        self.clearTabs();
-                    }
-                )
-                .bind(
-                    "keyup",
-                    function() {
-                        var table = self.getConsole()
-                                        .empty()
-                                        .open()
-                                        .table(["function", "calls", "ms", "Kb"]),
-                            datas = self.getStack().search(this.value);
-
-                        for(var i in datas) {
-                            table.line([
-                                datas[i].id,
-                                datas[i].calls,
-                                f.roundDiv(self.getStack().sumDuration(datas[i].refs), 1000).toFixed(3) + '',
-                                f.roundDiv(self.getStack().sumMemory(datas[i].refs), 1024).toFixed(3) + ''
-                            ])
-                            .attr("data-ref", datas[i].id)
-                            .bind("click", self.toggleDetails);
+                (this.viewMode == "embeddedCompacted") &&
+                container.append(
+                    f.create("div")
+                    .text("&#x25BC;")
+                    .class("close")
+                    .bind(
+                        "click",
+                        function(e) {
+                            e.stopPropagation();
+                            self.getLayout()
+                                .setViewMode('embeddedCompacted')
+                                .compact(self.onCompact);
                         }
-                    }
-                )
-            );
+                    )
+                );
 
-            (this.viewMode == "embeddedCompacted") &&
-            container.append(
-                f.create("div")
-                 .text("&#x25BC;")
-                 .class("close")
-                 .bind(
-                    "click",
-                    function(e) {
-                        e.stopPropagation();
-                        self.getLayout()
-                            .setViewMode('embeddedCompacted')
-                            .compact(self.onCompact);
-                    }
-                 )
-            );
-
-            return this;
-        };
+                return this;
+            };
+        }
     };
 })(forp);
+
+
+(new forp.Controller())
+    .setStack(_fgstack)
+    .setViewMode(_fgviewmode)
+    .run();

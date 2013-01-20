@@ -1,4 +1,6 @@
 <?php
+ini_set('memory_limit', '256M');
+
 /**
  * TODO JSON : empty if > 256Kb
  * TODO LZW-compress
@@ -20,9 +22,8 @@ register_shutdown_function(
         //  total headers size < 256Kb
         //  each header < 10Kb
         if(isset($_SERVER['HTTP_X_FORP_VERSION'])) {
-            $encodedStack = base64_encode(utf8_encode($jsonDump));
+            $encodedStack = utf8_encode($jsonDump);
             if(strpos(strtolower($_SERVER['HTTP_ACCEPT']), 'json')) {
-
                 /*$getHeader = function($bytes=300000) {
                     $headerValue = "";
                     for($i=0;$i<$bytes;$i++) {
@@ -52,17 +53,25 @@ register_shutdown_function(
                 }
             } else {
                 // application/x-forp-stack
-                echo "<script type='application/x-forp-stack' id=forpStack>$encodedStack</script>";
+                echo    "<script type='application/x-forp-stack' id=forpStack>" .
+                        $encodedStack .
+                        "</script>";
             }
         } else {
             // no extension then displays forpgui in page footer
             ?>
             <link rel="stylesheet" type="text/css" href="js/src/forp/forp.css">
-            <script src="js/src/forp/forp.js"></script>
-            <script>
-                (new forp.Controller())
-                    .setStack(<?php echo $jsonDump; ?>)
-                    .runOnReady();
+            <script type="text/javascript">
+                var _fgstack = <?php echo $jsonDump; ?>,
+                    _fgsrc = "js/src/forp/forp.js",
+                    _fgviewmode = "standalone";
+            </script>
+            <script type="text/javascript">
+            (function() {
+                var fg = document.createElement('script');
+                fg.type = 'text/javascript'; fg.async = true; fg.src = _fgsrc;
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(fg);
+            })();
             </script>
             <?php
         }
@@ -70,9 +79,21 @@ register_shutdown_function(
     }
 );
 
+/*
+            <script src="js/src/forp/forp.js"></script>
+            <script>
+                (new forp.Controller())
+                    .setStack(<?php echo $jsonDump; ?>)
+                    //.setViewMode("standalone")
+                    .run();
+            </script>
+ *
+ */
 
 // start forp profiler
 forp_start();
+
+var_dump("test");
 
 // our PHP script to profile
 include('common.php');

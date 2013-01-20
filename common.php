@@ -7,9 +7,9 @@
     </head>
     <body>
 <?php
-// this is our basic test
+// This is a basic demo
 //
-// internal functions
+// internal function
 echo   'Nisi mihi Phaedrum, inquam, tu mentitum aut
         Post hanc adclinis Libano monti Phoenice, regio
         Ut enim quisque sibi plurimum confidit et ut
@@ -29,14 +29,13 @@ echo   'Nisi mihi Phaedrum, inquam, tu mentitum aut
         Quid enim tam absurdum quam delectari multis
         Illud autem non dubitatur quod cum esset aliquando
         Etenim si attendere diligenter, existimare vere de
-        Quam quidem partem accusationis admiratus sum et';
-//mysql_query("SELECT * FROM world WHERE 1=1;");
+        Quam quidem partem accusationis admiratus sum et ...<br>';
 
 /**
  * @ProfileGroup("Test")
- * @ProfileCaption("User function Hello world !")
+ * @ProfileCaption("Hello #1 !")
  */
-function test($i = 0){ echo 'Hello world ! '.$i; };
+function test($i = 0){ echo 'User function with "Hello ' . $i . ' !" profile caption.<br>'; };
 /**
  * @ProfileGroup("Foo Group")
  * @ProfileCaption("User function that calls another one")
@@ -59,18 +58,18 @@ class Foo {
 // closure
 $lambda =
 /**
- * @ProfileGroup("Foo Group")
+ * @ProfileGroup("Foo group")
  * @ProfileCaption("Closure")
  * @ProfileHighlight("1")
  * @ProfileAlias("HighlightTestClosure")
  */
 function() {
-    echo "html highlight me !";
+    echo 'User function with "Foo group" group, HighlightTestClosure" alias, "Closure" caption and highlight.<br>';
     test();
 };
-//
+
 // calls
-for($i = 0; $i<10; $i++) {
+for($i = 0; $i<5000; $i++) {
     test($i);
 }
 for($i=0;$i<5;$i++){ test1(); }
@@ -80,6 +79,30 @@ $foo = new Foo();
 //sleep(1);
 $foo->bar();
 $foo->bar2($lambda, $foo);
+
+// alloc, dealloc
+/**
+ * @ProfileAlias("Alloc")
+ */
+$alloc = function(){
+    $stdObject = new stdClass();
+    $stdObject->arr = array();
+    for($i = 0; $i<100; $i++) {
+        $stdObject->arr[$i] = "test";
+    }
+    return $stdObject;
+};
+/**
+ * @ProfileAlias("test alloc")
+ */
+$allocTest = function(){
+    global $alloc;
+    $o = $alloc();
+    //$o = null;
+    //gc_collect_cycles();
+};
+$allocTest();
+
 // fibo
 $br = (php_sapi_name() == "cli")? "\n":"<br>\n";
 

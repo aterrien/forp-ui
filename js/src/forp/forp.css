@@ -120,14 +120,14 @@
 #forp div.panel {
     overflow: auto;
     overflow-x: hidden;
-    transition: height .1s;
+    /*transition: height .1s;
     -moz-transition: height .1s;
     -webkit-transition: height .1s;
     -o-transition: height .1s;
     transition-timing-function: ease-in;
     -moz-transition-timing-function: ease-in;
     -webkit-transition-timing-function: ease-in;
-    -o-transition-timing-function: ease-in;
+    -o-transition-timing-function: ease-in;*/
 }
 #forp div.mainpanel {
     border-top: 1px solid #BBB;
