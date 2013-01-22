@@ -1,12 +1,12 @@
 ! wait for release branch before using it !
 
-## Introduction ##
+# Introduction #
 
 forpgui is a GUI utility that allows you to view and explore profiles dump.
 
 It is very easy to integrate forgui into an HTML page because is is written in JavaSCript.
 
-## Basic features ##
+# Basic features #
 
 - search engine
 - tree representation of the stack
@@ -18,7 +18,7 @@ It is very easy to integrate forgui into an HTML page because is is written in J
 - "called from" view
 - "backtrace" view
 
-## Integration into an HTML page and example ##
+# Integration into an HTML page and example #
 
 Download the minified version from the release branch of forpgui on Github.
 Put it in the js directory of your project, then run forgui as in the example below.
@@ -55,7 +55,7 @@ Put it in the js directory of your project, then run forgui as in the example be
 </script>
 ```
 
-## Build ##
+# Build #
 
 forpgui builder generates the forp.min.js file from files in src/.
 
@@ -63,12 +63,12 @@ forpgui builder generates the forp.min.js file from files in src/.
 $ php build.php
 ```
 
-## Communication with forp PHP profiler ##
+# Communication with forp PHP profiler #
 
 forpgui is the perfect tool to treat the forp PHP profiles dump (https://github.com/aterrien/forp).
 forp extension gives us PHP profiling datas, forpgui helps you to refine it clientside.
 
-## Screenshots (example : Yii PHP framework) ##
+# Screenshots (example : Yii PHP framework) #
 
 ### tree representation of the stack ###
 
@@ -106,3 +106,24 @@ Click on a group entry displays "called from" block :
 
 
 ### metrics and quality grades
+
+# MIT License
+
+Copyright (C) 2013 Anthony Terrien
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
