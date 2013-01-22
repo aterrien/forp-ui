@@ -51,6 +51,14 @@ forp.stack =
 </script>
 ```
 
+## Build ##
+
+forpgui builder generates the forp.min.js file from files in src/.
+
+```
+$ php build.php
+```
+
 ## Communication with forp PHP profiler ##
 
 forpgui is the perfect tool to treat the forp PHP profiles dump (https://github.com/aterrien/forp).

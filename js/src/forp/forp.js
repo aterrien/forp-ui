@@ -997,7 +997,9 @@ var forp = {};
         {
             var self = this;
 
-            this.stack = stack; // RAW stack
+            this.stack = (stack.stack != null) ? stack.stack : []; // RAW stack
+            this.utime = (stack.utime != null) ? stack.utime : null;
+            this.stime = (stack.stime != null) ? stack.stime : null;
             this.functions = null; // indexed stack
             this.includes = null; // included files
             this.includesCount = 0;
@@ -1349,21 +1351,21 @@ var forp = {};
             };
 
             this.grades = {
-                duration : {
+                time : {
                     A : {
-                        min : 0, max : 0.1, tip : ["Very good job !", "The planet will reward you. !", "You'll be the king to the coffee machine.", "Your servers thank you."]
+                        min : 0, max : 100, tip : ["Very good job !", "The planet will reward you !", "You'll be the king at the coffee machine.", "Your servers thanks you."]
                     },
                     B : {
-                        min : 0.1, max : 0.3, tip : ["Good job !"]
+                        min : 100, max : 300, tip : ["Good job !"]
                     },
                     C : {
-                        min : 0.3, max : 0.6, tip : ["You are close to job performance."]
+                        min : 300, max : 600, tip : ["You are close to job performance."]
                     },
                     D : {
-                        min : 0.6, max : 1.0, tip : ["You are under one second.", "Think cache."]
+                        min : 600, max : 1000, tip : ["You are under one second.", "Think cache."]
                     },
                     E : {
-                        min : 1, max : 2, tip : ["At your own risk !"]
+                        min : 1000, max : 2000, tip : ["At your own risk !"]
                     }
                 },
                 memory : {
@@ -1377,10 +1379,10 @@ var forp = {};
                         min : 4000, max : 8000, tip : ["Respectable"]
                     },
                     D : {
-                        min : 8000, max : 12000, tip : ["You load too much data."]
+                        min : 8000, max : 12000, tip : ["It seems that you load too much data."]
                     },
                     E : {
-                        min : 12000, max : 20000, tip : ["You load a lot of data."]
+                        min : 12000, max : 20000, tip : ["It seems that you load too much data."]
                     }
                 },
                 includes : {
@@ -1388,33 +1390,33 @@ var forp = {};
                         min : 0, max : 5, tip : ["Very good job !"]
                     },
                     B : {
-                        min : 5, max : 10, tip : ["Good job !"]
+                        min : 5, max : 20, tip : ["Good job !"]
                     },
                     C : {
-                        min : 10, max : 30, tip : ["Build script can do the rest."]
+                        min : 30, max : 60, tip : ["A builder script could do the rest."]
                     },
                     D : {
-                        min : 30, max : 60, tip : ["At your own risk !", "Build script is your friend."]
+                        min : 60, max : 120, tip : ["A builder script could be your best friend on this."]
                     },
                     E : {
-                        min : 60, max : 120, tip : ["At your own risk !", "Build script is your friend."]
+                        min : 120, max : 240, tip : ["At your own risk !", "A builder script could be your best friend on this."]
                     }
                 },
                 calls : {
                     A : {
-                        min : 0, max : 400, tip : ["Very good job !", "This is the 'Hello world' script ?"]
+                        min : 0, max : 2000, tip : ["Very good job !", "This is the 'Hello world' script ?"]
                     },
                     B : {
-                        min : 400, max : 800, tip : ["Very good job !"]
+                        min : 2000, max : 4000, tip : ["Very good job !"]
                     },
                     C : {
-                        min : 800, max : 1600, tip : ["Respectable"]
+                        min : 4000, max : 8000, tip : ["Respectable"]
                     },
                     D : {
-                        min : 1600, max : 3200, tip : ["Has a bad impact on performance."]
+                        min : 8000, max : 16000, tip : ["Has a bad impact on performance."]
                     },
                     E : {
-                        min : 3200, max : 6400, tip : ["It's a joke ?", "At your own risk !"]
+                        min : 32000, max : 64000, tip : ["It's a joke ?", "At your own risk !", "Too many instructions."]
                     }
                 },
                 nesting : {
@@ -1438,7 +1440,7 @@ var forp = {};
 
             this.getGrade = function(gradeName, mesure) {
                 for(var grade in this.grades[gradeName]) {
-                    if( mesure > this.grades[gradeName][grade]['min']
+                    if( mesure >= this.grades[gradeName][grade]['min']
                         && mesure <= this.grades[gradeName][grade]['max']
                     ) {
                         return grade;
@@ -1448,8 +1450,8 @@ var forp = {};
             };
 
             this.getTip = function(gradeName, grade) {
-            var i = Math.floor((Math.random() * this.grades[gradeName][grade]['tip'].length));
-            return this.grades[gradeName][grade]['tip'][i];
+                var i = Math.floor((Math.random() * this.grades[gradeName][grade]['tip'].length));
+                return this.grades[gradeName][grade]['tip'][i];
             };
 
             this.getGradeWithTip = function(gradeName, mesure) {
@@ -1749,7 +1751,6 @@ var forp = {};
 
                             // TODO Metrics API
                             // @see http://www.sdmetrics.com/LoM.html
-
                             //   Cyclomatic complexity
                             //   Excessive class complexity
                             //   N-path complexity
@@ -1766,10 +1767,19 @@ var forp = {};
                             var duration = f.roundDiv(self.getStack().getMainEntry().usec, 1000),
                                 memory = f.roundDiv(self.getStack().getMainEntry().bytes, 1024);
 
-                            table.line(["<strong>Duration (ms)</strong>", "Performance",
+                            table.line(["<strong>Real time (ms)</strong>", "Performance",
                                 duration,
-                                self.getGrader().getGradeWithTip("duration", duration)
+                                self.getGrader().getGradeWithTip("time", duration)
                             ]);
+
+                            if(self.getStack().utime != null) {
+                                var time = (self.getStack().utime + self.getStack().stime) / 1000;
+                                table.line(["<strong>CPU time (ms)</strong>", "Performance",
+                                    time + '',
+                                    self.getGrader().getGradeWithTip("time", time)
+                                ]);
+                            }
+
                             table.line(["<strong>Memory usage (Kb)</strong>", "Performance",
                                 memory,
                                 self.getGrader().getGradeWithTip("memory", memory)]);
@@ -2106,9 +2116,3 @@ var forp = {};
         }
     };
 })(forp);
-
-
-(new forp.Controller())
-    .setStack(_fgstack)
-    .setViewMode(_fgviewmode)
-    .run();

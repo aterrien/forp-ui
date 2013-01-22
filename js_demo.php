@@ -62,14 +62,21 @@ register_shutdown_function(
             ?>
             <link rel="stylesheet" type="text/css" href="js/src/forp/forp.css">
             <script type="text/javascript">
-                var _fgstack = <?php echo $jsonDump; ?>,
-                    _fgsrc = "js/src/forp/forp.js",
-                    _fgviewmode = "standalone";
+                var _forpguiStack = <?php echo $jsonDump; ?>,
+                    //_forpguiViewmode = "standalone",
+                    _forpguiSrc = "js/src/forp/forp.js";
             </script>
             <script type="text/javascript">
             (function() {
                 var fg = document.createElement('script');
-                fg.type = 'text/javascript'; fg.async = true; fg.src = _fgsrc;
+                fg.type = 'text/javascript';
+                fg.async = true;
+                fg.src = _forpguiSrc;
+                fg.onload = function() {
+                    var _forp = (new forp.Controller()).setStack(_forpguiStack);
+                    (typeof _forpguiViewmode != "undefined") && _forp.setViewMode(_forpguiViewmode);
+                    _forp.run();
+                };
                 (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(fg);
             })();
             </script>
@@ -92,8 +99,6 @@ register_shutdown_function(
 
 // start forp profiler
 forp_start();
-
-var_dump("test");
 
 // our PHP script to profile
 include('common.php');
