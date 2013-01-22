@@ -27,7 +27,7 @@ Put it in the js directory of your project, then run forgui as in the example be
 ```
 <script src="js/forp.min.js"></script>
 <script>
-forp.stack = {
+(new forp.Controller()).setStack({
     "utime" : 0,
     "stime" : 0,
     "stack" :
@@ -51,7 +51,7 @@ forp.stack = {
         "parent":0
         }
     ]
-};
+}).run();
 </script>
 ```
 
