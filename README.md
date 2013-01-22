@@ -27,27 +27,31 @@ Put it in the js directory of your project, then run forgui as in the example be
 ```
 <script src="js/forp.min.js"></script>
 <script>
-forp.stack =
-[
-    {
-    "file":"\/var\/www\/forpgui\/js_demo.php",
-    "function":"{main}",
-    "usec":618,
-    "pusec":5,
-    "bytes":14516,
-    "level":0
-    },
-    {
-    "file":"\/var\/www\/forpgui\/common.php",
-    "function":"include",
-    "lineno":6,
-    "usec":347,
-    "pusec":6,
-    "bytes":7364,
-    "level":1,
-    "parent":0
-    }
-];
+forp.stack = {
+    "utime" : 0,
+    "stime" : 0,
+    "stack" :
+    [
+        {
+        "file":"\/var\/www\/forpgui\/js_demo.php",
+        "function":"{main}",
+        "usec":618,
+        "pusec":5,
+        "bytes":14516,
+        "level":0
+        },
+        {
+        "file":"\/var\/www\/forpgui\/common.php",
+        "function":"include",
+        "lineno":6,
+        "usec":347,
+        "pusec":6,
+        "bytes":7364,
+        "level":1,
+        "parent":0
+        }
+    ]
+};
 </script>
 ```
 
