@@ -59,12 +59,23 @@ register_shutdown_function(
             }
         } else {
             // no extension then displays forpgui in page footer
+            //<link rel="stylesheet" type="text/css" href="js/src/forp/forp.css">
+
+            /*
+                <script src="js/src/forp/forp.js"></script>
+                <script>
+                    (new forp.Controller())
+                        .setStack(<?php echo $jsonDump; ?>)
+                        //.setViewMode("standalone")
+                        .run();
+                </script>
+            *
+            */
             ?>
-            <link rel="stylesheet" type="text/css" href="js/src/forp/forp.css">
             <script type="text/javascript">
                 var _forpguiStack = <?php echo $jsonDump; ?>,
                     //_forpguiViewmode = "standalone",
-                    _forpguiSrc = "js/src/forp/forp.js";
+                    _forpguiSrc = "js/forp.min.js";
             </script>
             <script type="text/javascript">
             (function() {
@@ -85,17 +96,6 @@ register_shutdown_function(
 
     }
 );
-
-/*
-            <script src="js/src/forp/forp.js"></script>
-            <script>
-                (new forp.Controller())
-                    .setStack(<?php echo $jsonDump; ?>)
-                    //.setViewMode("standalone")
-                    .run();
-            </script>
- *
- */
 
 // start forp profiler
 forp_start();

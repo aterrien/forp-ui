@@ -53,7 +53,7 @@ class Foo {
      * @ProfileGroup("Foo Group")
      * @ProfileCaption("Caption of bar2 #1 #2.")
      */
-    function bar2($lambda, $object) { }
+    function bar2($lambda, $object) { return test1(); }
 }
 // closure
 $lambda =

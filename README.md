@@ -60,7 +60,7 @@ Put it in the js directory of your project, then run forgui as in the example be
 forpgui builder generates the forp.min.js file from files in src/.
 
 ```
-$ php build.php
+$ php js/build.php
 ```
 
 # Communication with forp PHP profiler #

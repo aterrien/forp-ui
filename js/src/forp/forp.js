@@ -96,6 +96,26 @@ var forp = {};
             }
         },
         /**
+         * Append
+         * @param string url
+         * @param string type "css" | "js"
+         */
+        /*appendStyle : function(url, type, where) {
+            switch(type) {
+                case 'css' :
+
+                        var style = document.createElement('style');
+                        style.appendChild(document.createTextNode('%forp.css%'));
+                        (document.getElementsByTagName('head')[0]
+                            || document.getElementsByTagName('body')[0]).appendChild(style);
+
+                    break;
+                case 'js' :
+                    break;
+            }
+            return this;
+        },*/
+        /**
          * DOM Ready function
          * @param callback
          */
@@ -322,7 +342,11 @@ var forp = {};
                 for(var i=0; i<this.elements.length; i++) {
                     fn(new f.DOMElementWrapper(this.elements[i]));
                 }
-            }
+            };
+            this.getElement = function(i)
+            {
+                return new f.DOMElementWrapper(this.elements[i]);
+            };
         },
         /**
          * Normalizr Class
@@ -1014,46 +1038,77 @@ var forp = {};
             this.avgLevel = 0;
 
             /**
-             * @param Object stack entry
-             * @return bool
+             * Function struct
+             * Internal Class of Stack
              */
-            this.isRecursive = function(entry)
+            var Function = function(conf)
             {
-                var i = entry.i;
-                while(this.stack[i].parent > 0) {
-                    i = this.stack[i].parent;
-                    if(this.stack[i].id == entry.id) return true;
-                }
-                return false;
-            };
+                this.stack = conf.stack;
+                this.id = conf.id;
+                this.class = conf.class;
+                this.function = conf.function;
+                this.refs = [];
+                this.entries = [];
+                this.calls = 1;
+                this.duration = null;
+                this.memory = null;
 
-            /**
-             * Sum duration of an array of entries
-             * @return int Sum
-             */
-            this.sumDuration = function(entries)
-            {
-                var sum = 0;
-                for(var i in entries) {
-                    if(this.isRecursive(entries[i])) continue;
-                    sum += entries[i].usec;
-                }
-                return sum;
-            };
-
-            /**
-             * Sum memory of an array of entries
-             * @return int Sum
-             */
-            this.sumMemory = function(entries)
-            {
-                var sum = 0;
-                for(var i in entries) {
-                    if(this.isRecursive(entries[i])) continue;
-                    sum += entries[i].bytes;
-                }
-                return sum;
-            };
+                /**
+                 * @param string filelineno
+                 * @param Object entry
+                 * @return Function
+                 */
+                this.setEntry = function(filelineno, entry)
+                {
+                    this.entries[filelineno] = entry;
+                    return this;
+                };
+                /**
+                 * @return Function
+                 */
+                this.incrCalls = function()
+                {
+                    this.calls ++;
+                    return this;
+                };
+                /**
+                 * @return integer
+                 */
+                this.getDuration = function() {
+                    if(this.duration !== null) return this.duration;
+                    this.duration = 0;
+                    for(var i in this.refs) {
+                        if(this.isRecursive(this.refs[i])) continue;
+                        this.duration += this.refs[i].usec;
+                    }
+                    return this.duration;
+                };
+                /**
+                 * @return integer
+                 */
+                this.getMemory = function() {
+                    if(this.memory !== null) return this.memory;
+                    this.memory = 0;
+                    for(var i in this.refs) {
+                        if(this.isRecursive(this.refs[i])) continue;
+                        this.memory += this.refs[i].bytes;
+                    }
+                    return this.memory;
+                };
+                /**
+                 * @param Object stack entry
+                 * @return bool
+                 */
+                this.isRecursive = function(entry)
+                {
+                    var i = entry.i;
+                    while(this.stack[i].parent > 0) {
+                        i = this.stack[i].parent;
+                        if(this.stack[i].id == entry.id) return true;
+                    }
+                    return false;
+                };
+            }
 
             /**
              * Refines ancestors metrics
@@ -1142,38 +1197,41 @@ var forp = {};
 
                         // Constructs functions
                         if(this.functions[id]) {
-                            this.functions[id].calls ++;
+                            this.functions[id].incrCalls();
 
                             // Linking between functions and stack entries
                             if(this.functions[id].entries[filelineno]) {
                                 this.functions[id].entries[filelineno].calls++;
                             } else {
-                                this.functions[id].entries[filelineno] = {
-                                    calls : 1
-                                    , file : this.stack[entry].file
-                                    , filelineno : filelineno
-                                    , refs : []
-                                };
+                                this.functions[id].setEntry(
+                                    filelineno,
+                                    {
+                                        calls : 1
+                                        , file : this.stack[entry].file
+                                        , filelineno : filelineno
+                                        , refs : []
+                                    }
+                                );
                             }
 
                         } else {
 
                             // indexing by function id
-                            this.functions[id] = {
-                                id : id
-                                , level : this.stack[entry].level
-                                , calls : 1
-                                , class : this.stack[entry].class ? this.stack[entry].class : null
-                                , function : this.stack[entry].function
-                                , refs : []
-                            };
-                            this.functions[id].entries = [];
-                            this.functions[id].entries[filelineno] = {
-                                calls : 1
-                                , file : this.stack[entry].file
-                                , filelineno : filelineno
-                                , refs : []
-                            };
+                            this.functions[id] = new Function({
+                                stack : this.stack,
+                                id : id,
+                                //level : this.stack[entry].level,
+                                class : this.stack[entry].class ? this.stack[entry].class : null,
+                                function : this.stack[entry].function
+                            }).setEntry(
+                                filelineno,
+                                {
+                                    calls : 1
+                                    , file : this.stack[entry].file
+                                    , filelineno : filelineno
+                                    , refs : []
+                                }
+                            );
 
                             // Groups
                             if(this.stack[entry].groups) {
@@ -1225,8 +1283,8 @@ var forp = {};
                         this.groupsCount++;
                         for(var i in this.groups[group].refs) {
                             this.groups[group].calls += this.functions[this.groups[group].refs[i].id].calls;
-                            this.groups[group].usec += self.sumDuration(this.functions[this.groups[group].refs[i].id].refs);
-                            this.groups[group].bytes += self.sumMemory(this.functions[this.groups[group].refs[i].id].refs);
+                            this.groups[group].usec += this.functions[this.groups[group].refs[i].id].getDuration();
+                            this.groups[group].bytes += this.functions[this.groups[group].refs[i].id].getMemory();
                         }
                     }
 
@@ -1338,6 +1396,11 @@ var forp = {};
                 return this.aggregate().groups;
             };
         },
+        /**
+         * Grader Class
+         *
+         * Provides grades, quality metrics
+         */
         Grader : function()
         {
 
@@ -1456,13 +1519,13 @@ var forp = {};
 
             this.getGradeWithTip = function(gradeName, mesure) {
                 var grade = this.getGrade(gradeName, mesure);
-                return grade + " - " + this.getTip(gradeName, grade);
+                return "<div class=grade-" + grade + ">" + grade + "</div> " + this.getTip(gradeName, grade);
             };
         },
         /**
-        * forp stack manager
-        * @param array forp stack
-        */
+         * forp stack manager
+         * @param array forp stack
+         */
         Controller : function(stack)
         {
             var self = this;
@@ -1475,6 +1538,9 @@ var forp = {};
             this.openEventListener = null;
             this.viewMode = "embeddedCompacted";
 
+            /**
+             * @param string viewMode
+             */
             this.setViewMode = function(viewMode)
             {
                 this.viewMode = viewMode;
@@ -1482,16 +1548,17 @@ var forp = {};
             };
 
             /**
-            *
-            */
-            this.hasStack = function(stack)
+             * @return boolean Has stack
+             */
+            this.hasStack = function()
             {
                 return this.stack != null;
             };
 
             /**
-            *
-            */
+             * @param Stack stack
+             * @return Controller
+             */
             this.setStack = function(stack)
             {
                 this.stack = new f.Stack(stack);
@@ -1499,30 +1566,33 @@ var forp = {};
             };
 
             /**
-            *
-            */
+             * @return Stack
+             */
             this.getStack = function()
             {
                 return this.stack;
             };
 
             /**
-            * @return Object Console
-            */
+             * @return Object Console
+             */
             this.getConsole = function()
             {
                 return this.layout.getConsole();
             };
 
             /**
-            *
-            */
+             * @return Layout
+             */
             this.getLayout = function()
             {
                 if(!this.layout) this.layout = new f.Layout(this.viewMode);
                 return this.layout;
             };
 
+            /**
+             * @return Grader
+             */
             this.getGrader = function()
             {
                 if(!this.grader) this.grader = new f.Grader();
@@ -1530,16 +1600,16 @@ var forp = {};
             };
 
             /**
-            * Run layout manager
-            * @return forp.Controller
-            */
+             * Run layout manager
+             * @return forp.Controller
+             */
             this.run = function()
             {
                 try
                 {
                     if(!self.hasStack()) {
                         throw {
-                            name: "Undefined",
+                            name: "RuntimeError",
                             message: "Stack undefined."
                         }
                     }
@@ -1547,6 +1617,21 @@ var forp = {};
                     if(self.getStack().stack.length > 20000) {
                         throw new RangeError("More than 20000 entries in the stack (" + self.getStack().stack.length + ").");
                     }
+
+                    // append style in footer
+                    var styleTarget = (document.getElementsByTagName('head')[0]
+                                 || document.getElementsByTagName('body')[0]);
+
+                    if(!styleTarget) {
+                        throw {
+                            name: "RuntimeError",
+                            message: "Can't find head or body."
+                        }
+                    }
+
+                    f.create('style')
+                     .text('%forp.css%')
+                     .appendTo(new f.DOMElementWrapper(styleTarget));
 
                     // proceeds and aggregates stack datas
                     self.getStack()
@@ -1565,15 +1650,12 @@ var forp = {};
                     // EvalError, RangeError, ReferenceError, SyntaxError,
                     // TypeError, URIError and custom exception
                     console.error("forpgui > " + e.name + ": " + e.message);
-                    //alert(  "An error occurred! "
-                    //+ (e.number      || e.name   ) + ": "
-                    //+ (e.description || e.message) );
                 }
             };
 
             /**
-            *
-            */
+             *
+             */
             this.onCompact = function() {
                 if(self.getStack().stack.length > 0) {
 
@@ -1604,25 +1686,21 @@ var forp = {};
                 }
             };
 
-            /*this.runOnReady = function()
+            /**
+             * Run on DOM ready
+             */
+            this.runOnReady = function()
             {
                 f.ready(
                     function(){
-                        var s = document.createElement('style'),
-                            t = document.createTextNode('%forp.css%');
-
-                        s.appendChild(t);
-                        (document.getElementsByTagName('head')[0]
-                            || document.getElementsByTagName('body')[0]).appendChild(s);
-
                         self.run();
                     }
                 );
-            },*/
+            },
 
             /**
-            *
-            */
+             *
+             */
             this.clearTabs = function()
             {
                 self.layout
@@ -1637,10 +1715,10 @@ var forp = {};
             };
 
             /**
-            * Select a tab
-            * @param string DOM Element target
-            * @return forp.Controller
-            */
+             * Select a tab
+             * @param string DOM Element target
+             * @return forp.Controller
+             */
             this.selectTab = function(target)
             {
                 this.clearTabs();
@@ -1649,8 +1727,8 @@ var forp = {};
             };
 
             /**
-            * Show details table in a new line
-            */
+             * Show details table in a new line
+             */
             this.toggleDetails = function()
             {
                 var target = f.find(this);
@@ -1705,13 +1783,13 @@ var forp = {};
                             (self.getStack().getFunctions()[id].entries[i].refs[j].caption ? "<br>" + self.getStack().getFunctions()[id].entries[i].refs[j].caption : ""),
                             new f.Gauge(
                                 self.getStack().getFunctions()[id].entries[i].refs[j].usec,
-                                self.getStack().sumDuration(self.getStack().getFunctions()[id].refs),
+                                self.getStack().getFunctions()[id].getDuration(),
                                 1000,
                                 'ms'
                             ),
                             new f.Gauge(
                                 self.getStack().getFunctions()[id].entries[i].refs[j].bytes,
-                                self.getStack().sumMemory(self.getStack().getFunctions()[id].refs),
+                                self.getStack().getFunctions()[id].getMemory(),
                                 1024,
                                 'Kb'
                             ),
@@ -1727,9 +1805,9 @@ var forp = {};
             };
 
             /**
-            * Expand main layout
-            * @return forp.Controller
-            */
+             * Expand main layout
+             * @return forp.Controller
+             */
             this.open = function()
             {
                 this.getLayout()
@@ -1887,7 +1965,7 @@ var forp = {};
                                         "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
                                         + (datas[i].caption ? "<br>" + datas[i].caption : ""),
                                         f.roundDiv(datas[i].usec, 1000).toFixed(3) + '',
-                                        f.roundDiv(self.getStack().sumDuration(self.getStack().getFunctions()[id].refs), 1000).toFixed(3) + '',
+                                        f.roundDiv(self.getStack().getFunctions()[id].getDuration(), 1000).toFixed(3) + '',
                                         self.getStack().getFunctions()[id].calls
                                     ])
                                     .addEventListener(
@@ -1921,7 +1999,7 @@ var forp = {};
                                         "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
                                         + (datas[i].caption ? "<br>" + datas[i].caption : ""),
                                         f.roundDiv(datas[i].bytes, 1024).toFixed(3) + '',
-                                        f.roundDiv(self.getStack().sumMemory(self.getStack().getFunctions()[id].refs), 1024).toFixed(3) + '',
+                                        f.roundDiv(self.getStack().getFunctions()[id].getMemory(), 1024).toFixed(3) + '',
                                         self.getStack().getFunctions()[id].calls
                                     ])
                                     .addEventListener(
@@ -1954,8 +2032,8 @@ var forp = {};
                                 table.line([
                                         datas[i].id,
                                         datas[i].calls,
-                                        f.roundDiv(self.getStack().sumDuration(datas[i].refs), 1000).toFixed(3) + '',
-                                        f.roundDiv(self.getStack().sumMemory(datas[i].refs), 1000).toFixed(3) + ''
+                                        f.roundDiv(datas[i].getDuration(), 1000).toFixed(3) + '',
+                                        f.roundDiv(datas[i].getMemory(), 1024).toFixed(3) + ''
                                     ])
                                     .attr("data-ref", datas[i].id)
                                     .bind(
@@ -2039,13 +2117,13 @@ var forp = {};
                                                 datas[i].calls
                                         ),
                                         new f.Gauge(
-                                                self.getStack().sumDuration(self.getStack().getFunctions()[datas[i].refs[j].id].refs),
+                                                self.getStack().getFunctions()[datas[i].refs[j].id].getDuration(),
                                                 datas[i].usec,
                                                 1000,
                                                 'ms'
                                         ),
                                         new f.Gauge(
-                                                self.getStack().sumMemory(self.getStack().getFunctions()[datas[i].refs[j].id].refs),
+                                                self.getStack().getFunctions()[datas[i].refs[j].id].getMemory(),
                                                 datas[i].bytes,
                                                 1024,
                                                 'Kb'
@@ -2085,8 +2163,8 @@ var forp = {};
                                 table.line([
                                     datas[i].id,
                                     datas[i].calls,
-                                    f.roundDiv(self.getStack().sumDuration(datas[i].refs), 1000).toFixed(3) + '',
-                                    f.roundDiv(self.getStack().sumMemory(datas[i].refs), 1024).toFixed(3) + ''
+                                    f.roundDiv(datas[i].getDuration(), 1000).toFixed(3) + '',
+                                    f.roundDiv(datas[i].getMemory(), 1024).toFixed(3) + ''
                                 ])
                                 .attr("data-ref", datas[i].id)
                                 .bind("click", self.toggleDetails);

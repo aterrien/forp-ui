@@ -252,3 +252,26 @@
 #forp div.w1of3 {
     width: 33% !important;
 }
+#forp div.grade, #forp div.grade-A, #forp div.grade-B,
+#forp div.grade-C, #forp div.grade-D, #forp div.grade-E {
+    padding: 2px 5px;
+    display: inline-block;
+    border-radius: 3px;
+    font-size: .8em;
+    color: #FFF;
+}
+#forp div.grade-A {
+    background-color: #9E5
+}
+#forp div.grade-B {
+    background-color: #EE5
+}
+#forp div.grade-C {
+    background-color: #EB5
+}
+#forp div.grade-D {
+    background-color: #E95
+}
+#forp div.grade-E {
+    background-color: #E55
+}
