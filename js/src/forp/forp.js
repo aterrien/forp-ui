@@ -1,45 +1,46 @@
 /**
  * forpgui
  *
- * Call stack visualizer.
+ * Profile dump viewer.
  *
  * https://github.com/aterrien/forpgui
  *
  * forpgui is the perfect tool to treat the
  * call stack built by forp PHP profiler (https://github.com/aterrien/forp).
  *
- * Call stack example :
+ * Example :
  * <code>
  *  <script src="js/forp.min.js"></script>
  *  <script>
  *  (new forp.Controller())
- *  .setStack(
- *  [
- *      {
- *      "file":"\/var\/www\/forpgui\/js_demo.php",
- *      "function":"{main}",
- *      "usec":618,
- *      "pusec":5,
- *      "bytes":14516,
- *      "level":0
- *      },
- *      {
- *      "file":"\/var\/www\/forpgui\/common.php",
- *      "function":"include",
- *      "lineno":6,
- *      "usec":347,
- *      "pusec":6,
- *      "bytes":7364,
- *      "level":1,
- *      "parent":0
- *      }
- *  ]
- *  )
- *  .run();
+ *  .setStack([
+ *      "utime" : 0,
+ *      "stime" : 0,
+ *      "stack" : [
+ *          {
+ *          "file":"\/var\/www\/forpgui\/js_demo.php",
+ *          "function":"{main}",
+ *          "usec":618,
+ *          "pusec":5,
+ *          "bytes":14516,
+ *          "level":0
+ *          },
+ *          {
+ *          "file":"\/var\/www\/forpgui\/common.php",
+ *          "function":"include",
+ *          "lineno":6,
+ *          "usec":347,
+ *          "pusec":6,
+ *          "bytes":7364,
+ *          "level":1,
+ *          "parent":0
+ *          }
+ *      ]
+ *  ]).run();
  *  </script>
  * </code>
  *
- * Copyright (c) 2012 Anthony Terrien
+ * Copyright (c) 2013 Anthony Terrien
  *
  * Under MIT and GPL licenses:
  *  http://www.opensource.org/licenses/mit-license.php
