@@ -68,6 +68,15 @@ $ php js/build.php
 forpgui is the perfect tool to treat the forp PHP profiles dump (https://github.com/aterrien/forp).
 forp extension gives us PHP profiling datas, forpgui helps you to refine it clientside.
 
+# Samples #
+
+Samples are in the "samples" directory :
+
+- "free" : simple example free of programming language.
+
+- php : simple example of PHP profiling with forp PHP profiler.
+
+
 # Screenshots (example : Yii PHP framework) #
 
 ### tree representation of the stack ###

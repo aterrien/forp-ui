@@ -761,14 +761,14 @@ var forp = {};
                             .text("&nbsp;")
                             .addClass("left expander")
                     , gd = new f.Gauge(
-                                stack[entry.parent] ? entry.usec : 1,
-                                stack[entry.parent] ? stack[entry.parent].usec : 1,
+                                entry.usec,
+                                stack[entry.parent] ? stack[entry.parent].usec : entry.usec,
                                 1000,
                                 'ms'
                             ).addClass("left")
                     , gb = new f.Gauge(
-                                stack[entry.parent] ? entry.bytes : 1,
-                                stack[entry.parent] ? stack[entry.parent].bytes : 1,
+                                entry.bytes,
+                                stack[entry.parent] ? stack[entry.parent].bytes : entry.bytes,
                                 1024,
                                 'Kb'
                             ).addClass("left")
@@ -1051,8 +1051,8 @@ var forp = {};
                 this.refs = [];
                 this.entries = [];
                 this.calls = 1;
-                this.duration = null;
-                this.memory = null;
+                this.duration = conf.duration;
+                this.memory = conf.memory;
 
                 /**
                  * @param string filelineno
@@ -1118,11 +1118,9 @@ var forp = {};
              */
             this.refineParents = function(descendant, value)
             {
-                if(descendant.parent != null) {
-                    if(!value) value = descendant.pusec;
-                    this.stack[descendant.parent].usec -= value;
-                    this.refineParents(this.stack[descendant.parent], value);
-                }
+                if(!descendant.parent) return;
+                this.stack[descendant.parent].usec -= value;
+                this.refineParents(this.stack[descendant.parent], value);
                 return this;
             };
 
@@ -1223,7 +1221,9 @@ var forp = {};
                                 id : id,
                                 //level : this.stack[entry].level,
                                 class : this.stack[entry].class ? this.stack[entry].class : null,
-                                function : this.stack[entry].function
+                                function : this.stack[entry].function,
+                                duration : this.stack[entry].usec,
+                                memory : this.stack[entry].bytes
                             }).setEntry(
                                 filelineno,
                                 {
@@ -1255,7 +1255,8 @@ var forp = {};
                         this.functions[id].entries[filelineno].refs.push(this.stack[entry]);
 
                         // Refines ancestors
-                        this.refineParents(this.stack[entry]);
+                        this.stack[entry].pusec &&
+                        this.refineParents(this.stack[entry], this.stack[entry].pusec);
 
                         // Files
                         if(!this.includes[this.stack[entry].file]) {
@@ -1847,7 +1848,7 @@ var forp = {};
                                 memory = f.roundDiv(self.getStack().getMainEntry().bytes, 1024);
 
                             table.line(["<strong>Real time (ms)</strong>", "Performance",
-                                duration,
+                                duration + '',
                                 self.getGrader().getGradeWithTip("time", duration)
                             ]);
 
@@ -1860,19 +1861,19 @@ var forp = {};
                             }
 
                             table.line(["<strong>Memory usage (Kb)</strong>", "Performance",
-                                memory,
+                                memory + '',
                                 self.getGrader().getGradeWithTip("memory", memory)]);
                             table.line(["<strong>Total includes</strong>", "Performance",
-                                self.getStack().includesCount,
+                                self.getStack().includesCount + '',
                                 self.getGrader().getGradeWithTip("includes", self.getStack().includesCount)]);
                             table.line(["<strong>Total calls</strong>", "Performance",
-                                self.getStack().stack.length,
+                                self.getStack().stack.length + '',
                                 self.getGrader().getGradeWithTip("calls", self.getStack().stack.length)]);
                             table.line(["<strong>Max nested level</strong>", "Nesting",
-                                self.getStack().maxNestedLevel,
+                                self.getStack().maxNestedLevel + '',
                                 self.getGrader().getGradeWithTip("nesting", self.getStack().maxNestedLevel)]);
                             table.line(["<strong>Avg nested level</strong>", "Nesting",
-                                self.getStack().avgLevel.toFixed(2),
+                                self.getStack().avgLevel.toFixed(2) + '',
                                 self.getGrader().getGradeWithTip("nesting", self.getStack().avgLevel)]);
                             },
                         self.getLayout().reduce,
