@@ -1,11 +1,11 @@
 /**
- * forpgui
+ * forp-ui
  *
  * Profile dump viewer.
  *
- * https://github.com/aterrien/forpgui
+ * https://github.com/aterrien/forp-ui
  *
- * forpgui is the perfect tool to treat the
+ * forp-ui is the perfect tool to treat the
  * call stack built by forp PHP profiler (https://github.com/aterrien/forp).
  *
  * Example :
@@ -18,7 +18,7 @@
  *      "stime" : 0,
  *      "stack" : [
  *          {
- *          "file":"\/var\/www\/forpgui\/js_demo.php",
+ *          "file":"\/var\/www\/forp-ui\/js_demo.php",
  *          "function":"{main}",
  *          "usec":618,
  *          "pusec":5,
@@ -26,7 +26,7 @@
  *          "level":0
  *          },
  *          {
- *          "file":"\/var\/www\/forpgui\/common.php",
+ *          "file":"\/var\/www\/forp-ui\/common.php",
  *          "function":"include",
  *          "lineno":6,
  *          "usec":347,
@@ -938,7 +938,8 @@ var forp = {};
          * Gauge Class
          * @param integer value
          * @param integer max
-         * @param string text
+         * @param integer divider
+         * @param string unit
          */
         Gauge : function(value, max, divider, unit)
         {
@@ -948,14 +949,24 @@ var forp = {};
             var percent = 0, text, displayedValue;
 
             displayedValue = f.roundDiv(value, (divider ? divider : 1));
+
+            if(value < 0) {
+                displayedValue = Math.abs(displayedValue);
+            }
+            if(displayedValue % 1 !== 0) {
+                displayedValue = displayedValue.toFixed(3);
+            }
+            displayedValue += (unit ? unit : '');
+
             if(value > max) {
-                text = "reached " + displayedValue.toFixed(3) + (unit ? unit : '');
+                text = "reached " + displayedValue;
             } else if(value < 0) {
-                text = "won " + Math.abs(displayedValue).toFixed(3) + (unit ? unit : '');
+                text = "won " + displayedValue;
             } else {
-                text = displayedValue.toFixed(3) + (unit ? unit : '');
+                text = displayedValue;
                 percent = f.round(value * 100 / max);
             }
+
 
             this.addClass("gauge")
                 .append(
@@ -1051,8 +1062,8 @@ var forp = {};
                 this.refs = [];
                 this.entries = [];
                 this.calls = 1;
-                this.duration = conf.duration;
-                this.memory = conf.memory;
+                this.duration = null;
+                this.memory = null;
 
                 /**
                  * @param string filelineno
@@ -1219,11 +1230,8 @@ var forp = {};
                             this.functions[id] = new Function({
                                 stack : this.stack,
                                 id : id,
-                                //level : this.stack[entry].level,
                                 class : this.stack[entry].class ? this.stack[entry].class : null,
-                                function : this.stack[entry].function,
-                                duration : this.stack[entry].usec,
-                                memory : this.stack[entry].bytes
+                                function : this.stack[entry].function
                             }).setEntry(
                                 filelineno,
                                 {
@@ -1435,7 +1443,7 @@ var forp = {};
                 },
                 memory : {
                     A : {
-                        min : 0, max : 2000, tip : ["Very good job !", "How are you doing ?"]
+                        min : 0, max : 2000, tip : ["Very good job !"]
                     },
                     B : {
                         min : 2000, max : 4000, tip : ["Good job !"]
@@ -1651,7 +1659,7 @@ var forp = {};
                 {
                     // EvalError, RangeError, ReferenceError, SyntaxError,
                     // TypeError, URIError and custom exception
-                    console.error("forpgui > " + e.name + ": " + e.message);
+                    console.error("forp-ui > " + e.name + ": " + e.message);
                 }
             };
 
