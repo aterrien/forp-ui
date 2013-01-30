@@ -1,10 +1,8 @@
-! wait for release branch before using it !
-
 # Introduction #
 
 forp-ui is a GUI utility that allows you to view and explore profiles dump.
 
-It is very easy to integrate forgui into an HTML page because is is written in JavaSCript.
+It is very easy to integrate forp-ui into an HTML page, it is written in JavaSCript.
 
 # Basic features #
 
