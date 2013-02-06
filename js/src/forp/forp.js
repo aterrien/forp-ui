@@ -878,7 +878,7 @@ var forp = {};
                     f.create("div")
                         .class("backtrace-item " + (highlight ? " highlight" : ""))
                         .text(
-                            "<strong>" + entry.id + "</strong><br>" +
+                            "<span style='font-weight:bold'>" + entry.id + "</span><br>" +
                             f.Utils.trimPath(entry.filelineno) + "<br>" +
                             f.roundDiv(entry.usec, 1000).toFixed(3) + "ms " +
                             f.roundDiv(entry.bytes, 1024).toFixed(3) + "Kb"
@@ -1842,32 +1842,32 @@ var forp = {};
                             var duration = f.roundDiv(self.getStack().getMainEntry().usec, 1000),
                                 memory = f.roundDiv(self.getStack().getMainEntry().bytes, 1024);
 
-                            table.line(["<strong>Real time (ms)</strong>", "Performance",
+                            table.line(["<span style='font-weight:bold'>Real time (ms)</span>", "Performance",
                                 duration + '',
                                 self.getGrader().getGradeWithTip("time", duration)
                             ]);
 
                             if(self.getStack().utime != null) {
                                 var time = (self.getStack().utime + self.getStack().stime) / 1000;
-                                table.line(["<strong>CPU time (ms)</strong>", "Performance",
+                                table.line(["<span style='font-weight:bold'>CPU time (ms)</span>", "Performance",
                                     time + '',
                                     self.getGrader().getGradeWithTip("time", time)
                                 ]);
                             }
 
-                            table.line(["<strong>Memory usage (Kb)</strong>", "Performance",
+                            table.line(["<span style='font-weight:bold'>Memory usage (Kb)</span>", "Performance",
                                 memory + '',
                                 self.getGrader().getGradeWithTip("memory", memory)]);
-                            table.line(["<strong>Total includes</strong>", "Performance",
+                            table.line(["<span style='font-weight:bold'>Total includes</span>", "Performance",
                                 self.getStack().includesCount + '',
                                 self.getGrader().getGradeWithTip("includes", self.getStack().includesCount)]);
-                            table.line(["<strong>Total calls</strong>", "Performance",
+                            table.line(["<span style='font-weight:bold'>Total calls</span>", "Performance",
                                 self.getStack().stack.length + '',
                                 self.getGrader().getGradeWithTip("calls", self.getStack().stack.length)]);
-                            table.line(["<strong>Max nested level</strong>", "Nesting",
+                            table.line(["<span style='font-weight:bold'>Max nested level</span>", "Nesting",
                                 self.getStack().maxNestedLevel + '',
                                 self.getGrader().getGradeWithTip("nesting", self.getStack().maxNestedLevel)]);
-                            table.line(["<strong>Avg nested level</strong>", "Nesting",
+                            table.line(["<span style='font-weight:bold'>Avg nested level</span>", "Nesting",
                                 self.getStack().avgLevel.toFixed(2) + '',
                                 self.getGrader().getGradeWithTip("nesting", self.getStack().avgLevel)]);
                             },
@@ -1959,7 +1959,7 @@ var forp = {};
                             for(var i in datas) {
                                 var id = self.getStack().getEntryId(datas[i]);
                                 table.line([
-                                        "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
+                                        "<span style='font-weight:bold'>" + datas[i].id + "</span> (" + datas[i].filelineno + ")"
                                         + (datas[i].caption ? "<br>" + datas[i].caption : ""),
                                         f.roundDiv(datas[i].usec, 1000).toFixed(3) + '',
                                         f.roundDiv(self.getStack().getFunctions()[id].getDuration(), 1000).toFixed(3) + '',
@@ -1993,7 +1993,7 @@ var forp = {};
                             for(var i in datas) {
                                 var id = self.getStack().getEntryId(datas[i]);
                                 table.line([
-                                        "<strong>" + datas[i].id + "</strong> (" + datas[i].filelineno + ")"
+                                        "<span style='font-weight:bold'>" + datas[i].id + "</span> (" + datas[i].filelineno + ")"
                                         + (datas[i].caption ? "<br>" + datas[i].caption : ""),
                                         f.roundDiv(datas[i].bytes, 1024).toFixed(3) + '',
                                         f.roundDiv(self.getStack().getFunctions()[id].getMemory(), 1024).toFixed(3) + '',
@@ -2098,13 +2098,24 @@ var forp = {};
                                         )
                                     )
                                     .line([
-                                        "<strong>" + i + "</strong> " +
-                                        datas[i].refs.length + " " +
-                                        (datas[i].refs.length>1 ? "entries" : "entry"),
+
                                         datas[i].calls,
                                         f.roundDiv(datas[i].usec, 1000).toFixed(3) + '',
                                         f.roundDiv(datas[i].bytes, 1024).toFixed(3) + ''
-                                    ]);
+                                    ])
+                                    .prepend(
+                                        f.create("td")
+                                         .append(
+                                            f.TagRandColor.provideElementFor(i)
+                                         )
+                                         .append(
+                                            f.create("span").text(
+                                                "<span style='font-weight:bold'>" + i + "</span> " +
+                                                datas[i].refs.length + " " +
+                                                (datas[i].refs.length>1 ? "entries" : "entry")
+                                            )
+                                         )
+                                    );
 
                                 for(var j in datas[i].refs) {
                                     table.line([
