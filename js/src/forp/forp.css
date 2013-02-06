@@ -1,3 +1,16 @@
+/* reset CSS */
+#forp *{
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-family: sans-serif;
+    font-size: 1em;
+    font-weight: normal;
+    font-style: normal;
+    text-decoration: none;
+    width: auto;
+    height: auto;
+}
 #forp {
     position: fixed;
     bottom: 0px;
@@ -60,7 +73,7 @@
     text-decoration: none;
     color: #FFF;
 }
-#forp a.btn, a.tbtn{
+#forp a.btn, #forp a.tbtn{
     color: #FFF;
     margin: 0px 5px;
     padding: 4px 5px 5px 5px;
@@ -120,14 +133,6 @@
 #forp div.panel {
     overflow: auto;
     overflow-x: hidden;
-    /*transition: height .1s;
-    -moz-transition: height .1s;
-    -webkit-transition: height .1s;
-    -o-transition: height .1s;
-    transition-timing-function: ease-in;
-    -moz-transition-timing-function: ease-in;
-    -webkit-transition-timing-function: ease-in;
-    -o-transition-timing-function: ease-in;*/
 }
 #forp div.mainpanel {
     border-top: 1px solid #BBB;
@@ -188,6 +193,7 @@
 }
 #forp li{
     line-height: 1.8;
+
 }
 #forp li > div.numeric{
     min-width: 60px;

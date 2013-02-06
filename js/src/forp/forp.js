@@ -97,26 +97,6 @@ var forp = {};
             }
         },
         /**
-         * Append
-         * @param string url
-         * @param string type "css" | "js"
-         */
-        /*appendStyle : function(url, type, where) {
-            switch(type) {
-                case 'css' :
-
-                        var style = document.createElement('style');
-                        style.appendChild(document.createTextNode('%forp.css%'));
-                        (document.getElementsByTagName('head')[0]
-                            || document.getElementsByTagName('body')[0]).appendChild(style);
-
-                    break;
-                case 'js' :
-                    break;
-            }
-            return this;
-        },*/
-        /**
          * DOM Ready function
          * @param callback
          */
@@ -369,6 +349,24 @@ var forp = {};
                         return transitions[t];
                     }
                 }
+            }
+        },
+        /**
+         * Utils, helpers
+         */
+        Utils : {
+            /**
+             * TODO depth
+             * @param path File path
+             */
+            trimPath : function(path)
+            {
+                var pathSplit = path.split('/');
+                if(pathSplit.length > 3) {
+                    pathSplit = [pathSplit[pathSplit.length - 4], pathSplit[pathSplit.length - 3], pathSplit[pathSplit.length - 2], pathSplit[pathSplit.length - 1]];
+                    path = pathSplit.join('/');
+                }
+                return path;
             }
         },
         /**
@@ -881,7 +879,7 @@ var forp = {};
                         .class("backtrace-item " + (highlight ? " highlight" : ""))
                         .text(
                             "<strong>" + entry.id + "</strong><br>" +
-                            entry.filelineno + "<br>" +
+                            f.Utils.trimPath(entry.filelineno) + "<br>" +
                             f.roundDiv(entry.usec, 1000).toFixed(3) + "ms " +
                             f.roundDiv(entry.bytes, 1024).toFixed(3) + "Kb"
                         )
@@ -1134,7 +1132,6 @@ var forp = {};
                 this.refineParents(this.stack[descendant.parent], value);
                 return this;
             };
-
             /**
              * Aggregates stack entries
              * This is the core function
@@ -1413,16 +1410,6 @@ var forp = {};
          */
         Grader : function()
         {
-
-            this.gradeColors = {
-                A : '',
-                B : '',
-                C : '',
-                D : '',
-                E : '',
-                F : ''
-            };
-
             this.grades = {
                 time : {
                     A : {
@@ -1493,19 +1480,19 @@ var forp = {};
                     }
                 },
                 nesting : {
-                    A : {
+                    E : {
                         min : 0, max : 5, tip : ["This is the 'Hello world' script ?"]
                     },
-                    B : {
-                        min : 5, max : 10, tip : ["Very good job !"]
+                    A : {
+                        min : 5, max : 10, tip : ["Good job !"]
                     },
-                    C : {
+                    B : {
                         min : 10, max : 15, tip : ["Respectable"]
                     },
-                    D : {
-                        min : 15, max : 20, tip : ["Too many levels of indirection ?"]
+                    C : {
+                        min : 15, max : 20, tip : ["Respectable"]
                     },
-                    E : {
+                    D : {
                         min : 20, max : 30, tip : ["Perhaps, are you currently refactoring ?"]
                     }
                 }
