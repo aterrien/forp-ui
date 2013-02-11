@@ -1127,7 +1127,7 @@ var forp = {};
              */
             this.refineParents = function(descendant, value)
             {
-                if(!descendant.parent) return;
+                if(descendant.parent == undefined) return;
                 this.stack[descendant.parent].usec -= value;
                 this.refineParents(this.stack[descendant.parent], value);
                 return this;
