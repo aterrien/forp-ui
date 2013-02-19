@@ -1,0 +1,38 @@
+#forp *{
+    font-family: monaco;
+    font-size : 11px;
+}
+
+/* gauge */
+#forp div.gauge div.bar{
+    background: #CCC;
+}
+
+/* nav bar */
+#forp div.toggleOn, #forp div.toggleOff{}
+#forp div.toggleOn{
+    color: #FFF;
+    background: #CCC;
+    border: 1px solid #CCC;
+}
+#forp div.toggleOff{
+    color: #333;
+    background: #FFF;
+    border: 1px solid #EEE;
+}
+
+
+/* search */
+#forp input[type=text]{
+    border: 1px solid #DDD;
+}
+
+/* table */
+#forp tr:hover{
+    background: #F9F9F9;
+}
+
+/* backtrace */
+#forp div.backtrace div.highlight{
+    background: #CCC !important;
+}
