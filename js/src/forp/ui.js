@@ -11,7 +11,7 @@
      *   - Console .console
      *   - Sidebar .sidebar
      */
-    forp.Layout = function(viewMode)
+    f.Layout = function(viewMode)
     {
         var self = this;
         f.DOMElementWrapper.call(this);
@@ -20,10 +20,10 @@
 
         this.mainpanel = null;
         this.nav = null;
-        this.viewMode = viewMode; // embeddedExpanded, embeddedCompacted, standalone
+        this.viewMode = viewMode; // fixed, embedded
 
         this.conf = {
-            embeddedExpanded : {
+            fixed : {
                 size : function() {
                     self.attr(
                             "style",
@@ -51,17 +51,14 @@
                     }
                 },
                 reduce : function() {
+                    alert('reduce');
                     self.attr(
                         "style",
                         "height: 45px"
                     );
                 }
             }
-            , embeddedCompacted : {
-                size : function() { return false },
-                reduce : function() { return false }
-            }
-            , standalone : {
+            , embedded : {
                 size : function() {
                     self.attr(
                         "style",
@@ -132,7 +129,7 @@
         {
             this.attr("style", "")
                 .empty()
-                .class(this.viewMode);
+                .class(this.viewMode + "Compact");
             this.nav = null;
             this.mainpanel = null;
 
@@ -140,13 +137,11 @@
 
             return this;
         };
-
-        document.body.insertBefore(this.element, document.body.firstChild);
     };
     /**
      * Nav
      */
-    forp.Nav = function()
+    f.Nav = function()
     {
         var self = this;
         f.DOMElementWrapper.call(this);
@@ -156,7 +151,7 @@
      * Panel
      * @param string id Panel ID
      */
-    forp.Panel = function(id)
+    f.Panel = function(id)
     {
         var self = this;
         f.DOMElementWrapper.call(this);
@@ -169,7 +164,7 @@
      * MainPanel
      * @param Layout layout
      */
-    forp.MainPanel = function(layout)
+    f.MainPanel = function(layout)
     {
         var self = this;
         f.Panel.call(this, "mainpanel");
@@ -200,7 +195,7 @@
             return this;
         };
     };
-    forp.ToggleBar = function()
+    f.ToggleBar = function()
     {
         var self = this;
         f.DOMElementWrapper.call(this);
@@ -225,7 +220,7 @@
      * @param mixed off Off callback function or false if off disabled
      * @param boolean triggerOn Fire click event if true
      */
-    forp.ToggleButton = function(label, on, off, triggerOn)
+    f.ToggleButton = function(label, on, off, triggerOn)
     {
         var self = this, click = null;
         f.DOMElementWrapper.call(this);
@@ -253,7 +248,7 @@
      * Sidebar Class
      * @param DOMElementWrapper parent
      */
-    forp.Sidebar = function(parent)
+    f.Sidebar = function(parent)
     {
         var self = this;
         f.Panel.call(this, "sidebar");
@@ -264,7 +259,7 @@
      * Console Class
      * @param DOMElementWrapper parent
      */
-    forp.Console = function(parent)
+    f.Console = function(parent)
     {
         var self = this;
         f.Panel.call(this, "console");
@@ -308,7 +303,7 @@
     /**
      * @param Object headers
      */
-    forp.Table = function(headers)
+    f.Table = function(headers)
     {
         f.DOMElementWrapper.call(this);
         this.element = document.createElement("table");
@@ -327,7 +322,7 @@
     /**
      * @param Object cols
      */
-    forp.Line = function(cols)
+    f.Line = function(cols)
     {
         f.DOMElementWrapper.call(this);
         this.element = document.createElement("tr");
@@ -346,7 +341,7 @@
      * Stack Tree Class
      * @param Object stack Call stack array
      */
-    forp.Tree = function(stack)
+    f.Tree = function(stack)
     {
         var self = this;
         f.DOMElementWrapper.call(this);
@@ -473,7 +468,7 @@
      * @param integer i Index
      * @param Object stack Callc stack array
      */
-    forp.Backtrace = function(i, stack)
+    f.Backtrace = function(i, stack)
     {
         f.DOMElementWrapper.call(this);
         this.element = document.createElement("div");
@@ -506,7 +501,7 @@
      * @param i Stack index
      * @param context
      */
-    forp.LineEventListenerBacktrace = function(i, context)
+    f.LineEventListenerBacktrace = function(i, context)
     {
         this.target = null;
         this.init = function()
@@ -540,7 +535,7 @@
      * @param integer divider
      * @param string unit
      */
-    forp.Gauge = function(value, max, divider, unit)
+    f.Gauge = function(value, max, divider, unit)
     {
         f.DOMElementWrapper.call(this);
         this.element = document.createElement("div");
@@ -586,7 +581,7 @@
      * TagRandColor Class
      * Provides predefined colors
      */
-    forp.TagRandColor = {
+    f.TagRandColor = {
         i : 0,
         pocket : ["#f95", "#f59", "#59f", "#5e9", "#9e6", "#95f",
                 "#e55", "#fe6", "#f6f", "#5e5", "#5ef", "#55f"],

@@ -16,8 +16,8 @@ $files = array(
     ),
     'css' => array(
         'default',
-        //'monaco'
-        'gstyle'
+        'consolas'
+        //'gstyle'
     )
 );
 

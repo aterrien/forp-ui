@@ -3,20 +3,37 @@
     "use strict";
 
     /**
+     * Extends DOMElementWrapperCollection
+     * @param array conf Config Object
+     */
+    f.DOMElementWrapperCollection.prototype.forp = function(conf) {
+        this.each(
+            function(el){
+                conf.parent = el.element;
+                (new f.Controller(conf))
+                      .setStack(conf.stack)
+                      .run();
+            }
+        );
+    },
+
+    /**
      * forp stack manager
      * @param array forp stack
      */
-    forp.Controller = function(stack)
+    f.Controller = function(conf)
     {
         var self = this;
 
+        var conf = conf || {};
         this.layout = null;
         this.console = null;
         this.grader = null;
         this.tree = null;
         this.stack = null;
         this.openEventListener = null;
-        this.viewMode = "embeddedCompacted";
+        this.viewMode = conf.parent ? conf.mode || "embedded" : "fixed";
+        this.parent = conf.parent;
 
         /**
          * @param string viewMode
@@ -66,7 +83,10 @@
          */
         this.getLayout = function()
         {
-            if(!this.layout) this.layout = new f.Layout(this.viewMode);
+            if(!this.layout) {
+                this.layout = new f.Layout(this.viewMode);
+                this.parent.insertBefore(this.layout.element, this.parent.firstChild);
+            }
             return this.layout;
         };
 
@@ -113,15 +133,18 @@
                     .text('%forp.css%')
                     .appendTo(new f.DOMElementWrapper(styleTarget));
 
+                // retrieve parent
+                this.parent = this.parent || document.body;
+
                 // proceeds and aggregates stack datas
                 self.getStack()
                     .aggregate();
 
-                if(this.viewMode == "embeddedCompacted") {
+                if(this.viewMode == "fixed") {
                     // compacted view mode
                     this.getLayout()
                         .compact(this.onCompact);
-                } else if(this.viewMode == "standalone") {
+                } else if(this.viewMode == "embedded") {
                     // open at run
                     this.open();
                 }
@@ -144,7 +167,7 @@
                         "click",
                         self.openEventListener = function() {
                             self.getLayout()
-                                .setViewMode('embeddedExpanded');
+                                .setViewMode('fixed');
                             self.open();
                         }
 
@@ -611,7 +634,7 @@
                 )
             );
 
-            (this.viewMode == "embeddedCompacted") &&
+            (this.viewMode == "fixed") &&
             toggleBar.append(
                 f.create("div")
                 .text("&#x25BC;")
@@ -621,7 +644,6 @@
                     function(e) {
                         e.stopPropagation();
                         self.getLayout()
-                            .setViewMode('embeddedCompacted')
                             .compact(self.onCompact);
                     }
                 )

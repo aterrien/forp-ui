@@ -6,7 +6,7 @@
      * Stack Class
      * @param Object stack Call stack array
      */
-    forp.Stack = function(stack)
+    f.Stack = function(stack)
     {
         var self = this;
 

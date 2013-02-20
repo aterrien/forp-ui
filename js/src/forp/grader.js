@@ -7,7 +7,7 @@
      *
      * Provides grades, quality metrics
      */
-    forp.Grader = function()
+    f.Grader = function()
     {
         this.grades = {
             time : {

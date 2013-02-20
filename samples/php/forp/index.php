@@ -5,9 +5,13 @@ register_shutdown_function(
         ?>
         <script src="../../../js/forp.min.js"></script>
         <script>
-        (new forp.Controller())
-            .setStack(<?php echo json_encode(forp_dump()); ?>)
-            .run();
+        (function(f) {
+            f.find(".forp")
+             .forp({
+                stack : <?php echo json_encode(forp_dump()); ?>,
+                //mode : "fixed"
+             });
+        })(forp);
         </script>
         <?php
     }

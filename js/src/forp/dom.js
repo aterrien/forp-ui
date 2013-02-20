@@ -6,7 +6,7 @@
      * DOM Element wrapper, makes it fluent
      * @param DOM Element
      */
-    forp.DOMElementWrapper = function(element)
+    f.DOMElementWrapper = function(element)
     {
         var self = this;
         this.element = element;
@@ -163,7 +163,7 @@
      * DOM Element Collection Class
      * @param DOM Element
      */
-    forp.DOMElementWrapperCollection = function(elements)
+    f.DOMElementWrapperCollection = function(elements)
     {
         this.elements = elements;
         this.each = function(fn)
