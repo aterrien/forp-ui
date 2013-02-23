@@ -9,7 +9,7 @@ register_shutdown_function(
             f.find(".forp")
              .forp({
                 stack : <?php echo json_encode(forp_dump()); ?>,
-                //mode : "fixed"
+                mode : "fixed"
              });
         })(forp);
         </script>

@@ -162,7 +162,14 @@
         this.onCompact = function() {
             if(self.getStack().stack.length > 0) {
 
+                var ms = f.roundDiv(self.getStack().getMainEntry().usec, 1000),
+                    kb = f.roundDiv(self.getStack().getMainEntry().bytes, 1024),
+                    grader = new f.Grader();
+
                 self.layout
+                    .addClass(
+                        grader.getClass(grader.getGrade('time', ms))
+                    )
                     .bind(
                         "click",
                         self.openEventListener = function() {
@@ -178,12 +185,12 @@
                  .append(
                     f.create("div")
                      .attr("style", "margin-right: 10px")
-                     .text(f.roundDiv(self.getStack().getMainEntry().usec, 1000) + ' ms ')
+                     .text(ms + ' ms ')
                  )
                  .append(
                     f.create("div")
                      .attr("style", "margin-right: 10px")
-                     .text(f.roundDiv(self.getStack().getMainEntry().bytes, 1024) + ' Kb')
+                     .text(kb + ' Kb')
                  )
                  .appendTo(self.getLayout().getNav());
 
@@ -295,7 +302,7 @@
 
             // footer
             f.create("div")
-                .class("shadow")
+                .class("inset")
                 .appendTo(this.layout);
 
             var toggleBar = (new f.ToggleBar()).attr("style", "margin-top: -4px");
@@ -400,7 +407,7 @@
 
             toggleBar.append(
                 new f.ToggleButton(
-                    "top 20 duration",
+                    "top 20 time",
                     function(e) {
                         var datas = self.getStack().getTopCpu();
 

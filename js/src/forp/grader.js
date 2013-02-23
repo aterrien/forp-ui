@@ -113,9 +113,13 @@
             return this.grades[gradeName][grade]['tip'][i];
         };
 
+        this.getClass = function(grade) {
+            return "grade-" + grade;
+        };
+
         this.getGradeWithTip = function(gradeName, mesure) {
             var grade = this.getGrade(gradeName, mesure);
-            return "<div class=grade-" + grade + ">" + grade + "</div> " + this.getTip(gradeName, grade);
+            return "<div class=" + this.getClass(grade) + ">" + grade + "</div> " + this.getTip(gradeName, grade);
         };
     };
 })(forp);

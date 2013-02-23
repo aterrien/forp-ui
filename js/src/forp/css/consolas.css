@@ -1,3 +1,7 @@
+#forp {
+    background: none;
+}
+
 #forp *{
     font-family: Consolas, monaco, monospace;
     font-size : 11px;
@@ -9,22 +13,32 @@
 }
 
 /* nav bar */
-#forp div.toggleOn, #forp div.toggleOff{}
+#forp div.toggleOn, #forp div.toggleOff{
+    height: 18px;
+    width: 100px;
+    background: none;
+    border-radius: 0;
+}
 #forp div.toggleOn{
     color: #FFF;
-    background: #CCC;
-    border: 1px solid #CCC;
+    background-image: -webkit-linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
+    background-image: -moz-linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
+    background-image: -ms-linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
+    background-image: -o-linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
 }
 #forp div.toggleOff{
     color: #333;
-    background: #FFF;
-    border: 1px solid #EEE;
+    background-image: -webkit-linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #eee 0%);
+    background-image: -moz-linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #eee 0%);
+    background-image: -ms-linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #eee 0%);
+    background-image: -o-linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #eee 0%);
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #eee 0%);
 }
-
 
 /* search */
 #forp input[type=text]{
-    border: 1px solid #DDD;
+    border: 1px solid #ddd;
 }
 
 /* table */
@@ -34,5 +48,82 @@
 
 /* backtrace */
 #forp div.backtrace div.highlight{
-    background: #CCC !important;
+    background: #333 !important;
+}
+
+#forp div.backtrace div.arrow {
+    color: #ddd;
+}
+
+/* forp */
+#forp.fixed {
+    height: 100%;
+    background: #FFF;
+    min-width: 1000px;
+    top: 0px;
+    left: 0px;
+}
+
+#forp.fixedCompact {
+    margin: 0px;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    bottom: auto;
+    border-radius: 0;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    width: 130px;
+}
+
+#forp.fixedCompact nav{
+    padding: 5px 10px;
+    background: none;
+    background-image: -webkit-linear-gradient(135deg, rgba(255, 255, 255, 0) 10%, #333 0%);
+    background-image: -moz-linear-gradient(135deg, rgba(255, 255, 255, 0) 10%, #333 0%);
+    background-image: -ms-linear-gradient(135deg, rgba(255, 255, 255, 0) 10%, #333 0%);
+    background-image: -o-linear-gradient(135deg, rgba(255, 255, 255, 0) 10%, #333 0%);
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0) 10%, #333 0%);
+    border-radius: 0;
+}
+
+#forp.fixedCompact div.summary > div {
+    color: #fff !important;
+}
+
+#forp.fixedCompact.grade-A {
+    border-left: 4px solid #9E5
+}
+#forp.fixedCompact.grade-B {
+    border-left: 4px solid #EE5
+}
+#forp.fixedCompact.grade-C {
+    border-left: 4px solid #EB5
+}
+#forp.fixedCompact.grade-D {
+    border-left: 4px solid #E95
+}
+#forp.fixedCompact.grade-E {
+    border-left: 4px solid #E55
+}
+
+/* table */
+#forp th, #forp td {
+    padding: 5px;
+    border: none;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+}
+
+/* console */
+#forp div.console{
+    border-right: 1px solid #ddd;
+}
+
+/* inset */
+#forp div.inset {
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
 }

@@ -25,10 +25,7 @@
         this.conf = {
             fixed : {
                 size : function() {
-                    self.attr(
-                            "style",
-                            "height: 70%"
-                        );
+                    self.attr("style", "");
 
                     if( self.getConsole()
                             .attr(
@@ -51,7 +48,6 @@
                     }
                 },
                 reduce : function() {
-                    alert('reduce');
                     self.attr(
                         "style",
                         "height: 45px"
