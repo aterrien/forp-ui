@@ -6,7 +6,7 @@
         </style>
     </head>
     <body>
-        <div class="forp" style="height:300px;margin:50px;border:1px solid #CCC"></div>
+        <div class="forp"></div>
 <?php
 // This is a basic demo
 //

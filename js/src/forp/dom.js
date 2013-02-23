@@ -158,6 +158,9 @@
             this.element.scrollTop = f.wrap(this.element.firstChild).height();
             return this;
         };
+        this.parent = function() {
+            return f.wrap(this.element.parentNode);
+        }
     };
     /**
      * DOM Element Collection Class
@@ -171,6 +174,7 @@
             for(var i=0; i<this.elements.length; i++) {
                 fn(new f.DOMElementWrapper(this.elements[i]));
             }
+            return this;
         };
         this.getElement = function(i)
         {

@@ -15,6 +15,7 @@
                       .run();
             }
         );
+        return this;
     },
 
     /**

@@ -7,10 +7,15 @@ register_shutdown_function(
         <script>
         (function(f) {
             f.find(".forp")
+             .each(
+                function(el) {
+                    el.css('margin:50px;height:300px;border:1px solid #333');
+                }
+             )
              .forp({
                 stack : <?php echo json_encode(forp_dump()); ?>,
-                mode : "fixed"
-             });
+                //mode : "fixed"
+             })
         })(forp);
         </script>
         <?php
