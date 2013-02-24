@@ -75,7 +75,7 @@ try {
             '%forp.css%',
             CssMin::minify($css),
             '/** forp-ui (c) 2013 Anthony Terrien **/' .
-            $nomin ? $js : JSMin::minify($js)
+            ($nomin ? $js : JSMin::minify($js))
         )
     );
 } catch(Exception $ex ) {
