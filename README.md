@@ -19,7 +19,7 @@ It is very easy to integrate forp-ui into an HTML page, it is written in JavaScr
 # Integration into an HTML page and example #
 
 Download the minified version from the release branch of forp-ui on Github.
-Put it in the js directory of your project, then run forgui as in the example below.
+Put it in the js directory of your project, then run forp-ui as in the example below.
 
 
 ```

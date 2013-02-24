@@ -1,6 +1,6 @@
 (function(f) {
 
-    "use strict";
+//    "use strict";
 
     /**
      * Extends DOMElementWrapperCollection
@@ -645,7 +645,6 @@
             (this.viewMode == "fixed") &&
             toggleBar.append(
                 f.create("div")
-                .text("&#x25BC;")
                 .class("close")
                 .bind(
                     "click",

@@ -102,14 +102,15 @@
     color: #FFF;
     background: #555;
 }
-
+#forp div.close{}
+#forp div.close:before{
+    content: "x";
+}
 #forp div.close{
     color: #ccc;
-    padding: 5px 10px;
     position: absolute;
-    top: 0px;
+    top: 14px;
     right: 30px;
-    text-align: center;
 }
 #forp div.close:hover{
     cursor: pointer;

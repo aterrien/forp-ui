@@ -5,6 +5,41 @@
 require 'ext/jsmin/jsmin.php';
 require 'ext/cssmin/src/CssMin.php';
 
+// Default opts
+$skin = 'gstyle';
+$nomin = false;
+
+$opts = array(
+    'skin' => array(
+        's:', 'skin:'
+    ),
+    'nomin' => array(
+        'n', 'nomin'
+    )
+);
+
+$shortOpts = '';
+$longOpts = array();
+foreach($opts as $opt) {
+    $shortOpts .= $opt[0];
+    $longOpts[] = $opt[1];
+}
+$options = getopt($shortOpts, $longOpts);
+foreach($options as $k=>$v) {
+    switch($k) {
+        case 's' : case 'skin' :
+            $skin = $v;
+            break;
+        case 'n' : case 'nomin' :
+            $nomin = true;
+            break;
+        default :
+            $skin = 'gstyle';
+            $nomin = false;
+    }
+}
+
+// Files
 $files = array(
     'js' => array(
         'forp',
@@ -16,10 +51,10 @@ $files = array(
     ),
     'css' => array(
         'default',
-        //'consolas'
-        'gstyle'
+        $skin
     )
 );
+
 
 $target = fopen(dirname(__FILE__) . '/forp.min.js', 'w+');
 try {
@@ -40,7 +75,7 @@ try {
             '%forp.css%',
             CssMin::minify($css),
             '/** forp-ui (c) 2013 Anthony Terrien **/' .
-            JSMin::minify($js)
+            $nomin ? $js : JSMin::minify($js)
         )
     );
 } catch(Exception $ex ) {
