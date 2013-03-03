@@ -308,6 +308,54 @@
 
             var toggleBar = (new f.ToggleBar()).attr("style", "margin-top: -4px");
             toggleBar.appendTo(this.getLayout().getNav());
+
+            if(self.getStack().inspect)
+            toggleBar.append(
+                new f.ToggleButton(
+                    "inspect",
+                    function(e) {
+
+                        var table = self.getConsole()
+                                        .empty()
+                                        .open()
+                                        .table(["var", "type",
+                                            //"info"
+                                        ]),
+                            ivars = self.getStack().inspect;
+
+
+                        for(ivar in ivars) {
+                            var info;
+                            if(
+                                typeof(ivars[ivar]) === "object"
+                                && ivars[ivar].properties
+                            ) {
+                                info = f.create('div');
+                                for(var prop in ivars[ivar].properties) {
+                                    info.append(f.create('span').text(prop));
+                                }
+                            } else {
+                                info = f.Utils.htmlEntities(ivars[ivar].value);
+                            }
+                            table.line(
+                                [
+                                    ivar,
+                                    ivars[ivar].type,
+                                    //info
+                                ]
+                            ).addEventListener(
+                                new f.LineEventListenerInspect(
+                                    ivars[ivar],
+                                    self
+                                )
+                            );
+                        }
+                    },
+                    self.getLayout().reduce,
+                    true
+                )
+            );
+
             toggleBar.append(
                 new f.ToggleButton(
                     "metrics",
@@ -359,7 +407,7 @@
                             self.getGrader().getGradeWithTip("nesting", self.getStack().avgLevel)]);
                         },
                     self.getLayout().reduce,
-                    true
+                    self.getStack().inspect == null
                 )
             );
 

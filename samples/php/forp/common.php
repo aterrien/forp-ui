@@ -44,6 +44,11 @@ function test($i = 0){ echo 'User function with "Hello ' . $i . ' !" profile cap
 function test1(){test();};
 // user class
 class Foo {
+
+    public $myintvar = 27;
+
+    public $mystringvar = "test";
+
     /**
      * @ProfileGroup("Foo","data")
      * @ProfileCaption("Caption of bar.")
@@ -80,6 +85,9 @@ $foo = new Foo();
 //sleep(1);
 $foo->bar();
 $foo->bar2($lambda, $foo);
+
+// inspect
+forp_inspect('foo', $foo);
 
 // alloc, dealloc
 /**

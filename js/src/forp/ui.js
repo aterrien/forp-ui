@@ -525,6 +525,54 @@
         }
     };
     /**
+     * LineEventListenerInspect Class
+     * @param i Stack index
+     * @param context
+     */
+    f.LineEventListenerInspect = function(v, context)
+    {
+        this.target = null;
+        this.init = function()
+        {
+            this.target.bind(
+                'click',
+                function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    var line = f.wrap(this),
+                        ul = f.create("ul").class("inspect");
+
+                    var list = function(v, ul) {
+                        for(var entry in v) {
+                            var el = f.create("li");
+                            if(typeof(v[entry]) == 'object') {
+                                ul.append(
+                                    el.text(entry + ":")
+                                );
+                                var sul = f.create("ul").appendTo(el);
+                                list(v[entry], sul);
+                            } else {
+                                ul.append(
+                                    el.text(entry + ": " + f.Utils.htmlEntities(v[entry]))
+                                );
+                            }
+                        }
+                    };
+
+                    list(v, ul);
+
+                    context.getConsole()
+                        .getSidebar()
+                        .empty()
+                        .append(
+                            ul
+                        );
+                }
+            );
+        }
+    };
+    /**
      * Gauge Class
      * @param integer value
      * @param integer max

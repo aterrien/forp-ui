@@ -13,6 +13,7 @@
         this.stack = (stack.stack != null) ? stack.stack : []; // RAW stack
         this.utime = (stack.utime != null) ? stack.utime : null;
         this.stime = (stack.stime != null) ? stack.stime : null;
+        this.inspect = stack.inspect;
         this.functions = null; // indexed stack
         this.includes = null; // included files
         this.includesCount = 0;

@@ -299,6 +299,10 @@
     background-color: #E55
 }
 
+/* inspect */
+#forp ul.inspect{
+    padding-left: 0px;
+}
 
 #forp input[type=text]{
     padding: 4px;
