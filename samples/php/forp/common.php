@@ -87,7 +87,7 @@ $foo->bar();
 $foo->bar2($lambda, $foo);
 
 // inspect
-forp_inspect('foo', $foo);
+//forp_inspect('foo', $foo);
 
 // alloc, dealloc
 /**
