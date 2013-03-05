@@ -8,12 +8,106 @@
     color: #eee;
 }
 
+/* backtrace */
+#forp div.backtrace-item{
+    word-wrap: break-word;
+    max-width: 90%;
+    background: #999;
+    padding: 4px 10px 5px 10px;
+}
+#forp div.backtrace div.highlight{
+    background: #333 !important;
+}
+#forp div.backtrace div.arrow {
+    color: #ddd;
+}
+
+/* close */
+#forp div.close:hover{
+    color: #eee;
+}
+
+/* console */
+#forp div.console{}
+
+/* forp */
+#forp.fixed {
+    height: 100%;
+    background: #FFF;
+    min-width: 1000px;
+    top: 0px;
+    left: 0px;
+}
+#forp.fixedCompact {
+    margin: 0px;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    bottom: auto;
+    border-radius: 0;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    width: 130px;
+}
+#forp.fixedCompact nav{
+    height: 35px;
+    padding: 5px 10px;
+    background: none;
+    background-image: -webkit-linear-gradient(135deg, rgba(255, 255, 255, 0) 7%, #333 0%);
+    background-image: -moz-linear-gradient(135deg, rgba(255, 255, 255, 0) 7%, #333 0%);
+    background-image: -ms-linear-gradient(135deg, rgba(255, 255, 255, 0) 7%, #333 0%);
+    background-image: -o-linear-gradient(135deg, rgba(255, 255, 255, 0) 7%, #333 0%);
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0) 7%, #333 0%);
+    border-radius: 0;
+}
+#forp.fixedCompact div.summary > div {
+    color: #fff !important;
+}
+#forp.fixedCompact.grade-A {
+    border-left: 4px solid #9E5
+}
+#forp.fixedCompact.grade-B {
+    border-left: 4px solid #EE5
+}
+#forp.fixedCompact.grade-C {
+    border-left: 4px solid #EB5
+}
+#forp.fixedCompact.grade-D {
+    border-left: 4px solid #E95
+}
+#forp.fixedCompact.grade-E {
+    border-left: 4px solid #E55
+}
+
 /* gauge */
 #forp div.gauge{
     background: #777
 }
 #forp div.gauge div.text{}
 #forp div.gauge div.bar{}
+
+/* input */
+#forp input[type=text]{
+    border: 1px solid #333;
+    background: #333;
+    margin: 10px 5px;
+}
+#forp input[type=text]:focus{
+    background: #555;
+}
+
+/* inset */
+#forp div.inset {
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+
+/* mainpanel */
+#forp div.mainpanel {
+    background: #666;
+}
 
 /* nav */
 #forp nav {
@@ -58,74 +152,6 @@
     background-image: linear-gradient(-135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
 }
 
-/* backtrace */
-#forp div.backtrace-item{
-    word-wrap: break-word;
-    max-width: 90%;
-    background: #999;
-    padding: 4px 10px 5px 10px;
-}
-#forp div.backtrace div.highlight{
-    background: #333 !important;
-}
-#forp div.backtrace div.arrow {
-    color: #ddd;
-}
-
-/* forp */
-#forp.fixed {
-    height: 100%;
-    background: #FFF;
-    min-width: 1000px;
-    top: 0px;
-    left: 0px;
-}
-
-#forp.fixedCompact {
-    margin: 0px;
-    position: fixed;
-    top: 0px;
-    left: 0px;
-    bottom: auto;
-    border-radius: 0;
-    -moz-box-shadow: none;
-    -webkit-box-shadow: none;
-    box-shadow: none;
-    width: 130px;
-}
-
-#forp.fixedCompact nav{
-    height: 35px;
-    padding: 5px 10px;
-    background: none;
-    background-image: -webkit-linear-gradient(135deg, rgba(255, 255, 255, 0) 7%, #333 0%);
-    background-image: -moz-linear-gradient(135deg, rgba(255, 255, 255, 0) 7%, #333 0%);
-    background-image: -ms-linear-gradient(135deg, rgba(255, 255, 255, 0) 7%, #333 0%);
-    background-image: -o-linear-gradient(135deg, rgba(255, 255, 255, 0) 7%, #333 0%);
-    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0) 7%, #333 0%);
-    border-radius: 0;
-}
-
-#forp.fixedCompact div.summary > div {
-    color: #fff !important;
-}
-
-#forp.fixedCompact.grade-A {
-    border-left: 4px solid #9E5
-}
-#forp.fixedCompact.grade-B {
-    border-left: 4px solid #EE5
-}
-#forp.fixedCompact.grade-C {
-    border-left: 4px solid #EB5
-}
-#forp.fixedCompact.grade-D {
-    border-left: 4px solid #E95
-}
-#forp.fixedCompact.grade-E {
-    border-left: 4px solid #E55
-}
-
 /* table */
 #forp tr:nth-child(even) {background: #333}
 #forp tr:nth-child(odd) {background: #444}
@@ -138,34 +164,4 @@
 }
 #forp th{
     background: #999;
-}
-
-/* mainpanel */
-#forp div.mainpanel {
-    background: #666;
-}
-
-/* console */
-#forp div.console{}
-
-/* inset */
-#forp div.inset {
-    -webkit-box-shadow: none;
-    -moz-box-shadow: none;
-    box-shadow: none;
-}
-
-/* close */
-#forp div.close:hover{
-    color: #eee;
-}
-
-/* input */
-#forp input[type=text]{
-    border: 1px solid #333;
-    background: #333;
-    margin: 10px 5px;
-}
-#forp input[type=text]:focus{
-    background: #555;
 }

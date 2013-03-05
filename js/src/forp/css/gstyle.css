@@ -6,27 +6,6 @@
     font-weight: bold;
 }
 
-/* nav */
-#forp div.toggleBar{
-    margin-top: -4px
-}
-
-/* table */
-#forp th, #forp td{
-    border: 1px solid #ddd;
-}
-
-/* mainpanel */
-#forp div.mainpanel {
-    border-top: 1px solid #BBB;
-    background: #fff;
-}
-
-/* console */
-#forp div.console{
-    background: #fff;
-}
-
 /* backtrace */
 #forp div.backtrace-item{
     background: #eee;
@@ -37,7 +16,28 @@
     color: #555;
 }
 
+/* console */
+#forp div.console{
+    background: #fff;
+}
+
 /* input */
 #forp input[type=text]{
     margin: 0px 5px
+}
+
+/* mainpanel */
+#forp div.mainpanel {
+    border-top: 1px solid #BBB;
+    background: #fff;
+}
+
+/* nav */
+#forp div.toggleBar{
+    margin-top: -4px
+}
+
+/* table */
+#forp th, #forp td{
+    border: 1px solid #ddd;
 }

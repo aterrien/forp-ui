@@ -73,150 +73,6 @@
 #forp.fixed div.summary, #forp.embedded div.summary{
     display: none
 }
-/* nav bar */
-#forp nav{
-    background: #fcfcfc;
-    padding: 14px 0px 8px 4px;
-}
-#forp.fixed nav, #forp.embedded nav{
-    height: 22px;
-}
-#forp a{
-    white-space: nowrap;
-    color: #FFF;
-}
-#forp div.toggleOn, #forp div.toggleOff{
-    margin: 0px 5px;
-    padding: 4px;
-    float: left;
-    border-radius: 2px;
-}
-#forp div.toggleOn:hover, #forp div.toggleOff:hover{
-    cursor: pointer;
-}
-#forp div.toggleOn{
-    color: #FFF;
-    background: #4D90FE;
-}
-#forp div.toggleOff{
-    color: #FFF;
-    background: #555;
-}
-
-/* close */
-#forp div.close{}
-#forp div.close:before{
-    content: "x";
-}
-#forp div.close{
-    color: #ccc;
-    position: absolute;
-    top: 14px;
-    right: 30px;
-}
-#forp div.close:hover{
-    cursor: pointer;
-}
-
-/* tags */
-#forp a.tag{
-    background: #EE0;
-    color: #fff;
-    font-size : 0.8em;
-    padding: 2px 5px;
-    margin: 0px 5px;
-}
-#forp a.tag, #forp a{
-    border-radius: 3px;
-}
-#forp table{
-    font-weight: 300;
-    width: 100%;
-    border-collapse: collapse;
-}
-#forp div.panel {
-    overflow: auto;
-    overflow-x: hidden;
-}
-#forp div.console{
-    position: relative;
-    float: left;
-    width: 100%;
-}
-#forp div.sidebar{
-    float: right;
-}
-#forp th, #forp td{
-    padding: 5px;
-}
-#forp th{
-    text-align: center;
-    font-weight: bold;
-    color: #333;
-    border: 1px solid #ddd;
-    background: #eee;
-}
-#forp .w100{
-    width: 110px;
-}
-#forp td{
-    text-align: left;
-    text-overflow: ellipsis;
-    word-space: nowrap;
-    overflow: hidden;
-    vertical-align: top;
-}
-#forp tr{
-    color: #333;
-    background: #fff;
-}
-#forp tr.sub{
-    background: #eee;
-}
-#forp tr:hover{
-    background: #EDF4FF;
-}
-#forp tr[data-ref]{
-    cursor: pointer;
-}
-#forp .numeric{
-    text-align: right;
-}
-#forp ul{
-    list-style: none;
-    padding-left: 20px;
-}
-#forp ul.l0{
-    padding-left: 10px;
-}
-#forp li{
-    line-height: 1.8;
-    margin: 2px
-}
-#forp li > div.numeric{
-    min-width: 60px;
-    margin: 0px 10px
-}
-#forp div.expander{
-    text-align:center;
-    width: 20px;
-    cursor: pointer;
-}
-#forp li.expanded > div.expander:before{
-    content: "-";
-}
-#forp li.collapsed > div.expander:before {
-    content: "+";
-}
-#forp li.collapsed > ul{
-    display: none;
-}
-#forp .left{
-    float: left;
-}
-#forp .right{
-    float: right;
-}
 
 /* backtrace */
 #forp div.backtrace{
@@ -242,6 +98,28 @@
 }
 #forp div.backtrace div.highlight span{
     color: #FFF !important;
+}
+
+/* close */
+#forp div.close{}
+#forp div.close:before{
+    content: "x";
+}
+#forp div.close{
+    color: #ccc;
+    position: absolute;
+    top: 14px;
+    right: 30px;
+}
+#forp div.close:hover{
+    cursor: pointer;
+}
+
+/* console */
+#forp div.console{
+    position: relative;
+    float: left;
+    width: 100%;
 }
 
 /* gauge */
@@ -293,23 +171,155 @@
     background-color: #E55
 }
 
-/* inspect */
+/* inspector */
 #forp ul.inspect{
     padding-left: 0px;
 }
 
+/* input */
 #forp input[type=text]{
     padding: 4px;
     border: 1px solid #777;
     border-radius: 3px;
     background: #fff;
 }
-#forp .indent {
-    padding-left: 30px
+
+/* nav */
+#forp nav{
+    background: #fcfcfc;
+    padding: 14px 0px 8px 4px;
+}
+#forp.fixed nav, #forp.embedded nav{
+    height: 22px;
+}
+#forp a{
+    white-space: nowrap;
+    color: #FFF;
+}
+#forp div.toggleOn, #forp div.toggleOff{
+    margin: 0px 5px;
+    padding: 4px;
+    float: left;
+    border-radius: 2px;
+}
+#forp div.toggleOn:hover, #forp div.toggleOff:hover{
+    cursor: pointer;
+}
+#forp div.toggleOn{
+    color: #FFF;
+    background: #4D90FE;
+}
+#forp div.toggleOff{
+    color: #FFF;
+    background: #555;
+}
+
+/* sidebar */
+#forp div.sidebar{
+    float: right;
 }
 #forp div.w2of3 {
     width: 66% !important;
 }
 #forp div.w1of3 {
     width: 33% !important;
+}
+
+/* stack */
+#forp ul{
+    list-style: none;
+    padding-left: 20px;
+}
+#forp ul.l0{
+    padding-left: 10px;
+}
+#forp li{
+    line-height: 1.8;
+    margin: 2px
+}
+#forp li > div.numeric{
+    min-width: 60px;
+    margin: 0px 10px
+}
+#forp .indent {
+    padding-left: 30px
+}
+#forp div.expander{
+    text-align:center;
+    width: 20px;
+    cursor: pointer;
+}
+#forp li.expanded > div.expander:before{
+    content: "-";
+}
+#forp li.collapsed > div.expander:before {
+    content: "+";
+}
+#forp li.collapsed > ul{
+    display: none;
+}
+#forp .left{
+    float: left;
+}
+#forp .right{
+    float: right;
+}
+
+/* table */
+#forp table{
+    font-weight: 300;
+    width: 100%;
+    border-collapse: collapse;
+}
+#forp th, #forp td{
+    padding: 5px;
+}
+#forp th{
+    text-align: center;
+    font-weight: bold;
+    color: #333;
+    border: 1px solid #ddd;
+    background: #eee;
+}
+#forp .w100{
+    width: 110px;
+}
+#forp td{
+    text-align: left;
+    text-overflow: ellipsis;
+    word-space: nowrap;
+    overflow: hidden;
+    vertical-align: top;
+}
+#forp tr{
+    color: #333;
+    background: #fff;
+}
+#forp tr.sub{
+    background: #eee;
+}
+#forp tr:hover{
+    background: #EDF4FF;
+}
+#forp tr[data-ref]{
+    cursor: pointer;
+}
+#forp .numeric{
+    text-align: right;
+}
+
+/* tags */
+#forp a.tag{
+    background: #EE0;
+    color: #fff;
+    font-size : 0.8em;
+    padding: 2px 5px;
+    margin: 0px 5px;
+}
+#forp a.tag, #forp a{
+    border-radius: 3px;
+}
+#forp div.panel {
+    overflow: auto;
+    overflow-x: hidden;
 }
