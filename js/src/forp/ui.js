@@ -534,6 +534,7 @@
         this.target = null;
         this.init = function()
         {
+            this.target.attr("data-ref", "");
             this.target.bind(
                 'click',
                 function(e) {

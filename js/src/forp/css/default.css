@@ -67,9 +67,6 @@
 #forp.fixed a, #forp.embedded a{
     display: inline;
 }
-#forp.fixed nav, #forp.embedded nav{
-    height: 22px;
-}
 #forp.fixed nav>div, #forp.embedded nav>div{
     float: left;
 }
@@ -80,6 +77,9 @@
 #forp nav{
     background: #fcfcfc;
     padding: 14px 0px 8px 4px;
+}
+#forp.fixed nav, #forp.embedded nav{
+    height: 22px;
 }
 #forp a{
     white-space: nowrap;
@@ -102,6 +102,8 @@
     color: #FFF;
     background: #555;
 }
+
+/* close */
 #forp div.close{}
 #forp div.close:before{
     content: "x";
@@ -114,7 +116,6 @@
 }
 #forp div.close:hover{
     cursor: pointer;
-    color: #555;
 }
 
 /* tags */
@@ -137,14 +138,9 @@
     overflow: auto;
     overflow-x: hidden;
 }
-#forp div.mainpanel {
-    border-top: 1px solid #BBB;
-    background: #fff;
-}
 #forp div.console{
     position: relative;
     float: left;
-    background: #fff;
     width: 100%;
 }
 #forp div.sidebar{
@@ -152,7 +148,6 @@
 }
 #forp th, #forp td{
     padding: 5px;
-    border: 1px solid #ddd;
 }
 #forp th{
     text-align: center;
@@ -233,7 +228,6 @@
     color: #333;
     margin: 0px 5px;
     padding: 4px 5px 5px 5px;
-    background: #eee;
     border-radius: 8px;
     padding: 5px;
     display: inline-block;
@@ -309,7 +303,6 @@
     border: 1px solid #777;
     border-radius: 3px;
     background: #fff;
-    margin: 0px 5px
 }
 #forp .indent {
     padding-left: 30px

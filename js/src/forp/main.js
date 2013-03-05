@@ -306,13 +306,13 @@
                 .class("inset")
                 .appendTo(this.layout);
 
-            var toggleBar = (new f.ToggleBar()).attr("style", "margin-top: -4px");
+            var toggleBar = (new f.ToggleBar());
             toggleBar.appendTo(this.getLayout().getNav());
 
             if(self.getStack().inspect)
             toggleBar.append(
                 new f.ToggleButton(
-                    "inspect",
+                    "inspector",
                     function(e) {
 
                         var table = self.getConsole()

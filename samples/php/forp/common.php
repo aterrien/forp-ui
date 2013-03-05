@@ -74,9 +74,13 @@ function() {
     test();
 };
 
+forp_inspect('lambda', $lambda);
+
 // calls
 for($i = 0; $i<5000; $i++) {
     test($i);
+    // inspect stress
+    // forp_inspect('i' . $i, $i);
 }
 for($i=0;$i<5;$i++){ test1(); }
 $lambda();
@@ -85,11 +89,8 @@ $foo = new Foo();
 //sleep(1);
 $foo->bar();
 $foo->bar2($lambda, $foo);
+forp_inspect('foo', $foo);
 
-// inspect
-//forp_inspect('foo', $foo);
-
-// alloc, dealloc
 /**
  * @ProfileAlias("Alloc")
  */
@@ -107,8 +108,6 @@ $alloc = function(){
 $allocTest = function(){
     global $alloc;
     $o = $alloc();
-    //$o = null;
-    //gc_collect_cycles();
 };
 $allocTest();
 

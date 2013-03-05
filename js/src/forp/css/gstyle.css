@@ -5,3 +5,39 @@
 #forp span.strong {
     font-weight: bold;
 }
+
+/* nav */
+#forp div.toggleBar{
+    margin-top: -4px
+}
+
+/* table */
+#forp th, #forp td{
+    border: 1px solid #ddd;
+}
+
+/* mainpanel */
+#forp div.mainpanel {
+    border-top: 1px solid #BBB;
+    background: #fff;
+}
+
+/* console */
+#forp div.console{
+    background: #fff;
+}
+
+/* backtrace */
+#forp div.backtrace-item{
+    background: #eee;
+}
+
+/* close */
+#forp div.close:hover{
+    color: #555;
+}
+
+/* input */
+#forp input[type=text]{
+    margin: 0px 5px
+}

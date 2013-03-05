@@ -5,52 +5,69 @@
 #forp *{
     font-family: Consolas, monaco, monospace;
     font-size : 11px;
+    color: #eee;
 }
 
 /* gauge */
-#forp div.gauge div.bar{
-    background: #CCC;
+#forp div.gauge{
+    background: #777
 }
+#forp div.gauge div.text{}
+#forp div.gauge div.bar{}
 
-/* nav bar */
+/* nav */
+#forp nav {
+    background: #222;
+    height: 45px;
+    padding: 0px;
+}
+#forp.fixed nav, #forp.embedded nav{
+    height: 45px;
+}
+#forp div.toggleBar{
+    min-width: 1100px;
+}
 #forp div.toggleOn, #forp div.toggleOff{
-    height: 18px;
+    height: 21px;
+    padding: 15px 10px 5px 10px;
     width: 100px;
     background: none;
     border-radius: 0;
+    margin: 0px;
+    border-bottom: 4px solid #CCC;
+    margin-right: 1px;
+}
+#forp div.toggleOn:hover, #forp div.toggleOff:hover{
+    border-bottom: 4px solid #FFF;
 }
 #forp div.toggleOn{
-    color: #FFF;
-    background-image: -webkit-linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
-    background-image: -moz-linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
-    background-image: -ms-linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
-    background-image: -o-linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
-    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
+    color: #EEE;
+    border-bottom: 4px solid #9E5;
+    background-image: -webkit-linear-gradient(-135deg, rgba(255, 255, 255, 0) 7%, #555 0%);
+    background-image: -moz-linear-gradient(-135deg, rgba(255, 255, 255, 0) 7%, #555 0%);
+    background-image: -ms-linear-gradient(-135deg, rgba(255, 255, 255, 0) 7%, #555 0%);
+    background-image: -o-linear-gradient(-135deg, rgba(255, 255, 255, 0) 7%, #555 0%);
+    background-image: linear-gradient(-135deg, rgba(255, 255, 255, 0) 7%, #555 0%);
 }
 #forp div.toggleOff{
-    color: #333;
-    background-image: -webkit-linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #eee 0%);
-    background-image: -moz-linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #eee 0%);
-    background-image: -ms-linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #eee 0%);
-    background-image: -o-linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #eee 0%);
-    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0) 5%, #eee 0%);
-}
-
-/* search */
-#forp input[type=text]{
-    border: 1px solid #ddd;
-}
-
-/* table */
-#forp tr:hover{
-    background: #F9F9F9;
+    color: #EEE;
+    background-image: -webkit-linear-gradient(-135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
+    background-image: -moz-linear-gradient(-135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
+    background-image: -ms-linear-gradient(-135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
+    background-image: -o-linear-gradient(-135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
+    background-image: linear-gradient(-135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
 }
 
 /* backtrace */
+#forp div.backtrace-item{
+    word-wrap: break-word;
+    max-width: 90%;
+    background: #999;
+    padding: 4px 10px 5px 10px;
+}
 #forp div.backtrace div.highlight{
     background: #333 !important;
 }
-
 #forp div.backtrace div.arrow {
     color: #ddd;
 }
@@ -78,13 +95,14 @@
 }
 
 #forp.fixedCompact nav{
+    height: 35px;
     padding: 5px 10px;
     background: none;
-    background-image: -webkit-linear-gradient(135deg, rgba(255, 255, 255, 0) 10%, #333 0%);
-    background-image: -moz-linear-gradient(135deg, rgba(255, 255, 255, 0) 10%, #333 0%);
-    background-image: -ms-linear-gradient(135deg, rgba(255, 255, 255, 0) 10%, #333 0%);
-    background-image: -o-linear-gradient(135deg, rgba(255, 255, 255, 0) 10%, #333 0%);
-    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0) 10%, #333 0%);
+    background-image: -webkit-linear-gradient(135deg, rgba(255, 255, 255, 0) 7%, #333 0%);
+    background-image: -moz-linear-gradient(135deg, rgba(255, 255, 255, 0) 7%, #333 0%);
+    background-image: -ms-linear-gradient(135deg, rgba(255, 255, 255, 0) 7%, #333 0%);
+    background-image: -o-linear-gradient(135deg, rgba(255, 255, 255, 0) 7%, #333 0%);
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0) 7%, #333 0%);
     border-radius: 0;
 }
 
@@ -109,21 +127,45 @@
 }
 
 /* table */
+#forp tr:nth-child(even) {background: #333}
+#forp tr:nth-child(odd) {background: #444}
+#forp tr:hover{
+    background: #777;
+}
 #forp th, #forp td {
-    padding: 5px;
+    padding: 7px;
     border: none;
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
+}
+#forp th{
+    background: #999;
+}
+
+/* mainpanel */
+#forp div.mainpanel {
+    background: #666;
 }
 
 /* console */
-#forp div.console{
-    border-right: 1px solid #ddd;
-}
+#forp div.console{}
 
 /* inset */
 #forp div.inset {
     -webkit-box-shadow: none;
     -moz-box-shadow: none;
     box-shadow: none;
+}
+
+/* close */
+#forp div.close:hover{
+    color: #eee;
+}
+
+/* input */
+#forp input[type=text]{
+    border: 1px solid #333;
+    background: #333;
+    margin: 10px 5px;
+}
+#forp input[type=text]:focus{
+    background: #555;
 }

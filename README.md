@@ -15,6 +15,7 @@ It is very easy to integrate forp-ui into an HTML page, it is written in JavaScr
 - metrics and quality grades
 - "called from" view
 - "backtrace" view
+- inspector
 
 # Integration into an HTML page and example #
 
@@ -62,7 +63,7 @@ Put it in the js directory of your project, then run forp-ui as in the example b
 
 # Build #
 
-forp-ui builder generates the forp.min.js file from files in src/.
+forp-ui builder generates the forp.min.js file from files as js/forp.min.js.
 
 ```
 $ php js/build.php
