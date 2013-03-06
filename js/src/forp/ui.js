@@ -552,7 +552,28 @@
                                     el.text(entry + ":")
                                 );
                                 var sul = f.create("ul").appendTo(el);
-                                list(v[entry], sul);
+
+                                if(v[entry].type) {
+                                    switch(v[entry].type) {
+                                        case "string" :
+                                        case "int" :
+                                        case "bool" :
+                                            ul.append(
+                                                el.text(
+                                                    entry + ": ("
+                                                    + v[entry].type
+                                                    + ") "
+                                                    + f.Utils.htmlEntities(v[entry].value)
+                                                )
+                                            );
+                                            break;
+                                        default:
+                                            list(v[entry], sul);
+                                    }
+
+                                } else {
+                                    list(v[entry], sul);
+                                }
                             } else {
                                 ul.append(
                                     el.text(entry + ": " + f.Utils.htmlEntities(v[entry]))

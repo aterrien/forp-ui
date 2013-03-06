@@ -45,9 +45,19 @@ function test1(){test();};
 // user class
 class Foo {
 
+    public $mybool = true;
+
     public $myintvar = 27;
 
     public $mystringvar = "test";
+
+    public $myarray = array("assoc" => "test");
+
+    public $myobject = null;
+
+    public function __construct() {
+        $this->myobject = new stdClass();
+    }
 
     /**
      * @ProfileGroup("Foo","data")
