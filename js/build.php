@@ -6,7 +6,7 @@ require 'ext/jsmin/jsmin.php';
 require 'ext/cssmin/src/CssMin.php';
 
 // Default opts
-$skin = 'gstyle';
+$skin = 'consolas';
 $nomin = false;
 
 $opts = array(
@@ -56,7 +56,8 @@ $files = array(
 );
 
 
-$target = fopen(dirname(__FILE__) . '/forp.min.js', 'w+');
+$path = dirname(__FILE__) . '/forp.min.js';
+$target = fopen($path, 'w+');
 try {
     $js = $css = '';
 
@@ -78,6 +79,8 @@ try {
             ($nomin ? $js : JSMin::minify($js))
         )
     );
+
+    echo "File " . $path . " built\n";
 } catch(Exception $ex ) {
     echo "Fatal error : " . $ex->getMessage() . "\n\n";
     echo $ex->getTraceAsString();

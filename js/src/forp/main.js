@@ -1,6 +1,6 @@
 (function(f) {
 
-//    "use strict";
+    "use strict";
 
     /**
      * Extends DOMElementWrapperCollection
@@ -16,7 +16,7 @@
             }
         );
         return this;
-    },
+    };
 
     /**
      * forp stack manager
