@@ -456,7 +456,7 @@
 
             toggleBar.append(
                 new f.ToggleButton(
-                    "top 20 time",
+                    "top @PHP-VAR-topCpu@ duration",
                     function(e) {
                         var datas = self.getStack().getTopCpu();
 
@@ -497,7 +497,7 @@
 
             toggleBar.append(
                 new f.ToggleButton(
-                    "top 20 memory",
+                    "top @PHP-VAR-topMemory@ memory",
                     function(e) {
                         var datas = self.getStack()
                                         .getTopMemory();
@@ -529,7 +529,7 @@
 
             toggleBar.append(
                 new f.ToggleButton(
-                    "top 20 calls",
+                    "top @PHP-VAR-topCalls@ calls",
                     function(e) {
                         var datas = self.getStack()
                                         .getTopCalls();
