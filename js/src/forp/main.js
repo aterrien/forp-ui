@@ -115,8 +115,8 @@
                     }
                 }
 
-                if(self.getStack().stack.length > 30000) {
-                    throw new RangeError("More than 30000 entries in the stack (" + self.getStack().stack.length + ").");
+                if(self.getStack().stack.length > @PHP-VAR-maxStack@) {
+                    throw new RangeError("More than @PHP-VAR-maxStack@ entries in the stack (" + self.getStack().stack.length + ").");
                 }
 
                 // append style in footer
