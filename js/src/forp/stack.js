@@ -138,14 +138,14 @@
                     function(a, b) {
                         return (a.usec > b.usec);
                     },
-                    20
+                    @PHP-VAR-topCpu@
                 );
 
                 this.topMemory = new f.SortedFixedArray(
                     function(a, b) {
                         return (a.bytes > b.bytes);
                     },
-                    20
+                    @PHP-VAR-topMemory@
                 );
 
                 for(var entry in this.stack) {
@@ -337,7 +337,7 @@
             if(!this.topCalls) {
                 this.topCalls = new f.SortedFixedArray(
                     function(a, b) {return (a.calls > b.calls);},
-                    20
+                    @PHP-VAR-topCalls@
                 );
 
                 for(var entry in this.getFunctions()) {

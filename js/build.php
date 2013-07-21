@@ -6,7 +6,8 @@ require 'ext/jsmin/jsmin.php';
 require 'ext/cssmin/src/CssMin.php';
 
 // Default opts
-$skin = 'consolas';
+$skin = 'consolas'; //dark theme
+//$skin = 'gstyle'; //light theme
 $nomin = false;
 
 $opts = array(
@@ -16,6 +17,11 @@ $opts = array(
     'nomin' => array(
         'n', 'nomin'
     )
+   );
+$php_var = array(
+    '@PHP-VAR-topCalls@' => 20,
+    '@PHP-VAR-topMemory@' =>20,
+    '@PHP-VAR-topCpu@' => 20
 );
 
 $shortOpts = '';
@@ -68,6 +74,9 @@ try {
     foreach($files['css'] as $file) {
         $css .= file_get_contents(dirname(__FILE__) . '/src/forp/css/' . $file . '.css');
     }
+    
+    $js = str_replace(array_keys($php_var), array_values($php_var), $js );
+    $css = str_replace(array_keys($php_var), array_values($php_var), $css );
 
     // Inject CSS
     fwrite(
