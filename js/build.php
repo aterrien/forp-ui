@@ -21,7 +21,8 @@ $opts = array(
 $php_var = array(
     '@PHP-VAR-topCalls@' => 20,
     '@PHP-VAR-topMemory@' =>20,
-    '@PHP-VAR-topCpu@' => 20
+    '@PHP-VAR-topCpu@' => 20,
+    '@PHP-VAR-maxStack@' => 30000 /*the max number of elements in the forp stack that forp ui will allow before displaying an error.*/
 );
 
 $shortOpts = '';
