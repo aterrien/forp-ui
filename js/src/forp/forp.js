@@ -156,6 +156,21 @@ var forp = {};
             }
             return false;
         },
+        extends: function(obj1, obj2) {
+            for(var entry in obj2) {
+                if(obj2[entry] instanceof Object) {
+                    if(typeof obj2[entry] === 'function') {
+                        obj1[entry] = obj2[entry];
+                    } else {
+                        obj1[entry] = f.extends(obj1[entry], obj2[entry]);
+                    }
+                } else {
+                    (!obj1) && (obj1 = {});
+                    obj1[entry] = obj2[entry];
+                }
+            }
+            return obj1;
+        },
         /**
          * Normalizr Class
          */
@@ -203,6 +218,7 @@ var forp = {};
                         .replace(/"/g, '&quot;');
             }
         },
+
         /**
          * Sorted Fixed Array Class
          * @param callback compare
@@ -228,8 +244,15 @@ var forp = {};
              */
             this.put = function(entry) {
                 if(this.stack.length) {
+                    // break if end entry is greatest
+                    if(this.stack.length == this.size) {
+                        if(!compare.call(this, entry, this.stack[this.size-1])) {
+                            return;
+                        }
+                    }
+                    // insert entry at the right place
                     for(var i = 0; i < this.stack.length; i++) {
-                        if(compare(entry, this.stack[i])) {
+                        if(compare.call(this, entry, this.stack[i])) {
                             this.insert(entry, i);
                             break;
                         }

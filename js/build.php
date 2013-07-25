@@ -20,7 +20,7 @@ $opts = array(
    );
 $php_var = array(
     '@PHP-VAR-topCalls@' => 20,
-    '@PHP-VAR-topMemory@' =>20,
+    '@PHP-VAR-topMemory@' => 20,
     '@PHP-VAR-topCpu@' => 20,
     '@PHP-VAR-maxStack@' => 30000 /*the max number of elements in the forp stack that forp ui will allow before displaying an error.*/
 );
@@ -75,7 +75,7 @@ try {
     foreach($files['css'] as $file) {
         $css .= file_get_contents(dirname(__FILE__) . '/src/forp/css/' . $file . '.css');
     }
-    
+
     $js = str_replace(array_keys($php_var), array_values($php_var), $js );
     $css = str_replace(array_keys($php_var), array_values($php_var), $css );
 

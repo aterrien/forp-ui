@@ -35,6 +35,9 @@
         this.openEventListener = null;
         this.viewMode = conf.parent ? conf.mode || "embedded" : "fixed";
         this.parent = conf.parent;
+        this.cpuHistogram = null;
+        this.memoryHistogram = null;
+        this.groupsBarChart = null;
 
         /**
          * @param string viewMode
@@ -70,6 +73,114 @@
         {
             return this.stack;
         };
+
+        /**
+         * @return BarChart
+         */
+        this.getGroupsBarChart = function()
+        {
+            if(!this.groupsBarChart) {
+                var groups = self.getStack().groups, datas = [];
+                for(var group in self.getStack().groups) {
+                    datas.push(
+                        {
+                            label: group,
+                            value: groups[group].usec
+                        }
+                    );
+                }
+
+                this.groupsBarChart = (new f.BarChart(
+                    {
+                        xaxis : {min: 0, max: self.getStack().getMainEntry().usec},
+                        yaxis : {length: 50, min: 0, max: 1},
+                        val: function(i) {
+                            return this.datas[i].value;
+                        },
+                        color: function(i) {
+                            return f.TagRandColor.provideFor(this.datas[i].label);
+                        }
+                    }
+                ))
+                .setDatas(datas)
+                .draw();
+            }
+            return this.groupsBarChart;
+        }
+
+        /**
+         * @return Histogram
+         */
+        this.getCpuHistogram = function()
+        {
+            if(!this.cpuHistogram) {
+                this.cpuHistogram = (new f.Histogram(
+                    {
+                        xaxis : {min: 0},
+                        yaxis : {length: 50, min: 0, max: self.getStack().getTopCpu()[0].usec},
+                        val: function(i) {
+                            return this.datas[i].usec;
+                        },
+                        mousemove: function(e) {
+                            var x = Math.floor((e.offsetX * this.element.width) / this.width()),
+                                y = this.conf.yaxis.length - ((e.offsetY * this.element.height) / this.height());
+
+                            for(var i = x - 10; i < x + 10; i++) {
+                                var entry = this.datas[i];
+                                var amp = (entry.usec * 100) / this.conf.yaxis.max;
+
+                                if(y <= amp) {
+                                    this.highlight(i);
+                                    return;
+                                }
+                            }
+
+                            this.restore();
+                        }
+                    }
+                ))
+                .setDatas(self.getStack().leaves)
+                .draw();
+            }
+            return this.cpuHistogram;
+        }
+
+        /**
+         * @return Histogram
+         */
+        this.getMemoryHistogram = function()
+        {
+            if(!this.memoryHistogram) {
+                this.memoryHistogram = (new f.Histogram(
+                    {
+                        xaxis : {min: 0},
+                        yaxis : {length: 50, min: 0, max: self.getStack().getTopMemory()[0].bytes},
+                        val: function(i) {
+                            return this.datas[i].bytes;
+                        },
+                        mousemove: function(e) {
+                            var x = Math.floor((e.offsetX * this.element.width) / this.width()),
+                                y = this.conf.yaxis.length - ((e.offsetY * this.element.height) / this.height());
+
+                            for(var i = x - 10; i < x + 10; i++) {
+                                var entry = this.datas[i];
+                                var amp = (entry.bytes * 100) / this.conf.yaxis.max;
+
+                                if(y <= amp) {
+                                    this.highlight(i);
+                                    return;
+                                }
+                            }
+
+                            this.restore();
+                        }
+                    }
+                ))
+                .setDatas(self.getStack().leaves)
+                .draw();
+            }
+            return this.memoryHistogram;
+        }
 
         /**
          * @return Object Console
@@ -174,11 +285,9 @@
                     .bind(
                         "click",
                         self.openEventListener = function() {
-                            self.getLayout()
-                                .setViewMode('fixed');
+                            self.getLayout().setViewMode('fixed');
                             self.open();
                         }
-
                     );
 
                 f.create("div")
@@ -219,7 +328,8 @@
          */
         this.toggleDetails = function()
         {
-            var target = f.find(this);
+            var target = this;
+
             if(target.getAttr("data-details") == 1) {
                 target.nextSibling().remove();
                 target.attr("data-details", 0);
@@ -460,18 +570,12 @@
                     function(e) {
                         var datas = self.getStack().getTopCpu();
 
-                        /*for(var i = 0; i < self.leaves.length; i++) {
-                            var h = (self.leaves[i].usec * 50) / datas[0].usec;
-                            f.create("div")
-                                .attr("style", "height: 50px;")
-                                .class("left")
-                                .attr("style", "margin: 1px; width: 1px; height: " + h + "px; background: #4D90FE;")
-                                .appendTo(d);
-                        }*/
+                        self.getConsole().empty().open();
+
+                        self.getCpuHistogram()
+                            .appendTo(self.getConsole());
 
                         var table = self.getConsole()
-                                        .empty()
-                                        .open()
                                         .table(["function", "self cost ms", "total cost ms", "calls"]);
 
                         for(var i in datas) {
@@ -482,12 +586,21 @@
                                     f.roundDiv(datas[i].usec, 1000).toFixed(3) + '',
                                     f.roundDiv(self.getStack().getFunctions()[id].getDuration(), 1000).toFixed(3) + '',
                                     self.getStack().getFunctions()[id].calls
-                                ])
-                                .addEventListener(
+                                ]).addEventListener(
                                     new f.LineEventListenerBacktrace(
                                         datas[i].i,
                                         self
                                     )
+                                ).bind(
+                                    'mouseover',
+                                    function(){
+                                        self.cpuHistogram.highlight(self.getStack().stack[this.getAttr('data-ref')].leaf);
+                                    }
+                                ).bind(
+                                    'mouseout',
+                                    function(){
+                                        self.cpuHistogram.restore();
+                                    }
                                 );
                         }
                     },
@@ -502,9 +615,12 @@
                         var datas = self.getStack()
                                         .getTopMemory();
 
+                        self.getConsole().empty().open();
+
+                        self.getMemoryHistogram()
+                            .appendTo(self.getConsole());
+
                         var table = self.getConsole()
-                                        .empty()
-                                        .open()
                                         .table(["function", "self cost Kb", "total cost Kb", "calls"]);
                         for(var i in datas) {
                             var id = self.getStack().getEntryId(datas[i]);
@@ -514,12 +630,21 @@
                                     f.roundDiv(datas[i].bytes, 1024).toFixed(3) + '',
                                     f.roundDiv(self.getStack().getFunctions()[id].getMemory(), 1024).toFixed(3) + '',
                                     self.getStack().getFunctions()[id].calls
-                                ])
-                                .addEventListener(
+                                ]).addEventListener(
                                     new f.LineEventListenerBacktrace(
                                         datas[i].i,
                                         self
                                     )
+                                ).bind(
+                                    'mouseover',
+                                    function(){
+                                        self.memoryHistogram.highlight(self.getStack().stack[this.getAttr('data-ref')].leaf);
+                                    }
+                                ).bind(
+                                    'mouseout',
+                                    function(){
+                                        self.memoryHistogram.restore();
+                                    }
                                 );
                         }
                     },
@@ -591,9 +716,12 @@
                         var datas = self.getStack()
                                         .getGroups();
 
+                        self.getConsole().empty().open();
+
+self.getGroupsBarChart()
+    .appendTo(self.getConsole());
+
                         var table = self.getConsole()
-                                        .empty()
-                                        .open()
                                         .table(["group", "calls", "ms", "Kb"]);
 
                         for(var i in datas) {

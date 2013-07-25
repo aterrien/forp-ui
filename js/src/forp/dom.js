@@ -12,43 +12,62 @@
         this.element = element;
         this.parent = null;
         this.classes = [];
+        this.events = {};
 
-        this.bind = function(evType, fn) {
+        this.bind = function(event, fn) {
+            if(!this.events[event]) this.events[event] = [];
+
+            this.events[event].push(fn);
+
             if (this.element.addEventListener) {
-                this.element.addEventListener(evType, fn, false);
+                this.element.addEventListener(
+                    event,
+                    self.trigger,
+                    false);
             } else if (this.element.attachEvent) {
-                var r = this.element.attachEvent("on"+evType, fn);
+                var r = this.element.attachEvent(
+                    "on" + event,
+                    self.trigger
+                );
                 return r;
             }
             return this;
         };
-        this.unbind = function(evType, fn) {
-            if (this.element.removeEventListener) {
-                this.element.removeEventListener(evType, fn, false);
-            } else if (this.element.detachEvent) {
-                var r = this.element.detachEvent("on"+evType, fn);
-                return r;
+
+        this.unbind = function(event, fn) {
+            if(this.events[event]) {
+
+                if (this.element.removeEventListener) {
+                    this.element.removeEventListener(event, fn, false);
+                } else if (this.element.detachEvent) {
+                    this.element.detachEvent("on" + event, fn);
+                }
+
+                for(var i in this.events[event]) {
+                    if(this.events[event][i] == fn) {
+                        this.events[event].splice(i, 1);
+                        return this;
+                    };
+                }
             }
             return this;
         };
-        this.trigger = function(eventName) {
-            var event;
-            if (document.createEvent) {
-                event = document.createEvent("HTMLEvents");
-                event.initEvent(eventName, true, true);
-            } else {
-                event = document.createEventObject();
-                event.eventType = eventName;
-            }
 
-            event.eventName = eventName;
-
-            if (document.createEvent) {
-                this.element.dispatchEvent(event);
+        this.trigger = function(event) {
+            var eventType = '';
+            if(event instanceof Object) {
+                eventType = event.type;
             } else {
-                this.element.fireEvent("on" + event.eventType, event);
+                eventType = event;
             }
+            if(self.events[eventType]) {
+                for(var fn in self.events[eventType]) {
+                    self.events[eventType][fn].call(self, event);
+                }
+            }
+            return this;
         };
+
         this.find = function(s) {
             return new f.DOMElementWrapperCollection(this.element.querySelectorAll(s));
         };

@@ -161,7 +161,8 @@
 
                     // unit cost
                     if(lastEntry && (lastEntry.level >= this.stack[entry].level)) {
-                        this.leaves.push(lastEntry);
+                        this.leaves.push(lastEntry)
+                            && (lastEntry.leaf = this.leaves.length - 1);
                         this.topCpu.put(lastEntry);
                         this.topMemory.put(lastEntry);
                     }
@@ -174,7 +175,7 @@
 
                     this.stack[entry].id = id;
 
-                    // Counts leafs
+                    // Count leaves
                     if(this.stack[this.stack[entry].parent]) {
                         if(!this.stack[this.stack[entry].parent].childrenRefs) {
                             this.stack[this.stack[entry].parent].childrenRefs = [];
@@ -261,7 +262,8 @@
                 } // end foreach stack
 
                 // unit cost / last entry
-                this.leaves.push(lastEntry);
+                this.leaves.push(lastEntry)
+                    && (lastEntry.leaf = this.leaves.length - 1);
                 this.topCpu.put(lastEntry);
                 this.topMemory.put(lastEntry);
 

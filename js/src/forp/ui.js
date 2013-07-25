@@ -109,7 +109,7 @@
 
         this.open = function()
         {
-            this.class(this.viewMode);
+            this.class("forp-" + this.viewMode);
             return this;
         };
 
@@ -125,7 +125,7 @@
         {
             this.attr("style", "")
                 .empty()
-                .class(this.viewMode + "Compact");
+                .class("forp-" + this.viewMode + "-compact");
             this.nav = null;
             this.mainpanel = null;
 
@@ -509,13 +509,12 @@
                         e.preventDefault();
                         e.stopPropagation();
 
-                        var line = f.wrap(this);
                         context.getConsole()
                             .getSidebar()
                             .empty()
                             .append(
                                 new f.Backtrace(
-                                    line.getAttr("data-ref"),
+                                    this.getAttr("data-ref"),
                                     context.getStack().stack
                                 )
                             )
@@ -541,8 +540,7 @@
                     e.preventDefault();
                     e.stopPropagation();
 
-                    var line = f.wrap(this),
-                        ul = f.create("ul").class("inspect");
+                    var ul = f.create("ul").class("inspect");
 
                     var list = function(v, ul) {
                         for(var entry in v) {
@@ -684,5 +682,208 @@
                         }
                     );
         }
+    };
+
+    /**
+     * Graph abstraction
+     */
+    f.Graph = function(conf) {
+        f.DOMElementWrapper.call(this);
+        this.element = document.createElement("canvas");
+        this.ctx = this.element.getContext('2d');
+        this.drawn = false;
+
+        this.conf = f.extends({
+            xaxis: {length: 100, min: 0, max: 0},
+            yaxis: {length: 100, min: 0, max: 0},
+            mousemouve: null,
+            val: function(i) {
+                return this.datas[i];
+            },
+            color: function(i) {
+                return '#999999';
+            }
+        }, conf);
+
+        this.datas = null;
+
+        this.setDatas = function(datas) {
+            this.datas = datas;
+            return this;
+        };
+    }
+
+    /**
+     * Histogram Class
+     */
+    f.Histogram = function(conf) {
+        f.Graph.call(this, conf);
+        this.tmp = null;
+
+        this.restore = function() {
+            if(this.tmp) {
+                this.ctx.clearRect(0, 0, this.element.width, this.element.height);
+                this.ctx.drawImage(this.tmp, 0, 0);
+            }
+        };
+
+        this.highlight = function(idx) {
+
+            if(!this.tmp) {
+                this.tmp = document.createElement('canvas');
+                this.tmp.width = this.element.width;
+                this.tmp.height = this.element.height;
+                this.tmp.style.width = '100%';
+                this.tmp.style.height = this.conf.yaxis.length + 'px';
+
+                var context = this.tmp.getContext('2d');
+                context.drawImage(this.element, 0, 0);
+            }
+
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = '#4D90FE';
+            this.ctx.lineWidth = 60;
+            this.ctx.moveTo(idx, this.conf.yaxis.length);
+            this.ctx.lineTo(
+                idx,
+                this.conf.yaxis.length -
+                (
+                    (this.conf.val.call(this, idx) * this.conf.yaxis.length) /
+                    this.conf.yaxis.max
+                )
+            );
+            this.ctx.closePath();
+            this.ctx.stroke();
+        };
+
+        this.draw = function() {
+            if(!this.drawn) {
+                this.drawn = true;
+
+                var len = this.datas.length;
+                this.element.width  = len;
+                this.element.height = this.conf.yaxis.length;
+                this.element.style.width = '100%';
+                this.element.style.height = this.conf.yaxis.length + 'px';
+                this.element.style.marginBottom = '-3px';
+                this.element.style.backgroundColor = '#333';
+
+                this.ctx.beginPath();
+                for(var i = 0; i < len; i++) {
+                    this.ctx.strokeStyle = this.conf.color.call(this, i);
+                    this.ctx.lineWidth = 60;
+                    this.ctx.moveTo(i, this.conf.yaxis.length);
+                    this.ctx.lineTo(
+                        i,
+                        this.conf.yaxis.length -
+                        (
+                            (this.conf.val.call(this, i) * this.conf.yaxis.length) /
+                            this.conf.yaxis.max
+                        )
+                    );
+                }
+                this.ctx.closePath();
+                this.ctx.stroke();
+
+                if(this.conf.mousemove) {
+                    var self = this;
+                    this.bind(
+                        'mousemove',
+                        function(e) {
+                            self.conf.mousemove.call(self,e);
+                        }
+                    )
+                }
+            }
+            return this;
+        };
+    };
+
+    /**
+     * BarChart Class
+     */
+    f.BarChart = function(conf) {
+        f.Graph.call(this, conf);
+        this.tmp = null;
+
+        this.restore = function() {
+            if(this.tmp) {
+                this.ctx.clearRect(0, 0, this.element.width, this.element.height);
+                this.ctx.drawImage(this.tmp, 0, 0);
+            }
+        };
+
+        this.highlight = function(idx) {
+
+            if(!this.tmp) {
+                this.tmp = document.createElement('canvas');
+                this.tmp.width = this.element.width;
+                this.tmp.height = this.element.height;
+                this.tmp.style.width = '100%';
+                this.tmp.style.height = '100px';
+
+                var context = this.tmp.getContext('2d');
+                context.drawImage(this.element, 0, 0);
+            }
+
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = '#4D90FE';
+            this.ctx.lineWidth = 60;
+            this.ctx.moveTo(idx, this.conf.yaxis.length);
+            this.ctx.lineTo(
+                idx,
+                this.conf.yaxis.length -
+                (
+                    (this.conf.val.call(this, idx) * 100) /
+                    this.conf.yaxis.max
+                )
+            );
+            this.ctx.closePath();
+            this.ctx.stroke();
+        };
+
+        this.draw = function() {
+            if(!this.drawn) {
+                this.drawn = true;
+
+                var len = this.datas.length;
+                this.element.width  = document.body.clientWidth*2;
+                this.element.height = this.conf.yaxis.length;
+                this.element.style.width = '100%';
+                this.element.style.height = this.conf.yaxis.length + 'px';
+                this.element.style.marginBottom = '-3px';
+                this.element.style.backgroundColor = '#333';
+
+                var x = 0;
+                for(var i = 0; i < len; i++) {
+                    this.ctx.beginPath();
+                    this.ctx.strokeStyle = this.conf.color.call(this, i);
+                    this.ctx.lineWidth = 50;
+                    this.ctx.moveTo(
+                        x, 25
+                    );
+                    this.ctx.lineTo(
+                        x += (
+                            (this.conf.val.call(this, i) * this.element.width) /
+                            this.conf.xaxis.max
+                        ) +2,
+                        25
+                    );
+                    this.ctx.closePath();
+                    this.ctx.stroke();
+                }
+
+                if(this.conf.mousemove) {
+                    var self = this;
+                    this.bind(
+                        'mousemove',
+                        function(e) {
+                            self.conf.mousemove.call(self,e);
+                        }
+                    )
+                }
+            }
+            return this;
+        };
     };
 })(forp);
