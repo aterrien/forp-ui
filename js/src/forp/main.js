@@ -802,7 +802,9 @@ self.getGroupsBarChart()
                                         .empty()
                                         .open()
                                         .table(["function", "calls", "ms", "Kb"]),
-                            datas = self.getStack().search(this.value);
+                            datas = self.getStack().search(
+                                this.element.value.replace(/\\/g,"\\\\")
+                            );
 
                         for(var i in datas) {
                             table.line([
