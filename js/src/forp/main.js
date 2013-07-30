@@ -572,8 +572,9 @@
 
                         self.getConsole().empty().open();
 
-                        self.getCpuHistogram()
-                            .appendTo(self.getConsole());
+                        (self.getStack().leaves.length > 10)
+                        && self.getCpuHistogram()
+                               .appendTo(self.getConsole());
 
                         var table = self.getConsole()
                                         .table(["function", "self cost ms", "total cost ms", "calls"]);
@@ -617,8 +618,9 @@
 
                         self.getConsole().empty().open();
 
-                        self.getMemoryHistogram()
-                            .appendTo(self.getConsole());
+                        (self.getStack().leaves.length > 10)
+                        && self.getMemoryHistogram()
+                               .appendTo(self.getConsole());
 
                         var table = self.getConsole()
                                         .table(["function", "self cost Kb", "total cost Kb", "calls"]);
@@ -718,8 +720,8 @@
 
                         self.getConsole().empty().open();
 
-self.getGroupsBarChart()
-    .appendTo(self.getConsole());
+                        self.getGroupsBarChart()
+                            .appendTo(self.getConsole());
 
                         var table = self.getConsole()
                                         .table(["group", "calls", "ms", "Kb"]);

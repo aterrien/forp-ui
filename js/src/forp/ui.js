@@ -742,7 +742,7 @@
 
             this.ctx.beginPath();
             this.ctx.strokeStyle = '#4D90FE';
-            this.ctx.lineWidth = 60;
+            this.ctx.lineWidth = 30;
             this.ctx.moveTo(idx, this.conf.yaxis.length);
             this.ctx.lineTo(
                 idx,
@@ -771,7 +771,7 @@
                 this.ctx.beginPath();
                 for(var i = 0; i < len; i++) {
                     this.ctx.strokeStyle = this.conf.color.call(this, i);
-                    this.ctx.lineWidth = 60;
+                    this.ctx.lineWidth = 30;
                     this.ctx.moveTo(i, this.conf.yaxis.length);
                     this.ctx.lineTo(
                         i,
