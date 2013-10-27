@@ -4,3 +4,6 @@
 [submodule "src/tools/jsmin"]
 	path = src/tools/jsmin
 	url = https://github.com/rgrove/jsmin-php.git
+[submodule "src/js/submodules/jmicro"]
+	path = src/js/submodules/jmicro
+	url = https://github.com/ichiriac/jmicro.git

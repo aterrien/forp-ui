@@ -49,7 +49,7 @@ foreach($options as $k=>$v) {
 // Files
 $files = array(
     'js' => array(
-        'js/ext/jmicro/jmicro', //'dom',
+        'js/submodules/jmicro/jmicro', //'dom',
         'js/main',
         'js/lib/view/utils',
 
