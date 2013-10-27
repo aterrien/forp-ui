@@ -1,7 +1,7 @@
 <?php
 // Starting forp
 ($forpIsLoaded = extension_loaded("forp"))
-    && define('FORP_UI_SRC', '../../../js/forp.min.js')
+    && define('FORP_UI_SRC', '../../../src/built/forp.min.js')
     && forp_start();
 
 if(strpos($_SERVER['HTTP_ACCEPT'], 'json')) {

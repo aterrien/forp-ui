@@ -3,20 +3,20 @@ register_shutdown_function(
     function() {
         // next code can be append to PHP scripts in dev mode
         ?>
-        <script src="../../../js/forp.min.js"></script>
+        <script src="../../../src/built/forp.min.js"></script>
         <script>
-        (function(f) {
-            f.find(".forp")
+        (function($) {
+            $(".forp")
              .each(
-                function(el) {
-                    el.css('margin:50px;height:300px;border:1px solid #333');
+                function() {
+                    $(this).attr('style', 'margin:50px;height:300px;border:1px solid #333');
                 }
              )
              .forp({
                 stack : <?php echo json_encode(forp_dump()); ?>,
                 //mode : "fixed"
              })
-        })(forp);
+        })(jMicro);
         </script>
         <?php
     }

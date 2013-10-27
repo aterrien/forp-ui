@@ -24,11 +24,10 @@ Put it in the js directory of your project, then run forp-ui as in the example b
 
 
 ```
-<script src="js/forp.min.js"></script>
+<script src="src/built/forp.min.js"></script>
 <script>
-(function(f) {
-    f.find("body")
-     .forp({
+(function($) {
+    $("body").forp({
         stack :
         {
             "utime" : 0,
@@ -57,16 +56,17 @@ Put it in the js directory of your project, then run forp-ui as in the example b
         },
         mode : "fixed"
     });
-})(forp);
+})(jMicro);
 </script>
 ```
 
 # Build #
 
-forp-ui builder generates the forp.min.js file from files as js/forp.min.js.
+Use src/build.php to build src/built/forp.min.js file.
 
 ```
-$ php js/build.php
+$ cd src
+$ php build.php
 ```
 
 # Communication with forp PHP profiler #

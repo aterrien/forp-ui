@@ -113,13 +113,12 @@ implements IResponse
         <div class="forp"></div>
         <script src="<?php echo FORP_UI_SRC; ?>"></script>
         <script>
-            (function(f) {
-               f.find(".forp")
-                .forp({
+            (function($) {
+               $(".forp").forp({
                     stack : <?php echo json_encode($datas); ?>,
                     mode : "fixed"
                 })
-            })(forp);
+            })(jMicro);
         </script>
         <?php
     }
@@ -149,13 +148,12 @@ implements IResponse
     fg.type = 'text/javascript';
     fg.async = true;
     fg.src = _forpguiSrc;
-    fg.onload = (function(f) {
-       f.find(".forp")
-        .forp({
+    fg.onload = (function($) {
+       $(".forp").forp({
             stack : _forpguiStack,
             mode : "fixed"
         })
-    })(forp);
+    })(jMicro);
     (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(fg);
 })();
 </script>
