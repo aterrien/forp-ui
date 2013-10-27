@@ -1,0 +1,168 @@
+#forp {
+    background: none;
+}
+
+#forp *{
+    font-family: Consolas, monaco, monospace;
+    font-size : 11px;
+    color: #eee;
+}
+
+/* backtrace */
+#forp div.backtrace-item{
+    word-wrap: break-word;
+    max-width: 90%;
+    background: #777;
+    padding: 4px 10px 5px 10px;
+}
+#forp div.backtrace div.highlight{
+    background: #333 !important;
+}
+#forp div.backtrace div.arrow {
+    color: #ddd;
+}
+
+/* close */
+#forp div.close:hover{
+    color: #eee;
+}
+
+/* console */
+#forp div.console{}
+
+/* forp */
+#forp.forp-fixed {
+    height: 100%;
+    background: #FFF;
+    min-width: 1000px;
+    top: 0px;
+    left: 0px;
+}
+#forp.forp-fixed-compact {
+    margin: 0px;
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    bottom: auto;
+    border-radius: 0;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    width: 130px;
+}
+#forp.forp-fixed-compact nav{
+    height: 35px;
+    text-align: right;
+    padding: 5px 10px;
+    background: none;
+    background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, 0) 7%, #333 0%);
+    background-image: -moz-linear-gradient(45deg, rgba(255, 255, 255, 0) 7%, #333 0%);
+    background-image: -ms-linear-gradient(45deg, rgba(255, 255, 255, 0) 7%, #333 0%);
+    background-image: -o-linear-gradient(45deg, rgba(255, 255, 255, 0) 7%, #333 0%);
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0) 7%, #333 0%);
+    border-radius: 0;
+}
+#forp.forp-fixed-compact div.summary > div {
+    color: #fff !important;
+}
+#forp.forp-fixed-compact.grade-A {
+    border-right: 4px solid #9E5
+}
+#forp.forp-fixed-compact.grade-B {
+    border-right: 4px solid #EE5
+}
+#forp.forp-fixed-compact.grade-C {
+    border-right: 4px solid #EB5
+}
+#forp.forp-fixed-compact.grade-D {
+    border-right: 4px solid #E95
+}
+#forp.forp-fixed-compact.grade-E {
+    border-right: 4px solid #E55
+}
+
+/* gauge */
+#forp div.gauge{
+    background: #777
+}
+#forp div.gauge div.text{}
+#forp div.gauge div.bar{}
+
+/* input */
+#forp input[type=text]{
+    border: 1px solid #333;
+    background: #333;
+    margin: 10px 5px;
+}
+#forp input[type=text]:focus{
+    background: #555;
+}
+
+/* inset */
+#forp div.inset {
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+
+/* mainpanel */
+#forp div.mainpanel {
+    background: #666;
+}
+
+/* nav */
+#forp nav {
+    background: #222;
+    height: 45px;
+    padding: 0px;
+}
+#forp.forp-fixed nav, #forp.forp-embedded nav{
+    height: 45px;
+}
+#forp div.toggleBar{
+    min-width: 1100px;
+}
+#forp div.toggleOn, #forp div.toggleOff{
+    height: 21px;
+    padding: 15px 10px 5px 10px;
+    min-width: 100px;
+    background: none;
+    border-radius: 0;
+    margin: 0px;
+    border-bottom: 4px solid #CCC;
+    margin-right: 1px;
+}
+#forp div.toggleOn:hover, #forp div.toggleOff:hover{
+    border-bottom: 4px solid #FFF;
+}
+#forp div.toggleOn{
+    color: #EEE;
+    border-bottom: 4px solid #9E5;
+    background-image: -webkit-linear-gradient(-135deg, rgba(255, 255, 255, 0) 7%, #555 0%);
+    background-image: -moz-linear-gradient(-135deg, rgba(255, 255, 255, 0) 7%, #555 0%);
+    background-image: -ms-linear-gradient(-135deg, rgba(255, 255, 255, 0) 7%, #555 0%);
+    background-image: -o-linear-gradient(-135deg, rgba(255, 255, 255, 0) 7%, #555 0%);
+    background-image: linear-gradient(-135deg, rgba(255, 255, 255, 0) 7%, #555 0%);
+}
+#forp div.toggleOff{
+    color: #EEE;
+    background-image: -webkit-linear-gradient(-135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
+    background-image: -moz-linear-gradient(-135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
+    background-image: -ms-linear-gradient(-135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
+    background-image: -o-linear-gradient(-135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
+    background-image: linear-gradient(-135deg, rgba(255, 255, 255, 0) 5%, #333 0%);
+}
+
+/* table */
+#forp tr:nth-child(even) {background: #333}
+#forp tr:nth-child(odd) {background: #444}
+#forp tr:hover{
+    background: #777;
+}
+#forp th, #forp td {
+    padding: 7px;
+    border: none;
+}
+#forp th{
+    background: #999;
+}
