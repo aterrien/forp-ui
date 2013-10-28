@@ -71,7 +71,7 @@ $ php build.php
 
 Options:
 
---skin <name> : gstyle, consolas (default)
+--skin name : gstyle, consolas (default)
 
 
 # Communication with forp PHP profiler #
