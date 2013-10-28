@@ -8,7 +8,7 @@ require 'tools/cssmin/src/CssMin.php';
 // Default opts
 $skin = 'consolas'; //dark theme
 //$skin = 'gstyle'; //light theme
-$nomin = 1;//false;
+$nomin = false;
 
 $opts = array(
     'skin' => array(
