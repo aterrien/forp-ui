@@ -10,6 +10,13 @@
                     datas = controller.getStack().getTopCpu(),
                     $table = $.table(["function", "self cost ms", "total cost ms", "calls"]);
 
+                controller.getConsole().empty();
+
+                (controller.getStack().leaves.length > 100)
+                    && controller
+                            .getCpuHistogram()
+                            .appendTo(controller.getConsole());
+
                 for(var i in datas) {
                     var id = controller.getStack().getEntryId(datas[i]);
                     $table
@@ -57,7 +64,7 @@
                         );
                 }
 
-                controller.getConsole().show($table);
+                $table.appendTo(controller.getConsole().$);
             },
             'close': function() {
                 forp.getController().getLayout().reduce();

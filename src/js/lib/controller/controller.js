@@ -143,6 +143,7 @@
             if(!this.memoryHistogram) {
                 this.memoryHistogram = (new forp.Histogram(
                     {
+                        width : this.getConsole().$.width(),
                         xaxis : {min: 0},
                         yaxis : {length: 50, min: 0, max: self.getStack().getTopMemory()[0].bytes},
                         val: function(i) {
@@ -323,7 +324,7 @@
                 target = $(this);
 
             if(target.attr("data-details") == 1) {
-                target.nextSibling().remove();
+                target.next().remove();
                 target.attr("data-details", 0);
                 return;
             }
@@ -359,7 +360,7 @@
                                 .append(
                                     $("<td>")
                                         .attr("colspan", 3)
-                                     .css("text-align: center")
+                                        .css("text-align", "center")
                                         .text(lastId + " : " +
                                             "too many items to display (>" +
                                             loopMaxIter + ")")

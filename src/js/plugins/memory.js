@@ -11,7 +11,9 @@
                                 .getStack()
                                 .getTopMemory();
 
-                (controller.getStack().leaves.length > 10)
+                controller.getConsole().empty();
+
+                (controller.getStack().leaves.length > 100)
                     && controller
                             .getMemoryHistogram()
                             .appendTo(controller.getConsole());
@@ -47,10 +49,13 @@
                         ).bind(
                             'mouseover',
                             function(){
-                                controller.memoryHistogram.highlight(
-                                    controller
-                                        .getStack()
-                                        .stack[$(this).attr('data-ref')].leaf);
+                                controller
+                                    .getMemoryHistogram()
+                                    .highlight(
+                                        controller
+                                            .getStack()
+                                            .stack[$(this).attr('data-ref')].leaf
+                                    );
                             }
                         ).bind(
                             'mouseout',
@@ -60,7 +65,7 @@
                         );
                 }
 
-                controller.getConsole().show($table);
+                $table.appendTo(controller.getConsole().$);
             },
             'close': function() {
                 forp.getController().getLayout().reduce();

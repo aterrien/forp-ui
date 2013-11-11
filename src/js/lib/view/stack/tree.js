@@ -17,31 +17,9 @@
         */
         this.treeList = function(entry, recursive)
         {
-
-            /*var $table = $.table(['function', 'memory', 'timeline']);
-            $table.line([
-                entry.id,
-                $.Gauge(
-                    entry.bytes,
-                    stack[entry.parent] ? stack[entry.parent].bytes : entry.bytes,
-                    1024,
-                    'Kb'
-                ),
-                $.Gauge(
-                    entry.usec,
-                    stack[entry.parent] ? stack[entry.parent].usec : entry.usec,
-                    1000,
-                    'ms'
-                ),
-            ]);
-            for(var i in entry.childrenRefs) {
-
-            }
-            return $table;*/
-
             var ul = $("<ul>").addClass("l" + entry.level)
                 , ex = $("<div>")
-                        .text("&nbsp;")
+                        .html("<span>&nbsp;</span>")
                         .addClass("left expander")
                 , gd = ($.Gauge(
                             entry.usec,

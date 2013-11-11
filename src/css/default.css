@@ -56,7 +56,7 @@
     padding: 10px;
     border-radius: 8px;
 }
-#forp.forp-fixed-compact nav>div{
+#forp.forp-fixed-compact nav div{
     margin: 3px 0px;
 }
 #forp.forp-fixed, #forp.forp-embedded {
@@ -67,7 +67,7 @@
 #forp.forp-fixed a, #forp.forp-embedded a{
     display: inline;
 }
-#forp.forp-fixed nav>div, #forp.forp-embedded nav>div{
+#forp.forp-fixed nav div, #forp.forp-embedded nav div{
     float: left;
 }
 #forp.forp-fixed div.summary, #forp.forp-embedded div.summary{
@@ -142,7 +142,7 @@
     line-height: 1.8;
     font-size: .9em
 }
-#forp td>div.gauge{
+#forp td div.gauge{
     margin: 0px;
 }
 
@@ -238,25 +238,25 @@
     line-height: 1.8 !important;
     margin: 2px
 }
-#forp li > div.numeric{
+#forp li div.numeric{
     min-width: 60px;
     margin: 0px 10px
 }
-#forp .indent {
+#forp .indent{
     padding-left: 30px
 }
-#forp div.expander{
+#forp li div.expander{
     text-align:center;
     width: 20px;
     cursor: pointer;
 }
-#forp li.expanded > div.expander:before{
+#forp li.expanded div.expander:before{
     content: "-";
 }
-#forp li.collapsed > div.expander:before {
+#forp li.collapsed div.expander:before{
     content: "+";
 }
-#forp li.collapsed > ul{
+#forp li.collapsed ul{
     display: none;
 }
 #forp .left{

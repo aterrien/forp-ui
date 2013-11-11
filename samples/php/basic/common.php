@@ -87,11 +87,12 @@ function() {
 forp_inspect('lambda', $lambda);
 
 // calls
-for($i = 0; $i<5000; $i++) {
+for($i = 0; $i<1000; $i++) {
     test($i);
     // inspect stress
     // forp_inspect('i' . $i, $i);
 }
+
 for($i=0;$i<5;$i++){ test1(); }
 $lambda();
 $lambda();

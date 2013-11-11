@@ -9,7 +9,7 @@ register_shutdown_function(
             $(".forp")
              .each(
                 function() {
-                    $(this).attr('style', 'margin:50px;height:300px;border:1px solid #333');
+                    $(this).attr('style', 'margin:10px;height:300px;border:1px solid #333');
                 }
              )
              .forp({

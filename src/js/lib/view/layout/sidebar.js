@@ -14,7 +14,7 @@
         }
 
         this.close = function() {
-            this.$.removeClass("w1of3");
+            this.$.empty().removeClass("w1of3");
             return this;
         }
     };

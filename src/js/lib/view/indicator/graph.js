@@ -9,6 +9,7 @@
         this.drawn = false;
 
         this.conf = $.extend({
+            width: 100,
             xaxis: {length: 100, min: 0, max: 0},
             yaxis: {length: 100, min: 0, max: 0},
             mousemouve: null,

@@ -20,6 +20,7 @@ if(strpos($_SERVER['HTTP_ACCEPT'], 'json')) {
                 }
             };
             xhr.open("GET", "index.php", true);
+            xhr.setRequestHeader('X-Requested-With', 'xmlhttprequest');
             xhr.setRequestHeader("Accept","application/json");
             xhr.send(null);
         }

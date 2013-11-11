@@ -30,8 +30,7 @@
 
 
         this.showInSidebar = function($content) {
-            return this
-                    .openSidebar().$
+            return this.openSidebar().$
                     .empty()
                     .append($content);
         };
