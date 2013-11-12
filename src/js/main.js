@@ -57,7 +57,7 @@ if(typeof forp.plugins == "undefined") {forp.plugins = {};}
  *
  * Adds some plugins for jMicro.
  */
-(function($) {
+(function(forp, $) {
 
     "use strict";
 
@@ -69,11 +69,11 @@ if(typeof forp.plugins == "undefined") {forp.plugins = {};}
             },
             options
         );
-            
+
         (new forp.Controller({parent: this[0], mode: options.mode}))
             .setStack(options.stack)
             .run();
 
     };
 
-})(jMicro);
+})(forp, jMicro);
