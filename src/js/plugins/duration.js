@@ -8,7 +8,10 @@
             'open': function(e) {
                 var controller = forp.getController(),
                     datas = controller.getStack().getTopCpu(),
-                    $table = $.table(["function", "self cost ms", "total cost ms", "calls"]);
+                    $table = $.table(
+                        ["function", "self cost ms", "total cost ms", "calls"], 
+                        ["function", "self cost ms", "total cost ms", "calls"]
+                    );
 
                 controller.getConsole().empty();
 

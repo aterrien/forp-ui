@@ -19,7 +19,10 @@
                 self.getGroupsBarChart()
                     .appendTo(self.getConsole());
 
-                var $table = $.table(["group", "calls", "ms", "Kb"]);
+                var $table = $.table(
+                    ["group", "calls", "ms", "Kb"], 
+                    ["group", "calls", "ms", "Kb"]
+                );
 
                 for(var i in datas) {
                     $table

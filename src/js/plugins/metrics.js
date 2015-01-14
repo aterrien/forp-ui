@@ -19,7 +19,10 @@
                 // x Ease of change
 
                 var controller = forp.getController(),
-                    $table = $.table(["metric", "type", "value", "grade"]),
+                    $table = $.table(
+                        ["metric", "type", "value", "grade"], 
+                        ["metric", "type", "value", "grade"]
+                    ),
                     duration = $.roundDiv(controller.getStack().getMainEntry().usec, 1000),
                     memory = $.roundDiv(controller.getStack().getMainEntry().bytes, 1024);
 

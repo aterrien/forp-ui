@@ -8,7 +8,10 @@
             'open': function(e) {
                 var controller = forp.getController(),
                     datas = controller.getStack().getTopCalls(),
-                    $table = $.table(["function", "calls", "ms", "Kb"]);
+                    $table = $.table(
+                        ["function", "calls", "ms", "Kb"], 
+                        ["function", "calls", "ms", "Kb"]
+                    );
 
                 for(var i in datas) {
                     $table.line([

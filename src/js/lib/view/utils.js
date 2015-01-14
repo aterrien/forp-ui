@@ -14,16 +14,54 @@
     /**
      * jMicro table() helper
      */
-    $.table = function(headers) {
+    $.table = function(headers, reorder) {
         var $table = $('<table>');
         if(headers) {
             var $header = $("<tr>");
             for(var i in headers) {
-                $("<th>").text(headers[i]).appendTo($header);
+                if (reorder && ~reorder.indexOf(headers[i])) {
+                    $("<th>").text(headers[i])
+                        .addClass("reorder")
+                        .on("click", $.fn.tableOrder)
+                        .appendTo($header);
+                } else {
+                    $("<th>").text(headers[i]).appendTo($header);
+                }
             }
             $header.appendTo($table);
         }
         return $table;
+    };
+    
+    /**
+     * jMicro tableOrder callback
+     */
+    $.fn.tableOrder = function(e) {
+        $(e.srcElement).data("order", $(e.srcElement).data("order") ? 0 : 1);
+        var $tbl = $(e.srcElement).parent().parent(),
+            index = e.srcElement.cellIndex,
+            trs = [],
+            order = $(e.srcElement).data("order");
+
+        for (var i = 1; i < $tbl[0].childNodes.length; i++) {
+            trs.push($tbl[0].childNodes[i]);
+        }
+        
+        trs.sort(function(a, b) {
+            var aval = a.childNodes[index].innerHTML.replace(/<.*?>/g, ''),
+            bval = b.childNodes[index].innerHTML.replace(/<.*?>/g, '');
+
+            if (aval < bval) {
+                return order ? -1 : 1;
+            } else if (aval > bval) {
+                return order ? 1 : -1;
+            }
+            return 0;
+        });
+
+        for (var i = 0; i < trs.length; i++) {
+          $tbl.append(trs[i]);
+        }
     };
 
     /**
