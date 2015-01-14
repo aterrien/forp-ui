@@ -49,9 +49,12 @@
         
         trs.sort(function(a, b) {
             var aval = a.childNodes[index].innerHTML.replace(/<.*?>/g, ''),
-            bval = b.childNodes[index].innerHTML.replace(/<.*?>/g, '');
+                bval = b.childNodes[index].innerHTML.replace(/<.*?>/g, ''),
+                regex = /^[\d\.]+$/;
 
-            if (aval < bval) {
+            if (regex.test(aval) && regex.test(bval)) {
+                return order ? (parseFloat(aval) - parseFloat(bval)): (parseFloat(bval) - parseFloat(aval));
+            } else if (aval < bval) {
                 return order ? -1 : 1;
             } else if (aval > bval) {
                 return order ? 1 : -1;
