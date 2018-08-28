@@ -65,6 +65,8 @@ Put it in the js directory of your project, then run forp-ui as in the example b
 Use src/build.php to build src/built/forp.min.js file.
 
 ```
+$ git submodule init
+$ git submodule update
 $ cd src
 $ php build.php
 ```
