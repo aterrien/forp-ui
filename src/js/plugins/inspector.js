@@ -12,7 +12,7 @@
             'open': function(e) {
 
                 var self = forp.getController(),
-                    $table = $.table(["var", "type"]),
+                    $table = $.table(["var", "type"], ["var", "type"]),
                     ivars = self.getStack().inspect;
 
                 for(var ivar in ivars) {

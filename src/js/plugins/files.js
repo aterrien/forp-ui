@@ -13,7 +13,9 @@
                                 .getStack()
                                 .getIncludes();
 
-                var $table = $.table(["file", "calls from"]);
+                var $table = $.table(
+                    ["file", "calls from"], ["file", "calls from"]
+                );
                 for(var i in datas) {
                     $table.line([
                         i,

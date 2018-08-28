@@ -18,7 +18,10 @@
                             .getMemoryHistogram()
                             .appendTo(controller.getConsole());
 
-                var $table = $.table(["function", "self cost Kb", "total cost Kb", "calls"]);
+                var $table = $.table(
+                    ["function", "self cost Kb", "total cost Kb", "calls"], 
+                    ["function", "self cost Kb", "total cost Kb", "calls"]
+                );
                 for(var i in datas) {
                     var id = controller.getStack().getEntryId(datas[i]);
                     $table.line([
